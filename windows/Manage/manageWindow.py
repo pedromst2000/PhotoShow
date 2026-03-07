@@ -39,6 +39,11 @@ removeIcon = ""
 
 def manageWindow():
     """
+    Display the management window for admin or user management tasks.
+
+    :return: None
+    """
+    """
     This function is used to display the manage window.
     """
     global addIcon, removeIcon

@@ -6,6 +6,11 @@ from styles.colors import colors
 
 def dashboardWindow():
     """
+    Display the main dashboard window of the application.
+
+    :return: None
+    """
+    """
     This function is used to display the dashboard window.
     """
 

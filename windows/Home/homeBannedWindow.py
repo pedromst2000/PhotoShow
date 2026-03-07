@@ -13,6 +13,12 @@ signoutBtnImage = ""
 
 def homeBannedWindow(email: str):
     """
+    Display the home window for a banned user.
+
+    :param email: The email address of the banned user.
+    :return: None
+    """
+    """
     This function is used to display the home window for banned users.
 
     :param email: str

@@ -6,6 +6,11 @@ from styles.colors import colors
 
 def settingsWindow():
     """
+    Display the settings window for user preferences and configuration.
+
+    :return: None
+    """
+    """
     This function is used to display the settings window.
     """
 
