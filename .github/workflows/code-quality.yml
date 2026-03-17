@@ -1,0 +1,137 @@
+name: Code Quality
+
+'on':
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Full history needed to compute changed files against the base branch
+          fetch-depth: 0
+
+      # Detect which files changed in this PR / push
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files_yaml: |
+            python:
+              - '**/*.py'
+            csv:
+              - 'files/**/*.csv'
+            yaml:
+              - '**/*.yml'
+              - '**/*.yaml'
+
+      - name: Set up Python 3.14
+        if: >-
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.csv_any_changed == 'true' ||
+          steps.changed-files.outputs.yaml_any_changed == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      # Note: 'Cache not found' and 'Failed to save cache' warnings are
+      # expected and not errors. See GitHub Actions docs for details.
+      - name: Cache pip dependencies
+        if: >-
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.csv_any_changed == 'true' ||
+          steps.changed-files.outputs.yaml_any_changed == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/dev-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        if: >-
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.csv_any_changed == 'true' ||
+          steps.changed-files.outputs.yaml_any_changed == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r dev-requirements.txt
+
+      # --- Python linting (changed files only) ---
+      - name: Lint Python (flake8)
+        if: steps.changed-files.outputs.python_any_changed == 'true'
+        run: |
+          echo "Changed Python files: ${{ steps.changed-files.outputs.python_all_changed_files }}"
+          if ! python -m flake8 ${{ steps.changed-files.outputs.python_all_changed_files }}; then
+            echo "::error::Python linting issues found. Fix the issues locally and commit."
+            exit 1
+          fi
+
+      - name: Check Python formatting (black)
+        if: steps.changed-files.outputs.python_any_changed == 'true'
+        run: |
+          if ! python -m black --check ${{ steps.changed-files.outputs.python_all_changed_files }}; then
+            echo "::error::Python formatting issues found. Run 'python -m black .' locally and commit."
+            exit 1
+          fi
+
+      # --- Import order linting (changed files only) ---
+      - name: Check import order linting
+        if: steps.changed-files.outputs.python_any_changed == 'true'
+        run: |
+          if ! python scripts/check_imports.py ${{ steps.changed-files.outputs.python_all_changed_files }}; then
+            echo "::error::Import order issues found. Run 'python scripts/format_imports.py' locally and commit."
+            exit 1
+          fi
+
+      # --- CSV (changed files only) ---
+      - name: Lint CSV
+        if: steps.changed-files.outputs.csv_any_changed == 'true'
+        run: |
+          if ! python scripts/lint_csv.py ${{ steps.changed-files.outputs.csv_all_changed_files }}; then
+            echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally and fix the CSV files."
+            exit 1
+          fi
+
+      # --- YAML (changed files only) ---
+      - name: Lint YAML (yamllint)
+        if: steps.changed-files.outputs.yaml_any_changed == 'true'
+        run: |
+          if ! python -m yamllint ${{ steps.changed-files.outputs.yaml_all_changed_files }}; then
+            echo "::error::YAML linting issues found. Fix the YAML files manually."
+            exit 1
+          fi
+
+      # --- Python formatting (changed files only) ---
+      - name: Format Python (black)
+        if: steps.changed-files.outputs.python_any_changed == 'true'
+        run: |
+          if ! python -m black ${{ steps.changed-files.outputs.python_all_changed_files }}; then
+            echo "::error::Python auto-formatting failed. Run 'python -m black .' locally and commit."
+            exit 1
+          fi
+
+      # --- Import order formatting (changed files only) ---
+      - name: Format imports (isort)
+        if: steps.changed-files.outputs.python_any_changed == 'true'
+        run: |
+          if ! python scripts/format_imports.py ${{ steps.changed-files.outputs.python_all_changed_files }}; then
+            echo "::error::Import auto-formatting failed. Run 'python scripts/format_imports.py' locally and commit."
+            exit 1
+          fi
+
+      # --- CSV formatting (changed files only) ---
+      - name: Format CSV
+        if: steps.changed-files.outputs.csv_any_changed == 'true'
+        run: |
+          if ! python scripts/format_csv.py ${{ steps.changed-files.outputs.csv_all_changed_files }}; then
+            echo "::error::CSV auto-formatting failed. Run 'python scripts/format_csv.py' locally and commit."
+            exit 1
+          fi
