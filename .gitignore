@@ -1,4 +1,18 @@
-
-# Ignore Python cache files and folders
+########################################
+# Python cache files
+########################################
 __pycache__/
 *.pyc
+
+
+########################################
+# Local/personal files (add as needed)
+########################################
+settings.json
+
+
+
+########################################
+# Local copy DB file (add as needed)
+########################################
+photoshow.db
