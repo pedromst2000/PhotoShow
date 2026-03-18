@@ -48,7 +48,10 @@ def main():
     # When specific files are passed as CLI args (e.g. from CI changed-files),
     # format only those. Otherwise fall back to scanning the whole files/ directory.
     if sys.argv[1:]:
-        csv_files = sorted(Path(p) for p in sys.argv[1:] if p.endswith(".csv"))
+        # Resolve to absolute paths so file operations work regardless of cwd
+        csv_files = sorted(
+            Path(p).resolve() for p in sys.argv[1:] if p.endswith(".csv")
+        )
     else:
         csv_files = sorted(FILES_DIR.glob("*.csv"))
     changed = 0
