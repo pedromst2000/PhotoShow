@@ -4,6 +4,7 @@ from datetime import datetime
 import bcrypt
 
 from db.engine import SessionLocal, init_db
+
 from db.models import (
     AlbumModel,
     CategoryModel,
@@ -18,6 +19,7 @@ from db.models import (
     RoleModel,
     UserModel,
 )
+
 from utils.log_utils import log_check, log_issue, log_success
 
 
