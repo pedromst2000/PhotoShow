@@ -21,7 +21,8 @@ def main():
     # When specific files are passed as CLI args (e.g. from CI changed-files),
     # lint only those. Otherwise fall back to scanning the whole project.
     if sys.argv[1:]:
-        py_files = [Path(p) for p in sys.argv[1:] if p.endswith(".py")]
+        # Resolve to absolute paths so relative_to(ROOT) works regardless of cwd
+        py_files = [Path(p).resolve() for p in sys.argv[1:] if p.endswith(".py")]
     else:
         py_files = list(iter_python_files(ROOT))
     if not py_files:
