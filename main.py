@@ -132,14 +132,31 @@ if __name__ == "__main__":
     import sys
 
     from db.engine import check_db, init_db
-    from db.migration import migrate, reset_db
+    from db.migration import migrate
+    from db.reset import reset_db
 
-    if "--reset" in sys.argv:
+    if "--resetDB" in sys.argv:
         # ── Reset: wipe database and re-seed from CSV files ──────────────────
         # WARNING: all existing data (photos, users, albums, etc.) will be lost.
         init_db()
         reset_db()
         # Do NOT launch the app after a reset — exit cleanly.
+        sys.exit(0)
+
+    if "--restoreDB" in sys.argv:
+        # ── Restore: re-populate the database from a backup folder ───────────
+        # Usage:  python main.py --restoreDB
+        #         python main.py --restoreDB backups/20260320_002126
+        # If no path is given, the latest folder inside backups/ is used.
+        from db.restore import restore_db_from_backup
+
+        _idx = sys.argv.index("--restoreDB")
+        _backup_path = (
+            sys.argv[_idx + 1]
+            if _idx + 1 < len(sys.argv) and not sys.argv[_idx + 1].startswith("--")
+            else None
+        )
+        restore_db_from_backup(_backup_path)
         sys.exit(0)
 
     # ── Normal startup ───────────────────────────────────────────────────────
@@ -153,7 +170,7 @@ if __name__ == "__main__":
         _root.withdraw()
         mb.showerror(
             "Database Error",
-            f"Cannot start PhotoShow:\n\n{message}\n\nRun: python main.py --reset",
+            f"Cannot start PhotoShow:\n\n{message}\n\nRun: python main.py --resetDB to reset the database (WARNING: all data will be lost).",
         )
         _root.destroy()
         sys.exit(1)

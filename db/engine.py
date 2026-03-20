@@ -93,6 +93,7 @@ def check_db() -> tuple:
             expected = {
                 "users",
                 "roles",
+                "avatars",
                 "categories",
                 "albuns",
                 "photos",
