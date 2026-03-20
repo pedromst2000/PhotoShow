@@ -43,6 +43,7 @@ jobs:
             yaml:
               - '**/*.yml'
               - '**/*.yaml'
+              - '.yamllint.yaml'
             # Config files that should re-trigger checks when changed
             configs:
               - '.flake8'
