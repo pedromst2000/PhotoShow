@@ -1,8 +1,6 @@
 import csv
 from datetime import datetime
 
-import bcrypt
-
 from db.engine import SessionLocal, init_db
 from db.models import (
     AlbumModel,
@@ -21,21 +19,8 @@ from db.models import (
     RoleModel,
     UserModel,
 )
+from utils.hash_utils import hash_password
 from utils.log_utils import log_check, log_issue, log_success
-
-
-def _hash(plaintext: str) -> str:
-    """
-    Hash a plaintext password using bcrypt.
-
-    Parameters:
-        plaintext: The plaintext password to hash.
-    Returns:
-        str: The bcrypt hash of the password, including salt.
-    """
-
-    return bcrypt.hashpw(plaintext.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-
 
 # ── CSV readers (return plain lists of ORM objects) ───────────────────────────
 
@@ -53,10 +38,10 @@ def _read_roles() -> list:
     log_check(f"Reading roles from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,role
                 if parts[0] == "id":
                     continue
-                if len(parts) < 2:
+                if len(parts) < 2:  # skip malformed lines
                     continue
                 data.append(RoleModel(id=int(parts[0]), role=parts[1]))
         log_success(f"Loaded {len(data)} roles.")
@@ -80,25 +65,26 @@ def _read_users() -> list:
     log_check(f"Reading users from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(
+                f
+            ):  # expected: id,username,email,password,roleID,isBlocked
                 if parts[0] == "id":
                     continue
                 if len(parts) < 6:
                     continue
+                try:
+                    role_val = int(parts[4]) if parts[4].strip() else None
+                except (ValueError, TypeError):
+                    role_val = None
+                is_blocked = parts[5].strip() == "True"
                 data.append(
                     UserModel(
                         id=int(parts[0]),
                         username=parts[1],
                         email=parts[2],
-                        password=_hash(parts[3]),
-                        roleID=(
-                            int(parts[5])
-                            if len(parts) > 5 and parts[5].strip()
-                            else None
-                        ),
-                        isBlocked=(
-                            (parts[6].strip() == "True") if len(parts) > 6 else False
-                        ),
+                        password=hash_password(parts[3]),
+                        roleID=role_val,
+                        isBlocked=is_blocked,
                     )
                 )
         log_success(f"Loaded {len(data)} users.")
@@ -111,63 +97,46 @@ def _read_users() -> list:
 
 def _read_avatars() -> list:
     """
-    Read avatars from `files/avatars.csv` if present, otherwise extract avatar paths from `files/users.csv`.
+    Read avatars from CSV file and return a list of AvatarModel instances.
 
     Returns:
-        list: A list of AvatarModel instances.
+        list: A list of AvatarModel instances read from the CSV file.
     """
     path = "files/avatars.csv"
     data = []
     log_check(f"Reading avatars from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,userID,avatar
                 if parts[0] == "id":
                     continue
-                # expected: id,userID,avatar
                 if len(parts) < 3:
+                    continue
+                try:
+                    row_id = int(parts[0]) if parts[0].strip() else None
+                except Exception:
+                    row_id = None
+                try:
+                    user_id = int(parts[1])
+                except Exception:
+                    continue
+                avatar_path = parts[2].strip()
+                if not avatar_path:
                     continue
                 data.append(
                     AvatarModel(
-                        id=int(parts[0]) if parts[0].strip() else None,
-                        userID=int(parts[1]),
-                        avatar=parts[2],
+                        id=row_id,
+                        userID=user_id,
+                        avatar=avatar_path,
                     )
                 )
         log_success(f"Loaded {len(data)} avatars from avatars.csv.")
-        return data
-    except FileNotFoundError:
-        log_check(f"{path} not found — falling back to users.csv for avatars")
+    except FileNotFoundError as e:
+        log_issue(
+            "avatars.csv not found — avatars will not be seeded", exc=e, path=path
+        )
     except Exception as e:
         log_issue("Unexpected error reading avatars.csv", exc=e, path=path)
-
-    # fallback: extract avatar column from users.csv (if present)
-    users_path = "files/users.csv"
-    try:
-        with open(users_path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
-                if parts[0] == "id":
-                    continue
-                # users.csv expected format may include avatar at index 4
-                if len(parts) > 4 and parts[4].strip():
-                    try:
-                        user_id = int(parts[0])
-                    except Exception:
-                        continue
-                    data.append(
-                        AvatarModel(
-                            userID=user_id,
-                            avatar=parts[4],
-                        )
-                    )
-        log_success(f"Loaded {len(data)} avatars from users.csv fallback.")
-    except FileNotFoundError:
-        log_check(f"{users_path} not found — no avatars to seed")
-    except Exception as e:
-        log_issue(
-            "Unexpected error reading users.csv for avatars", exc=e, path=users_path
-        )
-
     return data
 
 
@@ -184,7 +153,7 @@ def _read_categories() -> list:
     log_check(f"Reading categories from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,category
                 if parts[0] == "id":
                     continue
                 if len(parts) < 2:
@@ -213,7 +182,7 @@ def _read_albums() -> list:
     log_check(f"Reading albums from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,name,creatorID
                 if parts[0] == "id":
                     continue
                 if len(parts) < 3:
@@ -242,10 +211,11 @@ def _read_photos() -> list:
     log_check(f"Reading photos from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(
+                f
+            ):  # expected: id,description,publishedDate,categoryID,albumID
                 if parts[0] == "id":
                     continue
-                # photos.csv format now: id,description,publishedDate,categoryID,albumID
                 if len(parts) < 5:
                     continue
                 album_id = int(parts[4]) if parts[4].strip() else None
@@ -283,10 +253,9 @@ def _read_photo_images() -> list:
     log_check(f"Reading photo images from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,photoID,image
                 if parts[0] == "id":
                     continue
-                # expected: id,photoID,image
                 if len(parts) < 3:
                     continue
                 data.append(
@@ -317,10 +286,9 @@ def _read_ratings() -> list:
     log_check(f"Reading ratings from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,userID,photoID,rating
                 if parts[0] == "id":
                     continue
-                # expected: id,userID,photoID,rating
                 if len(parts) < 4:
                     continue
                 data.append(
@@ -352,7 +320,7 @@ def _read_likes() -> list:
     log_check(f"Reading likes from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,userID,photoID
                 if parts[0] == "id":
                     continue
                 if len(parts) < 3:
@@ -385,7 +353,7 @@ def _read_follows() -> list:
     log_check(f"Reading follows from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,followerID,followedID
                 if parts[0] == "id":
                     continue
                 if len(parts) < 3:
@@ -420,7 +388,9 @@ def _read_notifications() -> list:
     log_check(f"Reading notifications from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(
+                f
+            ):  # expected: id,type,message,userID,senderID,referenceID,referenceType,isRead
                 if parts[0] == "id":
                     continue
                 if len(parts) < 4:
@@ -482,7 +452,7 @@ def _read_comments(valid_photo_ids: set) -> list:
     log_check(f"Reading comments from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,authorID,comment,photoID
                 if parts[0] == "id":
                     continue
                 if len(parts) < 4:
@@ -520,7 +490,7 @@ def _read_favorites() -> list:
     log_check(f"Reading favorites from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,albumID,userID
                 if parts[0] == "id":
                     continue
                 if len(parts) < 3:
@@ -554,7 +524,7 @@ def _read_contacts() -> list:
     log_check(f"Reading contacts from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,title,message,userID
                 if parts[0] == "id":
                     continue
                 if len(parts) < 4:
@@ -589,7 +559,7 @@ def _read_notification_settings() -> list:
     log_check(f"Reading notification settings from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(f):
+            for parts in csv.reader(f):  # expected: id,type,label,isEnabled
                 if parts[0] == "id":
                     continue
                 if len(parts) < 4:
@@ -614,6 +584,69 @@ def _read_notification_settings() -> list:
     return data
 
 
+def _read_all() -> dict:
+    """
+    Read all CSVs in a dependency-safe order and return a dict of lists.
+
+    Returns keys: roles,categories,users,avatars,albums,photos,photo_images,
+    ratings,comments,favorites,contacts,notification_settings,notifications,
+    follows,likes
+    """
+    roles = _read_roles()
+    categories = _read_categories()
+    users = _read_users()
+    avatars = _read_avatars()
+    albums = _read_albums()
+    photos = _read_photos()
+    valid_photo_ids = {p.id for p in photos}
+    photo_images = _read_photo_images()
+    ratings = _read_ratings()
+    comments = _read_comments(valid_photo_ids)
+    favorites = _read_favorites()
+    contacts = _read_contacts()
+    notification_settings = _read_notification_settings()
+    notifications = _read_notifications()
+    follows = _read_follows()
+    likes = _read_likes()
+
+    return {
+        "roles": roles,
+        "categories": categories,
+        "users": users,
+        "avatars": avatars,
+        "albums": albums,
+        "photos": photos,
+        "photo_images": photo_images,
+        "ratings": ratings,
+        "comments": comments,
+        "favorites": favorites,
+        "contacts": contacts,
+        "notification_settings": notification_settings,
+        "notifications": notifications,
+        "follows": follows,
+        "likes": likes,
+    }
+
+
+# Ordered keys for insertion/merge so foreign keys resolve correctly
+_CSV_ORDER = [
+    "roles",
+    "categories",
+    "users",
+    "avatars",
+    "albums",
+    "photos",
+    "photo_images",
+    "ratings",
+    "comments",
+    "favorites",
+    "contacts",
+    "notification_settings",
+    "notifications",
+    "follows",
+    "likes",
+]
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
@@ -625,56 +658,22 @@ def sync_static_data() -> None:
     """
     log_check("Syncing all data from CSV files...")
 
-    albums = _read_albums()
-    photos = _read_photos()
-    valid_photo_ids = {p.id for p in photos}
+    data = _read_all()
 
     try:
         with SessionLocal() as session:
             with session.begin():
-                for obj in _read_roles():
-                    session.merge(obj)
-                for obj in _read_categories():
-                    session.merge(obj)
-                for obj in _read_users():
-                    session.merge(obj)
-                for obj in _read_avatars():
-                    session.merge(obj)
-                session.flush()
-                for obj in albums:
-                    session.merge(obj)
-                session.flush()
-                for obj in photos:
-                    session.merge(obj)
-                session.flush()
-                for obj in _read_photo_images():
-                    session.merge(obj)
-                session.flush()
-                for obj in _read_ratings():
-                    session.merge(obj)
-                session.flush()
-                for obj in _read_comments(valid_photo_ids):
-                    session.merge(obj)
-                for obj in _read_favorites():
-                    session.merge(obj)
-                for obj in _read_contacts():
-                    session.merge(obj)
-                for obj in _read_notification_settings():
-                    session.merge(obj)
-                session.flush()
-                for obj in _read_notifications():
-                    session.merge(obj)
-                for obj in _read_follows():
-                    session.merge(obj)
-                for obj in _read_likes():
-                    session.merge(obj)
+                for key in _CSV_ORDER:
+                    for obj in data.get(key, []):
+                        session.merge(obj)
+                    session.flush()
     except Exception as e:
         log_issue(
             "Failed to sync CSV data to the database — schema may be stale",
             exc=e,
             path="photoshow.db",
         )
-        log_issue("Run 'python main.py --reset' to drop and rebuild the database")
+        log_issue("Run 'python main.py --resetDB' to drop and rebuild the database")
         return
 
     log_success("All CSV data synced to database.")
@@ -695,57 +694,3 @@ def migrate() -> None:
 
         sys.exit(1)
     sync_static_data()
-
-
-def reset_db() -> None:
-    """
-    Drop ALL tables, recreate them, and re-seed everything from CSV files.
-    WARNING: all existing data (photos, users, albums, etc.) will be lost.
-    """
-    from db.engine import Base, engine
-
-    log_check("[reset] Dropping all tables...")
-    Base.metadata.drop_all(engine)
-    log_check("[reset] Re-initializing database...")
-    init_db()
-    log_success("[reset] Tables recreated.")
-    log_check("[reset] Seeding from CSV files...")
-
-    albums = _read_albums()
-    photos = _read_photos()
-    valid_photo_ids = {p.id for p in photos}
-
-    with SessionLocal() as session:
-        with session.begin():
-            session.add_all(_read_roles())
-            session.flush()
-            session.add_all(_read_users())
-            session.flush()
-            session.add_all(_read_avatars())
-            session.flush()
-            session.add_all(_read_categories())
-            session.flush()
-            session.add_all(albums)
-            session.flush()
-            session.add_all(photos)
-            session.flush()
-            session.add_all(_read_photo_images())
-            session.flush()
-            session.add_all(_read_ratings())
-            session.flush()
-            session.add_all(_read_comments(valid_photo_ids))
-            session.flush()
-            session.add_all(_read_favorites())
-            session.flush()
-            session.add_all(_read_contacts())
-            session.flush()
-            session.add_all(_read_notification_settings())
-            session.flush()
-            session.add_all(_read_notifications())
-            session.flush()
-            session.add_all(_read_follows())
-            session.flush()
-            session.add_all(_read_likes())
-            session.flush()
-
-    log_success("[reset] Database reset and seeded successfully.")

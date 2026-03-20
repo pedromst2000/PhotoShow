@@ -1,7 +1,7 @@
-id,username,email,password,avatar,roleID,isBlocked
-1,admin,admin@gmail.com,123admin,assets/images/profile_avatars/admin_avatar.jpg,1,False
-2,pedromst,pedromst@gmail.com,123pedro,assets/images/profile_avatars/pedromst_avatar.png,2,False
-3,Charles,charles@gmail.com,123charles,assets/images/profile_avatars/charles_avatar.jpg,2,True
-4,AnaKirk,anak@gmail.com,123ana,assets/images/profile_avatars/AnaKirk_avatar.jpg,2,False
-5,katrine,katrinePetrova@gmail.com,123katrine,assets/images/profile_avatars/katrine_avatar.jpg,2,False
-6,asd,asd@hotmail.com,asd,assets/images/profile_avatars/default_avatar.jpg,3,False
+id,username,email,password,roleID,isBlocked
+1,admin,admin@gmail.com,123admin,1,False
+2,pedromst,pedromst@gmail.com,123pedro,2,False
+3,Charles,charles@gmail.com,123charles,2,True
+4,AnaKirk,anak@gmail.com,123ana,2,False
+5,katrine,katrinePetrova@gmail.com,123katrine,2,False
+6,asd,asd@hotmail.com,asd,3,False

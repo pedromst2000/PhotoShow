@@ -16,3 +16,8 @@ settings.json
 # Local copy DB file (add as needed)
 ########################################
 photoshow.db
+
+# Backups created by db.backup.backup_db_to_csv
+# These may contain sensitive data (password hashes, emails), do NOT commit.
+backups/
+backups/*

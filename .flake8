@@ -2,7 +2,8 @@
 max-line-length = 88
 # E501: line too long (handled by black)
 # W503: line break before binary operator (conflicts with black's style)
-ignore = E501, W503
+# E203: whitespace before ':' in slices (black intentionally formats this way per PEP 8)
+ignore = E501, W503, E203
 exclude = .venv
 per-file-ignores =
     # scripts use sys.path.insert() before project imports — E402 is intentional
