@@ -123,7 +123,8 @@ def main():
     else:
         print(
             f"{Fore.RED}{Style.BRIGHT}✘ Some checks failed. "
-            f"Run with --fix to auto-format, then review and commit.{Style.RESET_ALL}"
+            f"Run with --fix to auto-format style issues (black/isort/format_csv), then review and commit. "
+            f"Non-style problems must be fixed manually.{Style.RESET_ALL}"
         )
 
     sys.exit(exit_code)

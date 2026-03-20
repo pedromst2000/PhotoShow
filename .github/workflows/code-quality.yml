@@ -18,6 +18,18 @@ jobs:
           # Full history needed to compute changed files against the base branch
           fetch-depth: 0
 
+      # Determine whether to run checks globally (push to master) or per-changed-files (PRs)
+      - name: Determine run mode
+        id: run_mode
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            echo "run_globally=true" >> $GITHUB_OUTPUT
+            echo "Run mode: global (push to master)"
+          else
+            echo "run_globally=false" >> $GITHUB_OUTPUT
+            echo "Run mode: changed-files (PR or non-master push)"
+          fi
+
       # Detect which files changed in this PR / push
       - name: Get changed files
         id: changed-files
@@ -31,12 +43,32 @@ jobs:
             yaml:
               - '**/*.yml'
               - '**/*.yaml'
+            # Config files that should re-trigger checks when changed
+            configs:
+              - '.flake8'
+              - '.isort.cfg'
+              - '.gitattributes'
+              - '.yamllint.yaml'
+
+      # Short debug log: show which groups changed (helps troubleshooting CI runs)
+      - name: Log changed-files summary
+        run: |
+          echo "changed: python=${{ steps.changed-files.outputs.python_any_changed }}"
+          echo "files: python=${{ steps.changed-files.outputs.python_all_changed_files }}"
+          echo "changed: csv=${{ steps.changed-files.outputs.csv_any_changed }}"
+          echo "files: csv=${{ steps.changed-files.outputs.csv_all_changed_files }}"
+          echo "changed: yaml=${{ steps.changed-files.outputs.yaml_any_changed }}"
+          echo "files: yaml=${{ steps.changed-files.outputs.yaml_all_changed_files }}"
+          echo "changed: configs=${{ steps.changed-files.outputs.configs_any_changed }}"
+          echo "files: configs=${{ steps.changed-files.outputs.configs_all_changed_files }}"
 
       - name: Set up Python 3.14
         if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.csv_any_changed == 'true' ||
-          steps.changed-files.outputs.yaml_any_changed == 'true'
+          steps.changed-files.outputs.yaml_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.14"
@@ -45,9 +77,11 @@ jobs:
       # expected and not errors. See GitHub Actions docs for details.
       - name: Cache pip dependencies
         if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.csv_any_changed == 'true' ||
-          steps.changed-files.outputs.yaml_any_changed == 'true'
+          steps.changed-files.outputs.yaml_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -57,81 +91,99 @@ jobs:
 
       - name: Install dependencies
         if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.csv_any_changed == 'true' ||
-          steps.changed-files.outputs.yaml_any_changed == 'true'
+          steps.changed-files.outputs.yaml_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r dev-requirements.txt
 
-      # --- Python linting (changed files only) ---
+      # --- Python linting ---
       - name: Lint Python (flake8)
-        if: steps.changed-files.outputs.python_any_changed == 'true'
+        if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          echo "Changed Python files: ${{ steps.changed-files.outputs.python_all_changed_files }}"
-          if ! python -m flake8 ${{ steps.changed-files.outputs.python_all_changed_files }}; then
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
+            FILES='.'
+          else
+            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
+          fi
+          echo "Running flake8 on: $FILES"
+          if ! python -m flake8 $FILES; then
             echo "::error::Python linting issues found. Fix the issues locally and commit."
             exit 1
           fi
 
       - name: Check Python formatting (black)
-        if: steps.changed-files.outputs.python_any_changed == 'true'
+        if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          if ! python -m black --check ${{ steps.changed-files.outputs.python_all_changed_files }}; then
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
+            FILES='.'
+          else
+            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
+          fi
+          if ! python -m black --check $FILES; then
             echo "::error::Python formatting issues found. Run 'python -m black .' locally and commit."
             exit 1
           fi
 
-      # --- Import order linting (changed files only) ---
+      # --- Import order linting ---
       - name: Check import order linting
-        if: steps.changed-files.outputs.python_any_changed == 'true'
+        if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          if ! python scripts/check_imports.py ${{ steps.changed-files.outputs.python_all_changed_files }}; then
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
+            FILES='.'
+          else
+            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
+          fi
+          if ! python scripts/check_imports.py $FILES; then
             echo "::error::Import order issues found. Run 'python scripts/format_imports.py' locally and commit."
             exit 1
           fi
 
-      # --- CSV (changed files only) ---
+      # --- CSV ---
       - name: Lint CSV
-        if: steps.changed-files.outputs.csv_any_changed == 'true'
+        if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
+          steps.changed-files.outputs.csv_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          if ! python scripts/lint_csv.py ${{ steps.changed-files.outputs.csv_all_changed_files }}; then
-            echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally and fix the CSV files."
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
+            FILES='files/'
+          else
+            FILES='${{ steps.changed-files.outputs.csv_all_changed_files }}'
+          fi
+          echo "Running CSV linter on: $FILES"
+          if ! python scripts/lint_csv.py $FILES; then
+            echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally to auto-fix style issues."
+            echo "::error::Other CSV problems must be fixed manually and then committed."
             exit 1
           fi
 
       # --- YAML (changed files only) ---
       - name: Lint YAML (yamllint)
-        if: steps.changed-files.outputs.yaml_any_changed == 'true'
+        if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
+          steps.changed-files.outputs.yaml_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
+
         run: |
-          if ! python -m yamllint ${{ steps.changed-files.outputs.yaml_all_changed_files }}; then
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
+            FILES='.'
+          else
+            FILES='${{ steps.changed-files.outputs.yaml_all_changed_files }}'
+          fi
+          if ! python -m yamllint $FILES; then
             echo "::error::YAML linting issues found. Fix the YAML files manually."
-            exit 1
-          fi
-
-      # --- Python formatting (changed files only) ---
-      - name: Format Python (black)
-        if: steps.changed-files.outputs.python_any_changed == 'true'
-        run: |
-          if ! python -m black ${{ steps.changed-files.outputs.python_all_changed_files }}; then
-            echo "::error::Python auto-formatting failed. Run 'python -m black .' locally and commit."
-            exit 1
-          fi
-
-      # --- Import order formatting (changed files only) ---
-      - name: Format imports (isort)
-        if: steps.changed-files.outputs.python_any_changed == 'true'
-        run: |
-          if ! python scripts/format_imports.py ${{ steps.changed-files.outputs.python_all_changed_files }}; then
-            echo "::error::Import auto-formatting failed. Run 'python scripts/format_imports.py' locally and commit."
-            exit 1
-          fi
-
-      # --- CSV formatting (changed files only) ---
-      - name: Format CSV
-        if: steps.changed-files.outputs.csv_any_changed == 'true'
-        run: |
-          if ! python scripts/format_csv.py ${{ steps.changed-files.outputs.csv_all_changed_files }}; then
-            echo "::error::CSV auto-formatting failed. Run 'python scripts/format_csv.py' locally and commit."
             exit 1
           fi
