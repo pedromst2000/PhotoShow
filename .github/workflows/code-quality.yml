@@ -107,10 +107,11 @@ jobs:
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
+          PY_FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ] || [ -z "$PY_FILES" ]; then
             FILES='.'
           else
-            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
+            FILES="$PY_FILES"
           fi
           echo "Running flake8 on: $FILES"
           if ! python -m flake8 $FILES; then
@@ -124,10 +125,11 @@ jobs:
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
+          PY_FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ] || [ -z "$PY_FILES" ]; then
             FILES='.'
           else
-            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
+            FILES="$PY_FILES"
           fi
           if ! python -m black --check $FILES; then
             echo "::error::Python formatting issues found. Run 'python -m black .' locally and commit."
@@ -141,14 +143,18 @@ jobs:
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
-            FILES='.'
+          PY_FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ] || [ -z "$PY_FILES" ]; then
+            # No args → script scans the whole project by default
+            if ! python scripts/check_imports.py; then
+              echo "::error::Import order issues found. Run 'python scripts/format_imports.py' locally and commit."
+              exit 1
+            fi
           else
-            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
-          fi
-          if ! python scripts/check_imports.py $FILES; then
-            echo "::error::Import order issues found. Run 'python scripts/format_imports.py' locally and commit."
-            exit 1
+            if ! python scripts/check_imports.py $PY_FILES; then
+              echo "::error::Import order issues found. Run 'python scripts/format_imports.py' locally and commit."
+              exit 1
+            fi
           fi
 
       # --- CSV ---
@@ -159,29 +165,35 @@ jobs:
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
-            FILES='files/'
+            echo "Running CSV linter on: files/ (all)"
+            # No args → script scans the whole files/ directory by default
+            if ! python scripts/lint_csv.py; then
+              echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally to auto-fix style issues."
+              echo "::error::Other CSV problems must be fixed manually and then committed."
+              exit 1
+            fi
           else
             FILES='${{ steps.changed-files.outputs.csv_all_changed_files }}'
-          fi
-          echo "Running CSV linter on: $FILES"
-          if ! python scripts/lint_csv.py $FILES; then
-            echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally to auto-fix style issues."
-            echo "::error::Other CSV problems must be fixed manually and then committed."
-            exit 1
+            echo "Running CSV linter on: $FILES"
+            if ! python scripts/lint_csv.py $FILES; then
+              echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally to auto-fix style issues."
+              echo "::error::Other CSV problems must be fixed manually and then committed."
+              exit 1
+            fi
           fi
 
-      # --- YAML (changed files only) ---
+      # --- YAML ---
       - name: Lint YAML (yamllint)
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
           steps.changed-files.outputs.yaml_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
-
         run: |
-          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
+          YAML_FILES='${{ steps.changed-files.outputs.yaml_all_changed_files }}'
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ] || [ -z "$YAML_FILES" ]; then
             FILES='.'
           else
-            FILES='${{ steps.changed-files.outputs.yaml_all_changed_files }}'
+            FILES="$YAML_FILES"
           fi
           if ! python -m yamllint $FILES; then
             echo "::error::YAML linting issues found. Fix the YAML files manually."
