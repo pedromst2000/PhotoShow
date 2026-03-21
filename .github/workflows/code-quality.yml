@@ -32,6 +32,7 @@ jobs:
 
       # Detect which files changed in this PR / push
       - name: Get changed files
+        if: steps.run_mode.outputs.run_globally == 'false'
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
@@ -53,6 +54,7 @@ jobs:
 
       # Short debug log: show which groups changed (helps troubleshooting CI runs)
       - name: Log changed-files summary
+        if: steps.run_mode.outputs.run_globally == 'false'
         run: |
           echo "changed: python=${{ steps.changed-files.outputs.python_any_changed }}"
           echo "files: python=${{ steps.changed-files.outputs.python_all_changed_files }}"
@@ -108,16 +110,23 @@ jobs:
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          PY_FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
-          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ] || [ -z "$PY_FILES" ]; then
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             FILES='.'
           else
-            FILES="$PY_FILES"
+            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
           fi
-          echo "Running flake8 on: $FILES"
-          if ! python -m flake8 $FILES; then
-            echo "::error::Python linting issues found. Fix the issues locally and commit."
-            exit 1
+
+          # Clean up file list to single line
+          FILES=$(echo "$FILES" | tr '\n' ' ' | xargs)
+
+          if [ -z "$FILES" ]; then
+            echo "No files to lint."
+          else
+            echo "Running flake8 on: $FILES"
+            if ! python -m flake8 $FILES; then
+              echo "::error::Python linting issues found. Fix the issues locally and commit."
+              exit 1
+            fi
           fi
 
       - name: Check Python formatting (black)
@@ -126,15 +135,22 @@ jobs:
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          PY_FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
-          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ] || [ -z "$PY_FILES" ]; then
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             FILES='.'
           else
-            FILES="$PY_FILES"
+            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
           fi
-          if ! python -m black --check $FILES; then
-            echo "::error::Python formatting issues found. Run 'python -m black .' locally and commit."
-            exit 1
+
+          # Clean up file list to single line
+          FILES=$(echo "$FILES" | tr '\n' ' ' | xargs)
+
+          if [ -z "$FILES" ]; then
+            echo "No files to check."
+          else
+            if ! python -m black --check $FILES; then
+              echo "::error::Python formatting issues found. Run 'python -m black .' locally and commit."
+              exit 1
+            fi
           fi
 
       # --- Import order linting ---
@@ -144,17 +160,19 @@ jobs:
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          PY_FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
-          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ] || [ -z "$PY_FILES" ]; then
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             # No args → script scans the whole project by default
             if ! python scripts/check_imports.py; then
               echo "::error::Import order issues found. Run 'python scripts/format_imports.py' locally and commit."
               exit 1
             fi
           else
-            if ! python scripts/check_imports.py $PY_FILES; then
-              echo "::error::Import order issues found. Run 'python scripts/format_imports.py' locally and commit."
-              exit 1
+            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
+            if [ -n "$FILES" ]; then
+              if ! python scripts/check_imports.py $FILES; then
+                echo "::error::Import order issues found. Run 'python scripts/format_imports.py' locally and commit."
+                exit 1
+              fi
             fi
           fi
 
@@ -167,7 +185,6 @@ jobs:
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             echo "Running CSV linter on: files/ (all)"
-            # No args → script scans the whole files/ directory by default
             if ! python scripts/lint_csv.py; then
               echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally to auto-fix style issues."
               echo "::error::Other CSV problems must be fixed manually and then committed."
@@ -175,11 +192,15 @@ jobs:
             fi
           else
             FILES='${{ steps.changed-files.outputs.csv_all_changed_files }}'
-            echo "Running CSV linter on: $FILES"
-            if ! python scripts/lint_csv.py $FILES; then
-              echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally to auto-fix style issues."
-              echo "::error::Other CSV problems must be fixed manually and then committed."
-              exit 1
+            # Cleanup multiple spaces or newlines to single spaces for shell passing
+            FILES=$(echo "$FILES" | tr '\n' ' ' | xargs)
+            if [ -n "$FILES" ]; then
+              echo "Running CSV linter on: $FILES"
+              if ! python scripts/lint_csv.py $FILES; then
+                echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally to auto-fix style issues."
+                echo "::error::Other CSV problems must be fixed manually and then committed."
+                exit 1
+              fi
             fi
           fi
 
@@ -190,13 +211,15 @@ jobs:
           steps.changed-files.outputs.yaml_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          YAML_FILES='${{ steps.changed-files.outputs.yaml_all_changed_files }}'
-          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ] || [ -z "$YAML_FILES" ]; then
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             FILES='.'
           else
-            FILES="$YAML_FILES"
+            FILES='${{ steps.changed-files.outputs.yaml_all_changed_files }}'
           fi
-          if ! python -m yamllint $FILES; then
-            echo "::error::YAML linting issues found. Fix the YAML files manually."
-            exit 1
+
+          if [ -n "$FILES" ]; then
+            if ! python -m yamllint $FILES; then
+              echo "::error::YAML linting issues found. Fix the YAML files manually."
+              exit 1
+            fi
           fi
