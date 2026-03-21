@@ -166,10 +166,14 @@ def _restore_table(session, model, csv_file: Path) -> int:
     Returns:
         int: The number of rows successfully restored from the CSV file.
     """
-    cols = {c.name: c for c in model.__table__.columns}
-    rows = []
-    with csv_file.open("r", encoding="utf-8", newline="") as f:
-        for row_dict in csv.DictReader(f):
+    cols = {
+        c.name: c for c in model.__table__.columns
+    }  # Map column names to their SQLAlchemy Column objects for type info
+    rows = []  # List to hold the model instances created from the CSV rows
+    with csv_file.open("r", encoding="utf-8-sig", newline="") as f:
+        for row_dict in csv.DictReader(
+            f
+        ):  # Read each row as a dict mapping column names to string values
             kwargs = {
                 name: _cast(val, cols[name])
                 for name, val in row_dict.items()
@@ -200,7 +204,9 @@ def _print_available_backups(backups: list[Path] | None = None) -> None:
         log_check("[restoreDB] No backups found in backups/")
         return
     log_check(f"[restoreDB] Available backups ({len(backups)} found, newest first):")
-    for i, folder in enumerate(backups, start=1):
+    for i, folder in enumerate(
+        backups, start=1
+    ):  # Start enumeration at 1 for user-friendly display
         marker = " ← latest" if i == 1 else ""
         log_check(f"  [{i}] {folder}{marker}")
     log_check("  To restore a specific backup, run:")
@@ -215,20 +221,23 @@ def restore_db_from_backup(backup_dir: str | None = None) -> None:
     automatically. Drops and recreates all tables before inserting, so this
     is a full restore — it replaces whatever is currently in the DB.
 
+    Parameters:
+        backup_dir: Optional path to a specific backup folder within `backups/`. If None, the latest backup folder is used.
+
     Usage:
         python main.py --restoreDB                              # use latest backup
         python main.py --restoreDB backups/2026-03-20_00h35m35s  # use specific backup
 
     WARNING: all current DB data will be replaced by the backup contents.
     """
-    if backup_dir:
+    if backup_dir:  # If a specific backup directory is provided, use it directly
         source = Path(backup_dir)
         if not source.exists():
             log_issue(f"[restoreDB] Backup directory not found: {source}")
             _print_available_backups()
             return
         log_check(f"[restoreDB] Restoring from specified backup: {source}")
-    else:
+    else:  # No specific backup provided — find the latest one in backups/
         available = _list_backups()
         if not available:
             log_issue("[restoreDB] Cannot restore — no backups found in backups/")
@@ -249,16 +258,22 @@ def restore_db_from_backup(backup_dir: str | None = None) -> None:
     init_db()
     log_success("[restoreDB] Schema ready.")
 
-    total = 0
+    total = 0  # Total count of rows restored across all tables, for final summary log
     try:
         with SessionLocal() as session:
             with session.begin():
-                for table_name in _TABLE_ORDER:
+                for (
+                    table_name
+                ) in (
+                    _TABLE_ORDER
+                ):  # Must restore in this order to satisfy FK constraints
                     model = _TABLE_MODEL_MAP.get(table_name)
                     if not model:
-                        continue
+                        continue  # Should never happen since _TABLE_MODEL_MAP should cover all tables in _TABLE_ORDER, but just in case...
                     csv_file = source / f"{table_name}.csv"
-                    if not csv_file.exists():
+                    if (
+                        not csv_file.exists()
+                    ):  # If the expected CSV file for this table is missing in the backup, try the fallback seed file in files/
                         fallback = _FILES_FALLBACK.get(table_name)
                         if fallback and Path(fallback).exists():
                             log_check(

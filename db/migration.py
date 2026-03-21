@@ -37,7 +37,7 @@ def _read_roles() -> list:
     data = []
     log_check(f"Reading roles from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,role
                 if parts[0] == "id":
                     continue
@@ -64,7 +64,7 @@ def _read_users() -> list:
     data = []
     log_check(f"Reading users from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(
                 f
             ):  # expected: id,username,email,password,roleID,isBlocked
@@ -106,7 +106,7 @@ def _read_avatars() -> list:
     data = []
     log_check(f"Reading avatars from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,userID,avatar
                 if parts[0] == "id":
                     continue
@@ -152,7 +152,7 @@ def _read_categories() -> list:
     data = []
     log_check(f"Reading categories from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,category
                 if parts[0] == "id":
                     continue
@@ -181,7 +181,7 @@ def _read_albums() -> list:
     data = []
     log_check(f"Reading albums from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,name,creatorID
                 if parts[0] == "id":
                     continue
@@ -210,7 +210,7 @@ def _read_photos() -> list:
     data = []
     log_check(f"Reading photos from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(
                 f
             ):  # expected: id,description,publishedDate,categoryID,albumID
@@ -252,7 +252,7 @@ def _read_photo_image() -> list:
     data = []
     log_check(f"Reading photo images from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,photoID,image
                 if parts[0] == "id":
                     continue
@@ -285,7 +285,7 @@ def _read_ratings() -> list:
     data = []
     log_check(f"Reading ratings from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,userID,photoID,rating
                 if parts[0] == "id":
                     continue
@@ -319,7 +319,7 @@ def _read_likes() -> list:
     data = []
     log_check(f"Reading likes from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,userID,photoID
                 if parts[0] == "id":
                     continue
@@ -352,7 +352,7 @@ def _read_follows() -> list:
     data = []
     log_check(f"Reading follows from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,followerID,followedID
                 if parts[0] == "id":
                     continue
@@ -387,7 +387,7 @@ def _read_notifications() -> list:
     data = []
     log_check(f"Reading notifications from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):
                 if parts[0] == "id":
                     continue
@@ -433,7 +433,7 @@ def _read_comments(valid_photo_ids: set) -> list:
     data = []
     log_check(f"Reading comments from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,authorID,comment,photoID
                 if parts[0] == "id":
                     continue
@@ -471,7 +471,7 @@ def _read_favorites() -> list:
     data = []
     log_check(f"Reading favorites from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,albumID,userID
                 if parts[0] == "id":
                     continue
@@ -505,7 +505,7 @@ def _read_contacts() -> list:
     data = []
     log_check(f"Reading contacts from {path}...")
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(f):  # expected: id,title,message,userID
                 if parts[0] == "id":
                     continue
