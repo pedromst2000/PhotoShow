@@ -68,7 +68,7 @@ class AlbumService:
         if existing_id is not None:
             raise ValueError("You already have an album with that name")
 
-        return AlbumModel.create(name=trimmed, creatorID=creator_id)
+        return AlbumModel.create(name=trimmed, creatorId=creator_id)
 
     @staticmethod
     def rename_album(album_id: int, new_name: str) -> bool:
@@ -93,7 +93,7 @@ class AlbumService:
             return False
 
         # prevent renaming to a name already used by the same creator
-        existing_id = AlbumService.get_album_id_by_name(album["creatorID"], trimmed)
+        existing_id = AlbumService.get_album_id_by_name(album["creatorId"], trimmed)
         if existing_id is not None and existing_id != album_id:
             raise ValueError("You already have an album with that name")
 
@@ -121,7 +121,7 @@ class AlbumService:
         album = AlbumModel.get_by_id(album_id)
         if not album:
             raise ValueError("Album not found")
-        if album["creatorID"] != user_id and not is_admin:
+        if album["creatorId"] != user_id and not is_admin:
             raise ValueError("You can only rename your own albums")
         return AlbumService.rename_album(album_id, new_name)
 
@@ -159,7 +159,7 @@ class AlbumService:
         album = AlbumModel.get_by_id(album_id)
         if not album:
             raise ValueError("Album not found")
-        if album["creatorID"] != user_id and not is_admin:
+        if album["creatorId"] != user_id and not is_admin:
             raise ValueError("You can only delete your own albums")
         return AlbumModel.delete(album_id)
 
@@ -200,9 +200,9 @@ class AlbumService:
             return []
         result = []
         for fav in favorites:
-            album = AlbumModel.get_by_id(fav["albumID"])
+            album = AlbumModel.get_by_id(fav["albumId"])
             if album:
-                result.append({"albumID": fav["albumID"], "name": album["name"]})
+                result.append({"albumId": fav["albumId"], "name": album["name"]})
         return result
 
     @staticmethod

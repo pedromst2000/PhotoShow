@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import CheckConstraint, Column, DateTime, Integer, String
+from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -27,6 +28,11 @@ class RoleModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    # ORM one-to-many: one role has many users
+    users_rel = relationship(
+        "UserModel", back_populates="role_rel", passive_deletes=True
     )
 
     def to_dict(self) -> dict:

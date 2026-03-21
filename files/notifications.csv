@@ -1,13 +1,10 @@
-id,type,message,userID,senderID,referenceID,referenceType,isRead
-1,daily_content,A user you follow added a new photo to their album!,2,1,8,photo,False
-2,comment_photos,Someone commented on a photo you liked!,2,3,1,comment,False
-3,favorite_album,A new photo was added to your favorite album!,2,4,5,album,False
-4,viewed_profile,Someone started following you!,2,5,,,False
-5,daily_content,A user you follow added a new photo to their album!,3,2,1,photo,False
-6,comment_photos,Someone commented on a photo you liked!,3,1,1,comment,False
-7,favorite_album,A new photo was added to your favorite album!,3,2,2,album,False
-8,viewed_profile,Someone started following you!,3,1,,,False
-9,daily_content,A user you follow added a new photo to their album!,1,2,9,photo,False
-10,comment_photos,Someone commented on a photo you liked!,1,2,1,comment,False
-11,favorite_album,A new photo was added to your favorite album!,1,3,4,album,False
-12,viewed_profile,Someone started following you!,1,2,,,False
+﻿id,typeId,userId,senderId,targetType,targetId,message,isRead
+1,1,2,1,photo,8,A user you follow added a new photo to their album!,False
+2,2,2,3,comment,1,Someone commented on a photo you liked!,False
+3,3,2,4,album,5,A new photo was added to your favorite album!,False
+4,1,3,2,photo,1,A user you follow added a new photo to their album!,False
+5,2,3,1,comment,1,Someone commented on a photo you liked!,False
+6,3,3,2,album,2,A new photo was added to your favorite album!,False
+7,1,1,2,photo,9,A user you follow added a new photo to their album!,False
+8,2,1,2,comment,1,Someone commented on a photo you liked!,False
+9,3,1,3,album,4,A new photo was added to your favorite album!,False

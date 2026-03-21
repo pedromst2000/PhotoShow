@@ -351,7 +351,7 @@ def favoritesProfileWindow():
         fav_albums = AlbumController.get_favorite_albums(userID)
         match = next((a for a in fav_albums if a["name"] == selected), None)
         if match:
-            for photo in PhotoController.get_photos_by_album(match["albumID"]):
+            for photo in PhotoController.get_photos_by_album(match["albumId"]):
                 photosListbox.insert("end", photo["image"])
         if photosListbox.size() == 0:
             photosListbox.insert("end", "No photos to display.")

@@ -1,4 +1,4 @@
-id,photoID,image
+﻿id,photoId,image
 1,1,assets/images/photos_gallery/Travel_Adventure_photo_1.jpg
 2,2,assets/images/photos_gallery/Nature_photo_1.jpg
 3,3,assets/images/photos_gallery/Sports_photo_1.jpg

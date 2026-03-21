@@ -9,6 +9,7 @@ from sqlalchemy import (
     Integer,
     UniqueConstraint,
 )
+from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -23,21 +24,21 @@ class FavoriteModel(Base):
     __table_args__ = (
         CheckConstraint("id > 0 AND id < 10000000", name="ck_favorites_id_range"),
         CheckConstraint(
-            "albumID > 0 AND albumID < 10000000", name="ck_favorites_albumID_range"
+            "albumId > 0 AND albumId < 10000000", name="ck_favorites_albumId_range"
         ),
         CheckConstraint(
-            "userID > 0 AND userID < 10000000", name="ck_favorites_userID_range"
+            "userId > 0 AND userId < 10000000", name="ck_favorites_userId_range"
         ),
-        UniqueConstraint("userID", "albumID", name="uq_favorites_user_album"),
-        Index("ix_favorites_albumID", "albumID"),
-        Index("ix_favorites_userID", "userID"),
+        UniqueConstraint("userId", "albumId", name="uq_favorites_user_album"),
+        Index("ix_favorites_albumId", "albumId"),
+        Index("ix_favorites_userId", "userId"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    albumID: int = Column(
+    albumId: int = Column(
         Integer, ForeignKey("albuns.id", ondelete="CASCADE"), nullable=False
     )
-    userID: int = Column(
+    userId: int = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     createdAt: DateTime = Column(
@@ -49,6 +50,15 @@ class FavoriteModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    # ORM many-to-one: many favorites belong to one user
+    user_rel = relationship(
+        "UserModel", foreign_keys=[userId], back_populates="favorites_rel"
+    )
+    # ORM many-to-one: many favorites belong to one album
+    album_rel = relationship(
+        "AlbumModel", foreign_keys=[albumId], back_populates="favorites_rel"
+    )
+
     def to_dict(self) -> dict:
         """
         Convert the FavoriteModel instance to a dictionary.
@@ -58,8 +68,8 @@ class FavoriteModel(Base):
         """
         return {
             "id": self.id,
-            "albumID": self.albumID,
-            "userID": self.userID,
+            "albumId": self.albumId,
+            "userId": self.userId,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
         }
@@ -76,13 +86,13 @@ class FavoriteModel(Base):
             return [f.to_dict() for f in session.query(cls).all()]
 
     @classmethod
-    def create(cls, albumID: int, userID: int) -> dict:
+    def create(cls, albumId: int, userId: int) -> dict:
         """
         Create a new favorite album entry in the database.
 
         Parameters:
-            albumID (int): The ID of the album being favorited.
-            userID (int): The ID of the user who is favoriting the album.
+            albumId (int): The ID of the album being favorited.
+            userId (int): The ID of the user who is favoriting the album.
 
         Returns:
             dict: A dictionary representation of the newly created favorite album entry.
@@ -91,58 +101,58 @@ class FavoriteModel(Base):
             with session.begin():
                 # idempotent create: return existing if already favorited
                 existing = (
-                    session.query(cls).filter_by(albumID=albumID, userID=userID).first()
+                    session.query(cls).filter_by(albumId=albumId, userId=userId).first()
                 )
                 if existing:
                     return existing.to_dict()
-                obj: FavoriteModel = cls(albumID=albumID, userID=userID)
+                obj: FavoriteModel = cls(albumId=albumId, userId=userId)
                 session.add(obj)
                 session.flush()
                 return obj.to_dict()
 
     @classmethod
-    def get_users_by_album(cls, albumID: int) -> list:
+    def get_users_by_album(cls, albumId: int) -> list:
         """
         Return the IDs of all users who have favorited a given album.
 
         Parameters:
-            albumID (int): The album ID to query favorites for.
+            albumId (int): The album ID to query favorites for.
 
         Returns:
-            list[int]: A list of userID values.
+            list[int]: A list of userId values.
         """
         with SessionLocal() as session:
-            rows = session.query(cls).filter(cls.albumID == albumID).all()
-            return [row.userID for row in rows]
+            rows = session.query(cls).filter(cls.albumId == albumId).all()
+            return [row.userId for row in rows]
 
     @classmethod
-    def get_by_user(cls, userID: int) -> list:
+    def get_by_user(cls, userId: int) -> list:
         """Return favorite rows for a user as dicts.
 
         Parameters:
-            userID (int): The user ID to query favorites for.
+            userId (int): The user ID to query favorites for.
 
         Returns:
             list[dict]: A list of favorite entries as dictionaries.
         """
         with SessionLocal() as session:
-            rows = session.query(cls).filter(cls.userID == userID).all()
+            rows = session.query(cls).filter(cls.userId == userId).all()
             return [r.to_dict() for r in rows]
 
     @classmethod
-    def delete_for_user(cls, albumID: int, userID: int) -> bool:
+    def delete_for_user(cls, albumId: int, userId: int) -> bool:
         """
         Delete a favorite for a user.
 
         Parameters:
-            albumID (int): The ID of the album to remove from favorites.
-            userID (int): The ID of the user whose favorite is being removed.
+            albumId (int): The ID of the album to remove from favorites.
+            userId (int): The ID of the user whose favorite is being removed.
 
         Returns:
             bool: True if the favorite was deleted, False otherwise.
         """
         with SessionLocal() as session:
             with session.begin():
-                q = session.query(cls).filter_by(albumID=albumID, userID=userID)
+                q = session.query(cls).filter_by(albumId=albumId, userId=userId)
                 count = q.delete()
                 return count > 0

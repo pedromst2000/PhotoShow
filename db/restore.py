@@ -1,10 +1,11 @@
 import csv
+import sqlite3
 from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy import Boolean, DateTime, Integer
 
-from db.engine import Base, SessionLocal, engine, init_db
+from db.engine import DB_PATH, SessionLocal, engine, init_db
 from db.models import (
     AlbumModel,
     AvatarModel,
@@ -15,7 +16,7 @@ from db.models import (
     FollowModel,
     LikeModel,
     NotificationModel,
-    NotificationSettingsModel,
+    NotificationTypeModel,
     PhotoImageModel,
     PhotoModel,
     RatingModel,
@@ -24,8 +25,50 @@ from db.models import (
 )
 from utils.log_utils import log_check, log_issue, log_success
 
+
+def _drop_all_tables_raw() -> None:
+    """
+    Drop every table in the SQLite file using a raw sqlite3 connection.
+    Disables FK constraints first so no ordering issues arise from stale
+    FK columns that no longer appear in the SQLAlchemy metadata.
+    """
+    engine.dispose()
+    con = sqlite3.connect(DB_PATH)
+    try:
+        cur = con.cursor()
+        cur.execute("PRAGMA foreign_keys=OFF")
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [row[0] for row in cur.fetchall() if not row[0].startswith("sqlite_")]
+        for table in tables:
+            cur.execute(f'DROP TABLE IF EXISTS "{table}"')
+        con.commit()
+    finally:
+        con.close()
+
+
 # ── Table restore order (must respect FK dependencies) ────────────────────────
 # Mirrors _CSV_ORDER in migration.py but uses actual DB table names (from __table__.name).
+
+# Fallback: if a backup CSV is missing, try the corresponding seed file in files/.
+# Keys are DB table names; values are paths relative to the project root.
+_FILES_FALLBACK: dict[str, str] = {
+    "roles": "files/roles.csv",
+    "categories": "files/categories.csv",
+    "users": "files/users.csv",
+    "avatars": "files/avatars.csv",
+    "albuns": "files/albuns.csv",
+    "photos": "files/photos.csv",
+    "photo_image": "files/photo_image.csv",
+    "ratings": "files/ratings.csv",
+    "comments": "files/comments.csv",
+    "favorites": "files/favorites.csv",
+    "contacts": "files/contacts.csv",
+    "notification_types": "files/notification_types.csv",
+    "notifications": "files/notifications.csv",
+    "follows": "files/follows.csv",
+    "likes": "files/likes.csv",
+}
+
 _TABLE_ORDER = [
     "roles",
     "categories",
@@ -33,12 +76,12 @@ _TABLE_ORDER = [
     "avatars",
     "albuns",
     "photos",
-    "photo_images",
+    "photo_image",
     "ratings",
     "comments",
     "favorites",
     "contacts",
-    "notification_settings",
+    "notification_types",
     "notifications",
     "follows",
     "likes",
@@ -51,12 +94,12 @@ _TABLE_MODEL_MAP = {
     "avatars": AvatarModel,
     "albuns": AlbumModel,
     "photos": PhotoModel,
-    "photo_images": PhotoImageModel,
+    "photo_image": PhotoImageModel,
     "ratings": RatingModel,
     "comments": CommentModel,
     "favorites": FavoriteModel,
     "contacts": ContactModel,
-    "notification_settings": NotificationSettingsModel,
+    "notification_types": NotificationTypeModel,
     "notifications": NotificationModel,
     "follows": FollowModel,
     "likes": LikeModel,
@@ -195,9 +238,13 @@ def restore_db_from_backup(backup_dir: str | None = None) -> None:
         source = available[0]
         log_check(f"[restoreDB] No path given — using latest: {source}")
 
-    # Drop everything → clean slate → restore data
+    # Delete the DB file entirely — avoids FK-ordering issues from stale schema
     log_check("[restoreDB] Dropping all tables...")
-    Base.metadata.drop_all(engine)
+    try:
+        _drop_all_tables_raw()
+    except Exception as e:
+        log_issue("[restoreDB] Failed to drop tables — aborting restore", exc=e)
+        return
     log_check("[restoreDB] Recreating schema...")
     init_db()
     log_success("[restoreDB] Schema ready.")
@@ -212,10 +259,17 @@ def restore_db_from_backup(backup_dir: str | None = None) -> None:
                         continue
                     csv_file = source / f"{table_name}.csv"
                     if not csv_file.exists():
-                        log_check(
-                            f"[restoreDB] {csv_file.name} missing in backup — skipping"
-                        )
-                        continue
+                        fallback = _FILES_FALLBACK.get(table_name)
+                        if fallback and Path(fallback).exists():
+                            log_check(
+                                f"[restoreDB] {csv_file.name} missing in backup — using seed file: {fallback}"
+                            )
+                            csv_file = Path(fallback)
+                        else:
+                            log_check(
+                                f"[restoreDB] {csv_file.name} missing in backup — skipping"
+                            )
+                            continue
                     count = _restore_table(session, model, csv_file)
                     log_success(f"[restoreDB] Restored {count} rows → {table_name}")
                     total += count

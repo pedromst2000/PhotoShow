@@ -32,9 +32,12 @@ class CategoryModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # when a category is deleted, its photos are deleted too (photo.categoryID ondelete=CASCADE)
+    # ORM one-to-many: one category has many photos (cascade delete when category is removed)
     photos_rel = relationship(
-        "PhotoModel", cascade="all, delete-orphan", passive_deletes=True
+        "PhotoModel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="category_rel",
     )
 
     @property

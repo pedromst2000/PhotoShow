@@ -1,7 +1,7 @@
 from typing import Optional
 
 from db.models import NotificationModel
-from db.models.notification_settings import NotificationSettingsModel
+from db.models.notification_types import NotificationTypeModel
 
 
 class NotificationService:
@@ -65,68 +65,63 @@ class NotificationService:
         message: str,
         user_id: int,
         sender_id: int = None,
-        reference_id: int = None,
-        reference_type: str = None,
+        target_type: str = None,
+        target_id: int = None,
     ) -> Optional[dict]:
         """
-        Create a notification only if the type is enabled in notification_settings.
+        Create a notification only if the type is enabled in notification_types.
 
         Parameters:
-            type_key (str): The type of the notification (e.g. "new_comment", "photo_liked").
+            type_key (str): The type string of the notification (e.g. 'daily_content').
             message (str): The message content of the notification.
             user_id (int): The ID of the user to receive the notification.
-            sender_id (int, optional): The ID of the user who triggered the notification (e.g. the commenter or liker). Defaults to None.
-            reference_id (int, optional): An optional ID referencing the related object (e.g. comment ID, photo ID). Defaults to None.
-            reference_type (str, optional): An optional string describing the type of the reference (e.g. "comment", "photo"). Defaults to None.
+            sender_id (int, optional): The ID of the user who triggered the notification.
+            target_type (str, optional): Polymorphic discriminator — 'photo', 'comment', or 'album'.
+            target_id (int, optional): PK of the referenced resource.
 
         Returns:
-            dict: The created notification as a dict, or None if the notification type is disabled.
+            dict: The created notification as a dict, or None if the type is disabled or unknown.
         """
-        if not NotificationSettingsModel.is_enabled(type_key):
+        nt = NotificationTypeModel.get_by_type(type_key)
+        if not nt or not nt["isEnabled"]:
             return None
 
-        # map polymorphic reference to explicit kwargs expected by NotificationModel.create
-        photo_id = reference_id if reference_type == "photo" else None
-        comment_id = reference_id if reference_type == "comment" else None
-        album_id = reference_id if reference_type == "album" else None
-
         return NotificationModel.create(
-            type=type_key,
+            type_id=nt["id"],
             message=message,
             user_id=user_id,
             sender_id=sender_id,
-            photo_id=photo_id,
-            comment_id=comment_id,
-            album_id=album_id,
+            target_type=target_type,
+            target_id=target_id,
         )
 
-    # ── Notification settings (admin) ─────────────────────────────────────────
+    # ── Notification types (admin) ─────────────────────────────────────────────
 
     @staticmethod
-    def get_all_settings() -> list:
+    def get_all_types() -> list:
         """
-        Get all notification settings.
+        Get all notification types.
 
         Returns:
-            list: A list of all notification settings as dicts.
+            list: A list of all notification types as dicts.
         """
 
-        return NotificationSettingsModel.get_all()
+        return NotificationTypeModel.get_all()
 
     @staticmethod
-    def toggle_setting(type_key: str, enabled: bool) -> bool:
+    def toggle_type(type_key: str, enabled: bool) -> bool:
         """
         Enable or disable a notification type.
 
         Parameters:
-            type_key (str): The key of the notification type to toggle (e.g. "new_comment", "photo_liked").
+            type_key (str): The key of the notification type to toggle (e.g. 'daily_content').
             enabled (bool): True to enable the notification type, False to disable it.
 
         Returns:
             bool: True if the setting was successfully updated, False otherwise.
         """
 
-        return NotificationSettingsModel.set_enabled(type_key, enabled)
+        return NotificationTypeModel.set_enabled(type_key, enabled)
 
     @staticmethod
     def is_type_enabled(type_key: str) -> bool:
@@ -134,9 +129,9 @@ class NotificationService:
         Check if a notification type is enabled.
 
         Parameters:
-            type_key (str): The key of the notification type to check (e.g. "new_comment", "photo_liked").
+            type_key (str): The key of the notification type to check (e.g. 'daily_content').
         Returns:
             bool: True if the notification type is enabled, False otherwise.
         """
 
-        return NotificationSettingsModel.is_enabled(type_key)
+        return NotificationTypeModel.is_enabled(type_key)

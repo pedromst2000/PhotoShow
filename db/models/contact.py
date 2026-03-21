@@ -9,6 +9,7 @@ from sqlalchemy import (
     Integer,
     String,
 )
+from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -23,7 +24,7 @@ class ContactModel(Base):
     __table_args__ = (
         CheckConstraint("id > 0 AND id < 10000000", name="ck_contacts_id_range"),
         CheckConstraint(
-            "userID > 0 AND userID < 10000000", name="ck_contacts_userID_range"
+            "userId > 0 AND userId < 10000000", name="ck_contacts_userId_range"
         ),
         CheckConstraint("length(trim(title)) > 0", name="ck_contacts_title_not_empty"),
         CheckConstraint(
@@ -31,13 +32,13 @@ class ContactModel(Base):
         ),
         CheckConstraint("length(title) <= 75", name="ck_contacts_title_maxlen"),
         CheckConstraint("length(message) <= 255", name="ck_contacts_message_maxlen"),
-        Index("ix_contacts_userID", "userID"),
+        Index("ix_contacts_userId", "userId"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     title: str = Column(String(75), nullable=False)
     message: str = Column(String(255), nullable=False)
-    userID: int = Column(
+    userId: int = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     createdAt: DateTime = Column(
@@ -47,6 +48,11 @@ class ContactModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    # ORM many-to-one: many contact messages belong to one user
+    user_rel = relationship(
+        "UserModel", foreign_keys=[userId], back_populates="contacts_rel"
     )
 
     def to_dict(self) -> dict:
@@ -60,7 +66,7 @@ class ContactModel(Base):
             "id": self.id,
             "title": self.title,
             "message": self.message,
-            "userID": self.userID,
+            "userId": self.userId,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
         }
@@ -77,14 +83,14 @@ class ContactModel(Base):
             return [c.to_dict() for c in session.query(cls).all()]
 
     @classmethod
-    def create(cls, title: str, message: str, userID: int) -> dict:
+    def create(cls, title: str, message: str, userId: int) -> dict:
         """
         Create a new contact message in the database.
 
         Parameters:
             title (str): The title of the contact message.
             message (str): The content of the contact message.
-            userID (int): The ID of the user who submitted the contact message.
+            userId (int): The ID of the user who submitted the contact message.
 
         Returns:
             dict: A dictionary representation of the newly created contact message.
@@ -104,7 +110,7 @@ class ContactModel(Base):
         with SessionLocal() as session:
             with session.begin():
                 obj: ContactModel = cls(
-                    title=trimmed_title, message=trimmed_message, userID=userID
+                    title=trimmed_title, message=trimmed_message, userId=userId
                 )
                 session.add(obj)
                 session.flush()

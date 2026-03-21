@@ -9,6 +9,7 @@ from sqlalchemy import (
     Integer,
     UniqueConstraint,
 )
+from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -21,24 +22,24 @@ class FollowModel(Base):
     __tablename__: str = "follows"
 
     __table_args__ = (
-        UniqueConstraint("followerID", "followedID", name="uq_follow_pair"),
-        CheckConstraint("followerID != followedID", name="ck_follows_no_self_follow"),
+        UniqueConstraint("followerId", "followedId", name="uq_follow_pair"),
+        CheckConstraint("followerId != followedId", name="ck_follows_no_self_follow"),
         CheckConstraint("id > 0 AND id < 10000000", name="ck_follows_id_range"),
         CheckConstraint(
-            "followerID > 0 AND followerID < 10000000", name="ck_follows_follower_range"
+            "followerId > 0 AND followerId < 10000000", name="ck_follows_follower_range"
         ),
         CheckConstraint(
-            "followedID > 0 AND followedID < 10000000", name="ck_follows_followed_range"
+            "followedId > 0 AND followedId < 10000000", name="ck_follows_followed_range"
         ),
-        Index("ix_follows_followedID", "followedID"),
-        Index("ix_follows_followerID", "followerID"),
+        Index("ix_follows_followedId", "followedId"),
+        Index("ix_follows_followerId", "followerId"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    followerID: int = Column(
+    followerId: int = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    followedID: int = Column(
+    followedId: int = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     createdAt: DateTime = Column(
@@ -48,6 +49,15 @@ class FollowModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    # ORM many-to-one: the user who is following (followerId = this user's id)
+    follower_user_rel = relationship(
+        "UserModel", foreign_keys=[followerId], back_populates="following_rel"
+    )
+    # ORM many-to-one: the user being followed (followedId = this user's id)
+    followed_user_rel = relationship(
+        "UserModel", foreign_keys=[followedId], back_populates="followers_rel"
     )
 
     def to_dict(self) -> dict:
@@ -60,8 +70,8 @@ class FollowModel(Base):
 
         return {
             "id": self.id,
-            "followerID": self.followerID,
-            "followedID": self.followedID,
+            "followerId": self.followerId,
+            "followedId": self.followedId,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
         }
@@ -82,12 +92,12 @@ class FollowModel(Base):
             with session.begin():
                 existing = (
                     session.query(cls)
-                    .filter_by(followerID=follower_id, followedID=followed_id)
+                    .filter_by(followerId=follower_id, followedId=followed_id)
                     .first()
                 )
                 if existing:
                     return None
-                obj = cls(followerID=follower_id, followedID=followed_id)
+                obj = cls(followerId=follower_id, followedId=followed_id)
                 session.add(obj)
                 session.flush()
                 return obj.to_dict()
@@ -108,7 +118,7 @@ class FollowModel(Base):
             with session.begin():
                 deleted = (
                     session.query(cls)
-                    .filter_by(followerID=follower_id, followedID=followed_id)
+                    .filter_by(followerId=follower_id, followedId=followed_id)
                     .delete()
                 )
                 return deleted > 0
@@ -124,7 +134,7 @@ class FollowModel(Base):
         with SessionLocal() as session:
             return (
                 session.query(cls)
-                .filter_by(followerID=follower_id, followedID=followed_id)
+                .filter_by(followerId=follower_id, followedId=followed_id)
                 .first()
             ) is not None
 
@@ -139,7 +149,7 @@ class FollowModel(Base):
         with SessionLocal() as session:
             return [
                 f.to_dict()
-                for f in session.query(cls).filter_by(followedID=user_id).all()
+                for f in session.query(cls).filter_by(followedId=user_id).all()
             ]
 
     @classmethod
@@ -153,7 +163,7 @@ class FollowModel(Base):
         with SessionLocal() as session:
             return [
                 f.to_dict()
-                for f in session.query(cls).filter_by(followerID=user_id).all()
+                for f in session.query(cls).filter_by(followerId=user_id).all()
             ]
 
     @classmethod
@@ -168,7 +178,7 @@ class FollowModel(Base):
             int: The number of followers.
         """
         with SessionLocal() as session:
-            return session.query(cls).filter_by(followedID=user_id).count()
+            return session.query(cls).filter_by(followedId=user_id).count()
 
     @classmethod
     def count_following(cls, user_id: int) -> int:
@@ -182,4 +192,4 @@ class FollowModel(Base):
             int: The number of users that user_id follows.
         """
         with SessionLocal() as session:
-            return session.query(cls).filter_by(followerID=user_id).count()
+            return session.query(cls).filter_by(followerId=user_id).count()

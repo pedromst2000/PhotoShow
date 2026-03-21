@@ -12,7 +12,7 @@ from db.models import (
     FollowModel,
     LikeModel,
     NotificationModel,
-    NotificationSettingsModel,
+    NotificationTypeModel,
     PhotoImageModel,
     PhotoModel,
     RatingModel,
@@ -83,7 +83,7 @@ def _read_users() -> list:
                         username=parts[1],
                         email=parts[2],
                         password=hash_password(parts[3]),
-                        roleID=role_val,
+                        roleId=role_val,
                         isBlocked=is_blocked,
                     )
                 )
@@ -126,7 +126,7 @@ def _read_avatars() -> list:
                 data.append(
                     AvatarModel(
                         id=row_id,
-                        userID=user_id,
+                        userId=user_id,
                         avatar=avatar_path,
                     )
                 )
@@ -188,7 +188,7 @@ def _read_albums() -> list:
                 if len(parts) < 3:
                     continue
                 data.append(
-                    AlbumModel(id=int(parts[0]), name=parts[1], creatorID=int(parts[2]))
+                    AlbumModel(id=int(parts[0]), name=parts[1], creatorId=int(parts[2]))
                 )
         log_success(f"Loaded {len(data)} albums.")
     except FileNotFoundError as e:
@@ -228,8 +228,8 @@ def _read_photos() -> list:
                         id=int(parts[0]),
                         description=parts[1],
                         publishedDate=published_date,
-                        categoryID=int(parts[3]),
-                        albumID=album_id,
+                        categoryId=int(parts[3]),
+                        albumId=album_id,
                     )
                 )
         log_success(f"Loaded {len(data)} photos.")
@@ -240,7 +240,7 @@ def _read_photos() -> list:
     return data
 
 
-def _read_photo_images() -> list:
+def _read_photo_image() -> list:
     """
     Read photo images from CSV file and return a list of PhotoImageModel instances.
 
@@ -248,7 +248,7 @@ def _read_photo_images() -> list:
         list: A list of PhotoImageModel instances read from the CSV file.
     """
 
-    path = "files/photo_images.csv"
+    path = "files/photo_image.csv"
     data = []
     log_check(f"Reading photo images from {path}...")
     try:
@@ -261,7 +261,7 @@ def _read_photo_images() -> list:
                 data.append(
                     PhotoImageModel(
                         id=int(parts[0]),
-                        photoID=int(parts[1]),
+                        photoId=int(parts[1]),
                         image=parts[2],
                     )
                 )
@@ -294,8 +294,8 @@ def _read_ratings() -> list:
                 data.append(
                     RatingModel(
                         id=int(parts[0]),
-                        userID=int(parts[1]),
-                        photoID=int(parts[2]),
+                        userId=int(parts[1]),
+                        photoId=int(parts[2]),
                         rating=int(parts[3]),
                     )
                 )
@@ -328,8 +328,8 @@ def _read_likes() -> list:
                 data.append(
                     LikeModel(
                         id=int(parts[0]),
-                        userID=int(parts[1]),
-                        photoID=int(parts[2]),
+                        userId=int(parts[1]),
+                        photoId=int(parts[2]),
                     )
                 )
         log_success(f"Loaded {len(data)} likes.")
@@ -361,8 +361,8 @@ def _read_follows() -> list:
                 data.append(
                     FollowModel(
                         id=int(parts[0]),
-                        followerID=int(parts[1]),
-                        followedID=int(parts[2]),
+                        followerId=int(parts[1]),
+                        followedId=int(parts[2]),
                     )
                 )
         log_success(f"Loaded {len(data)} follows.")
@@ -388,41 +388,23 @@ def _read_notifications() -> list:
     log_check(f"Reading notifications from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
-            for parts in csv.reader(
-                f
-            ):  # expected: id,type,message,userID,senderID,referenceID,referenceType,isRead
+            for parts in csv.reader(f):
                 if parts[0] == "id":
                     continue
-                if len(parts) < 4:
+                if len(parts) < 8:
                     continue
-                # map polymorphic CSV (referenceType/referenceID) to explicit nullable FKs
-                ref_id = int(parts[5]) if len(parts) > 5 and parts[5].strip() else None
-                ref_type = (
-                    parts[6].strip() if len(parts) > 6 and parts[6].strip() else None
-                )
-                photo_id = ref_id if ref_type == "photo" else None
-                comment_id = ref_id if ref_type == "comment" else None
-                album_id = ref_id if ref_type == "album" else None
-
+                target_type = parts[4].strip() or None
+                target_id = int(parts[5]) if parts[5].strip() else None
                 data.append(
                     NotificationModel(
                         id=int(parts[0]),
-                        type=parts[1],
-                        message=parts[2],
-                        userID=int(parts[3]),
-                        senderID=(
-                            int(parts[4])
-                            if len(parts) > 4 and parts[4].strip()
-                            else None
-                        ),
-                        photoID=photo_id,
-                        commentID=comment_id,
-                        albumID=album_id,
-                        isRead=(
-                            parts[7].strip() == "True"
-                            if len(parts) > 7 and parts[7].strip()
-                            else False
-                        ),
+                        typeId=int(parts[1]),
+                        userId=int(parts[2]),
+                        senderId=int(parts[3]) if parts[3].strip() else None,
+                        targetType=target_type,
+                        targetId=target_id,
+                        message=parts[6],
+                        isRead=parts[7].strip() == "True",
                     )
                 )
         log_success(f"Loaded {len(data)} notifications.")
@@ -463,9 +445,9 @@ def _read_comments(valid_photo_ids: set) -> list:
                 data.append(
                     CommentModel(
                         id=int(parts[0]),
-                        authorID=int(parts[1]),
+                        authorId=int(parts[1]),
                         comment=parts[2],
-                        photoID=photo_id,
+                        photoId=photo_id,
                     )
                 )
         log_success(f"Loaded {len(data)} comments.")
@@ -498,8 +480,8 @@ def _read_favorites() -> list:
                 data.append(
                     FavoriteModel(
                         id=int(parts[0]),
-                        albumID=int(parts[1]),
-                        userID=int(parts[2]),
+                        albumId=int(parts[1]),
+                        userId=int(parts[2]),
                     )
                 )
         log_success(f"Loaded {len(data)} favorites.")
@@ -534,7 +516,7 @@ def _read_contacts() -> list:
                         id=int(parts[0]),
                         title=parts[1],
                         message=parts[2],
-                        userID=int(parts[3]),
+                        userId=int(parts[3]),
                     )
                 )
         log_success(f"Loaded {len(data)} contacts.")
@@ -547,16 +529,16 @@ def _read_contacts() -> list:
     return data
 
 
-def _read_notification_settings() -> list:
+def _read_notification_types() -> list:
     """
-    Read notification settings from CSV file and return a list of NotificationSettingsModel instances.
+    Read notification types from CSV file and return a list of NotificationTypeModel instances.
 
     Returns:
-        list: A list of NotificationSettingsModel instances read from the CSV file.
+        list: A list of NotificationTypeModel instances read from the CSV file.
     """
-    path = "files/notification_settings.csv"
+    path = "files/notification_types.csv"
     data = []
-    log_check(f"Reading notification settings from {path}...")
+    log_check(f"Reading notification types from {path}...")
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:
             for parts in csv.reader(f):  # expected: id,type,label,isEnabled
@@ -565,22 +547,22 @@ def _read_notification_settings() -> list:
                 if len(parts) < 4:
                     continue
                 data.append(
-                    NotificationSettingsModel(
+                    NotificationTypeModel(
                         id=int(parts[0]),
                         type=parts[1],
                         label=parts[2],
                         isEnabled=parts[3].strip() == "True",
                     )
                 )
-        log_success(f"Loaded {len(data)} notification settings.")
+        log_success(f"Loaded {len(data)} notification types.")
     except FileNotFoundError as e:
         log_issue(
-            "notification_settings.csv not found — settings will not be seeded",
+            "notification_types.csv not found — notification types will not be seeded",
             exc=e,
             path=path,
         )
     except Exception as e:
-        log_issue("Unexpected error reading notification settings", exc=e, path=path)
+        log_issue("Unexpected error reading notification types", exc=e, path=path)
     return data
 
 
@@ -588,9 +570,8 @@ def _read_all() -> dict:
     """
     Read all CSVs in a dependency-safe order and return a dict of lists.
 
-    Returns keys: roles,categories,users,avatars,albums,photos,photo_images,
-    ratings,comments,favorites,contacts,notification_settings,notifications,
-    follows,likes
+    Returns:
+        dict: A dictionary where keys are table names and values are lists of ORM instances read from
     """
     roles = _read_roles()
     categories = _read_categories()
@@ -599,12 +580,12 @@ def _read_all() -> dict:
     albums = _read_albums()
     photos = _read_photos()
     valid_photo_ids = {p.id for p in photos}
-    photo_images = _read_photo_images()
+    photo_image = _read_photo_image()
     ratings = _read_ratings()
     comments = _read_comments(valid_photo_ids)
     favorites = _read_favorites()
     contacts = _read_contacts()
-    notification_settings = _read_notification_settings()
+    notification_types = _read_notification_types()
     notifications = _read_notifications()
     follows = _read_follows()
     likes = _read_likes()
@@ -616,12 +597,12 @@ def _read_all() -> dict:
         "avatars": avatars,
         "albums": albums,
         "photos": photos,
-        "photo_images": photo_images,
+        "photo_image": photo_image,
         "ratings": ratings,
         "comments": comments,
         "favorites": favorites,
         "contacts": contacts,
-        "notification_settings": notification_settings,
+        "notification_types": notification_types,
         "notifications": notifications,
         "follows": follows,
         "likes": likes,
@@ -636,12 +617,12 @@ _CSV_ORDER = [
     "avatars",
     "albums",
     "photos",
-    "photo_images",
+    "photo_image",
     "ratings",
     "comments",
     "favorites",
     "contacts",
-    "notification_settings",
+    "notification_types",
     "notifications",
     "follows",
     "likes",

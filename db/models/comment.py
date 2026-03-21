@@ -9,6 +9,7 @@ from sqlalchemy import (
     Integer,
     String,
 )
+from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -23,24 +24,24 @@ class CommentModel(Base):
     __table_args__ = (
         CheckConstraint("id > 0 AND id < 10000000", name="ck_comments_id_range"),
         CheckConstraint(
-            "authorID > 0 AND authorID < 10000000", name="ck_comments_author_range"
+            "authorId > 0 AND authorId < 10000000", name="ck_comments_author_range"
         ),
         CheckConstraint(
-            "photoID > 0 AND photoID < 10000000", name="ck_comments_photo_range"
+            "photoId > 0 AND photoId < 10000000", name="ck_comments_photo_range"
         ),
         CheckConstraint(
             "length(trim(comment)) > 0", name="ck_comments_comment_not_empty"
         ),
         CheckConstraint("length(comment) <= 255", name="ck_comments_comment_maxlen"),
-        Index("ix_comments_photoID_createdAt", "photoID", "createdAt"),
+        Index("ix_comments_photoId_createdAt", "photoId", "createdAt"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    authorID: int = Column(
+    authorId: int = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     comment: str = Column(String(255), nullable=False)
-    photoID: int = Column(
+    photoId: int = Column(
         Integer, ForeignKey("photos.id", ondelete="CASCADE"), nullable=False
     )
     createdAt: DateTime = Column(
@@ -52,6 +53,15 @@ class CommentModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    # ORM many-to-one: many comments belong to one author user
+    author_rel = relationship(
+        "UserModel", foreign_keys=[authorId], back_populates="comments_rel"
+    )
+    # ORM many-to-one: many comments belong to one photo
+    photo_rel = relationship(
+        "PhotoModel", foreign_keys=[photoId], back_populates="comments_rel"
+    )
+
     def to_dict(self) -> dict:
         """
         Convert the CommentModel instance to a dictionary.
@@ -61,9 +71,9 @@ class CommentModel(Base):
         """
         return {
             "id": self.id,
-            "authorID": self.authorID,
+            "authorId": self.authorId,
             "comment": self.comment,
-            "photoID": self.photoID,
+            "photoId": self.photoId,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
         }
@@ -94,7 +104,7 @@ class CommentModel(Base):
             return [
                 c.to_dict()
                 for c in session.query(cls)
-                .filter_by(photoID=photo_id)
+                .filter_by(photoId=photo_id)
                 .order_by(cls.createdAt)
                 .all()
             ]
@@ -102,17 +112,17 @@ class CommentModel(Base):
     @classmethod
     def create(
         cls,
-        authorID: int,
+        authorId: int,
         comment: str,
-        photoID: int,
+        photoId: int,
     ) -> dict:
         """
         Create a new comment in the database.
 
         Parameters:
-            authorID (int): The ID of the user who authored the comment.
+            authorId (int): The ID of the user who authored the comment.
             comment (str): The content of the comment.
-            photoID (int): The ID of the photo the comment belongs to.
+            photoId (int): The ID of the photo the comment belongs to.
 
         Returns:
             dict: A dictionary representation of the newly created comment.
@@ -127,9 +137,9 @@ class CommentModel(Base):
         with SessionLocal() as session:
             with session.begin():
                 obj: CommentModel = cls(
-                    authorID=authorID,
+                    authorId=authorId,
                     comment=trimmed,
-                    photoID=photoID,
+                    photoId=photoId,
                 )
                 session.add(obj)
                 session.flush()

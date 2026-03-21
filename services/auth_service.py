@@ -64,7 +64,7 @@ class AuthService:
             username=username,
             email=email,
             password=hashed_password,
-            roleID=unsigned_role["id"] if unsigned_role else None,
+            roleId=unsigned_role["id"] if unsigned_role else None,
             isBlocked=False,
         )
         # create default avatar entry

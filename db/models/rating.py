@@ -10,6 +10,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
+from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -25,21 +26,21 @@ class RatingModel(Base):
         CheckConstraint("id > 0 AND id < 10000000", name="ck_ratings_id_range"),
         CheckConstraint("rating >= 1 AND rating <= 5", name="ck_ratings_range"),
         CheckConstraint(
-            "userID > 0 AND userID < 10000000", name="ck_ratings_user_range"
+            "userId > 0 AND userId < 10000000", name="ck_ratings_user_range"
         ),
         CheckConstraint(
-            "photoID > 0 AND photoID < 10000000", name="ck_ratings_photo_range"
+            "photoId > 0 AND photoId < 10000000", name="ck_ratings_photo_range"
         ),
-        UniqueConstraint("userID", "photoID", name="uq_ratings_user_photo"),
-        Index("ix_ratings_photoID", "photoID"),
-        Index("ix_ratings_userID", "userID"),
+        UniqueConstraint("userId", "photoId", name="uq_ratings_user_photo"),
+        Index("ix_ratings_photoId", "photoId"),
+        Index("ix_ratings_userId", "userId"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    userID: int = Column(
+    userId: int = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    photoID: int = Column(
+    photoId: int = Column(
         Integer, ForeignKey("photos.id", ondelete="CASCADE"), nullable=False
     )
     rating: int = Column(Integer, nullable=False)
@@ -52,6 +53,15 @@ class RatingModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    # ORM many-to-one: many ratings belong to one user
+    user_rel = relationship(
+        "UserModel", foreign_keys=[userId], back_populates="ratings_rel"
+    )
+    # ORM many-to-one: many ratings belong to one photo
+    photo_rel = relationship(
+        "PhotoModel", foreign_keys=[photoId], back_populates="ratings_rel"
+    )
+
     def to_dict(self) -> dict:
         """
         Convert the RatingModel instance to a dictionary.
@@ -62,8 +72,8 @@ class RatingModel(Base):
 
         return {
             "id": self.id,
-            "userID": self.userID,
-            "photoID": self.photoID,
+            "userId": self.userId,
+            "photoId": self.photoId,
             "rating": self.rating,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
@@ -88,14 +98,14 @@ class RatingModel(Base):
             with session.begin():
                 existing = (
                     session.query(cls)
-                    .filter_by(userID=user_id, photoID=photo_id)
+                    .filter_by(userId=user_id, photoId=photo_id)
                     .first()
                 )
                 if existing:
                     existing.rating = r
                     session.flush()
                     return existing.to_dict()
-                obj = cls(userID=user_id, photoID=photo_id, rating=r)
+                obj = cls(userId=user_id, photoId=photo_id, rating=r)
                 session.add(obj)
                 session.flush()
                 return obj.to_dict()
@@ -115,7 +125,7 @@ class RatingModel(Base):
         with SessionLocal() as session:
             return [
                 r.to_dict()
-                for r in session.query(cls).filter_by(photoID=photo_id).all()
+                for r in session.query(cls).filter_by(photoId=photo_id).all()
             ]
 
     @classmethod
@@ -131,7 +141,7 @@ class RatingModel(Base):
 
         with SessionLocal() as session:
             avg = (
-                session.query(func.avg(cls.rating)).filter_by(photoID=photo_id).scalar()
+                session.query(func.avg(cls.rating)).filter_by(photoId=photo_id).scalar()
             )
             if avg is None:
                 return 0.0

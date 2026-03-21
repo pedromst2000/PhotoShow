@@ -11,7 +11,7 @@ from db.models.favorite import FavoriteModel
 from db.models.follow import FollowModel
 from db.models.like import LikeModel
 from db.models.notification import NotificationModel
-from db.models.notification_settings import NotificationSettingsModel
+from db.models.notification_types import NotificationTypeModel
 from db.models.photo import PhotoModel
 from db.models.photo_image import PhotoImageModel
 from db.models.rating import RatingModel
@@ -28,7 +28,7 @@ __all__ = [
     "RatingModel",
     "AvatarModel",
     "NotificationModel",
-    "NotificationSettingsModel",
+    "NotificationTypeModel",
     "CommentModel",
     "FavoriteModel",
     "ContactModel",

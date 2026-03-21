@@ -1,4 +1,4 @@
-id,username,email,password,roleID,isBlocked
+﻿id,username,email,password,roleId,isBlocked
 1,admin,admin@gmail.com,123admin,1,False
 2,pedromst,pedromst@gmail.com,123pedro,2,False
 3,Charles,charles@gmail.com,123charles,2,True

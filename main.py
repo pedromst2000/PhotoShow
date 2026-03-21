@@ -132,7 +132,6 @@ if __name__ == "__main__":
     import sys
 
     from db.engine import check_db, init_db
-    from db.migration import migrate
     from db.reset import reset_db
 
     if "--resetDB" in sys.argv:
@@ -160,8 +159,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # ── Normal startup ───────────────────────────────────────────────────────
-    init_db()  # Ensure tables exist before any operations, including migrations
-    migrate()  # Apply any pending schema changes (if applicable)
+    init_db()  # Ensure tables exist (no-op if already created)
     ok, message = check_db()  # Check DB health before launching the app
     if not ok:
         import tkinter.messagebox as mb

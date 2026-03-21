@@ -24,12 +24,12 @@ class PhotoModel(Base):
     __table_args__ = (
         CheckConstraint("id > 0 AND id < 10000000", name="ck_photos_id_range"),
         CheckConstraint(
-            "categoryID > 0 AND categoryID < 10000000",
-            name="ck_photos_categoryID_range",
+            "categoryId > 0 AND categoryId < 10000000",
+            name="ck_photos_categoryId_range",
         ),
         CheckConstraint(
-            "(albumID IS NULL) OR (albumID > 0 AND albumID < 10000000)",
-            name="ck_photos_albumID_null_or_range",
+            "(albumId IS NULL) OR (albumId > 0 AND albumId < 10000000)",
+            name="ck_photos_albumId_null_or_range",
         ),
         CheckConstraint(
             "length(trim(description)) > 0", name="ck_photos_description_not_empty"
@@ -37,17 +37,17 @@ class PhotoModel(Base):
         CheckConstraint(
             "length(description) <= 255", name="ck_photos_description_maxlen"
         ),
-        Index("ix_photos_albumID", "albumID"),
-        Index("ix_photos_categoryID", "categoryID"),
+        Index("ix_photos_albumId", "albumId"),
+        Index("ix_photos_categoryId", "categoryId"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     description: str = Column(String(255), nullable=False)
     publishedDate: DateTime = Column(DateTime(timezone=True), nullable=False)
-    categoryID: int = Column(
+    categoryId: int = Column(
         Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False
     )
-    albumID: int = Column(
+    albumId: int = Column(
         Integer, ForeignKey("albuns.id", ondelete="CASCADE"), nullable=True
     )
     createdAt: DateTime = Column(
@@ -59,33 +59,57 @@ class PhotoModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # ORM relationships — cascade photo deletion to all child rows
-    images_rel = relationship(
-        "PhotoImageModel", cascade="all, delete-orphan", passive_deletes=True
+    # ORM many-to-one: many photos belong to one category
+    category_rel = relationship(
+        "CategoryModel", foreign_keys=[categoryId], back_populates="photos_rel"
+    )
+    # ORM many-to-one: many photos belong to one album (nullable — photo may not be in an album)
+    album_rel = relationship(
+        "AlbumModel", foreign_keys=[albumId], back_populates="photos_rel"
+    )
+    # ORM one-to-one: one photo has a single image (photo_image.photoID unique)
+    image_rel = relationship(
+        "PhotoImageModel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="photo_rel",
+        uselist=False,
     )
 
     @property
-    def images(self):
-        return self.images_rel
+    def image(self):
+        return self.image_rel
 
+    # ORM one-to-many: one photo has many ratings
     ratings_rel = relationship(
-        "RatingModel", cascade="all, delete-orphan", passive_deletes=True
+        "RatingModel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="photo_rel",
     )
 
     @property
     def ratings(self):
         return self.ratings_rel
 
+    # ORM one-to-many: one photo has many comments
     comments_rel = relationship(
-        "CommentModel", cascade="all, delete-orphan", passive_deletes=True
+        "CommentModel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="photo_rel",
     )
 
     @property
     def comments(self):
         return self.comments_rel
 
+    # ORM one-to-many: one photo has many likes
     likes_rel = relationship(
-        "LikeModel", cascade="all, delete-orphan", passive_deletes=True
+        "LikeModel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="photo_rel",
     )
 
     @property
@@ -104,8 +128,8 @@ class PhotoModel(Base):
             "description": self.description,
             "publishedDate": self.publishedDate,
             "rating": 0.0,
-            "categoryID": self.categoryID,
-            "albumID": self.albumID,
+            "categoryId": self.categoryId,
+            "albumId": self.albumId,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
         }
@@ -126,8 +150,8 @@ class PhotoModel(Base):
         cls,
         description: str,
         publishedDate,
-        categoryID: int,
-        albumID: int = None,
+        categoryId: int,
+        albumId: int = None,
     ) -> dict:
         """
         Create a new photo in the database.
@@ -135,8 +159,8 @@ class PhotoModel(Base):
         Parameters:
             description (str): The description of the photo.
             publishedDate (datetime): The date and time when the photo was published.
-            categoryID (int): The ID of the category the photo belongs to.
-            albumID (int, optional): The ID of the album the photo belongs to. Defaults to None.
+            categoryId (int): The ID of the category the photo belongs to.
+            albumId (int, optional): The ID of the album the photo belongs to. Defaults to None.
             Note: image data is stored in `photo_images` table; ratings are stored in `ratings`.
         Returns:
             dict: A dictionary representation of the newly created photo.
@@ -146,8 +170,8 @@ class PhotoModel(Base):
                 obj: PhotoModel = cls(
                     description=description,
                     publishedDate=publishedDate,
-                    categoryID=categoryID,
-                    albumID=albumID,
+                    categoryId=categoryId,
+                    albumId=albumId,
                 )
                 session.add(obj)
                 session.flush()
@@ -230,7 +254,7 @@ class PhotoModel(Base):
         with SessionLocal() as session:
             return [
                 p.to_dict()
-                for p in session.query(cls).filter_by(albumID=album_id).all()
+                for p in session.query(cls).filter_by(albumId=album_id).all()
             ]
 
     @classmethod
@@ -247,7 +271,7 @@ class PhotoModel(Base):
         with SessionLocal() as session:
             return [
                 p.to_dict()
-                for p in session.query(cls).filter_by(categoryID=category_id).all()
+                for p in session.query(cls).filter_by(categoryId=category_id).all()
             ]
 
     @classmethod

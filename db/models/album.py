@@ -23,18 +23,18 @@ class AlbumModel(Base):
     __tablename__: str = "albuns"
 
     __table_args__ = (
-        UniqueConstraint("creatorID", "name", name="uq_albums_creatorID_name"),
+        UniqueConstraint("creatorId", "name", name="uq_albums_creatorId_name"),
         CheckConstraint("id > 0 AND id < 10000000", name="ck_albums_id_range"),
         CheckConstraint(
-            "creatorID > 0 AND creatorID < 10000000", name="ck_albums_creatorID_range"
+            "creatorId > 0 AND creatorId < 10000000", name="ck_albums_creatorId_range"
         ),
         CheckConstraint("length(trim(name)) > 0", name="ck_albums_name_not_empty"),
-        Index("ix_albums_creatorID", "creatorID"),
+        Index("ix_albums_creatorId", "creatorId"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     name: str = Column(String(50), nullable=False)
-    creatorID: int = Column(
+    creatorId: int = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     createdAt: DateTime = Column(
@@ -46,23 +46,28 @@ class AlbumModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # ORM relationship to photos so deleting an album cascades to its photos
+    # ORM many-to-one: many albums belong to one creator user
+    creator_rel = relationship(
+        "UserModel", foreign_keys=[creatorId], back_populates="albums_rel"
+    )
+    # ORM one-to-many: one album has many photos
     photos_rel = relationship(
         "PhotoModel",
         cascade="all, delete-orphan",
         passive_deletes=True,
+        back_populates="album_rel",
     )
 
-    # alias for backward-compatibility
     @property
     def photos(self):
         return self.photos_rel
 
-    # ORM relationship to favorites so deleting an album cascades to its favorites
+    # ORM one-to-many: one album has many favorites
     favorites_rel = relationship(
         "FavoriteModel",
         cascade="all, delete-orphan",
         passive_deletes=True,
+        back_populates="album_rel",
     )
 
     @property
@@ -79,7 +84,7 @@ class AlbumModel(Base):
         return {
             "id": self.id,
             "name": self.name,
-            "creatorID": self.creatorID,
+            "creatorId": self.creatorId,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
         }
@@ -96,13 +101,13 @@ class AlbumModel(Base):
             return [a.to_dict() for a in session.query(cls).all()]
 
     @classmethod
-    def create(cls, name: str, creatorID: int) -> dict:
+    def create(cls, name: str, creatorId: int) -> dict:
         """
         Create a new album in the database.
 
         Parameters:
             name (str): The name of the album.
-            creatorID (int): The ID of the user creating the album.
+            creatorId (int): The ID of the user creating the album.
 
         Returns:
             dict: A dictionary representation of the newly created album.
@@ -116,7 +121,7 @@ class AlbumModel(Base):
 
         with SessionLocal() as session:
             with session.begin():
-                obj: AlbumModel = cls(name=trimmed, creatorID=creatorID)
+                obj: AlbumModel = cls(name=trimmed, creatorId=creatorId)
                 session.add(obj)
                 session.flush()
                 return obj.to_dict()
@@ -167,7 +172,7 @@ class AlbumModel(Base):
         with SessionLocal() as session:
             return [
                 a.to_dict()
-                for a in session.query(cls).filter_by(creatorID=creator_id).all()
+                for a in session.query(cls).filter_by(creatorId=creator_id).all()
             ]
 
     @classmethod

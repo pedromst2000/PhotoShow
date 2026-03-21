@@ -1,4 +1,4 @@
-id,description,publishedDate,categoryID,albumID
+﻿id,description,publishedDate,categoryId,albumId
 1,"A breathtaking sunset over the Grand Canyon, capturing the vibrant hues of the sky and the canyon majestic landscape.",2026-03-05,1,1
 2,"A close-up shot of a dew-covered spider web in a misty morning forest, highlighting the intricate beauty of nature.",2026-07-18,2,4
 3,"A soccer player mid-air, kicking the ball during an intense match under stadium lights.",2026-01-22,3,3

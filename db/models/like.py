@@ -9,6 +9,7 @@ from sqlalchemy import (
     Integer,
     UniqueConstraint,
 )
+from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -21,23 +22,23 @@ class LikeModel(Base):
     __tablename__: str = "likes"
 
     __table_args__ = (
-        UniqueConstraint("userID", "photoID", name="uq_like_pair"),
+        UniqueConstraint("userId", "photoId", name="uq_like_pair"),
         CheckConstraint("id > 0 AND id < 10000000", name="ck_likes_id_range"),
         CheckConstraint(
-            "userID > 0 AND userID < 10000000", name="ck_likes_userID_range"
+            "userId > 0 AND userId < 10000000", name="ck_likes_userId_range"
         ),
         CheckConstraint(
-            "photoID > 0 AND photoID < 10000000", name="ck_likes_photoID_range"
+            "photoId > 0 AND photoId < 10000000", name="ck_likes_photoId_range"
         ),
-        Index("ix_likes_photoID", "photoID"),
-        Index("ix_likes_userID", "userID"),
+        Index("ix_likes_photoId", "photoId"),
+        Index("ix_likes_userId", "userId"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    userID: int = Column(
+    userId: int = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    photoID: int = Column(
+    photoId: int = Column(
         Integer, ForeignKey("photos.id", ondelete="CASCADE"), nullable=False
     )
     createdAt: DateTime = Column(
@@ -47,6 +48,15 @@ class LikeModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    # ORM many-to-one: many likes belong to one user
+    user_rel = relationship(
+        "UserModel", foreign_keys=[userId], back_populates="likes_rel"
+    )
+    # ORM many-to-one: many likes belong to one photo
+    photo_rel = relationship(
+        "PhotoModel", foreign_keys=[photoId], back_populates="likes_rel"
     )
 
     def to_dict(self) -> dict:
@@ -59,8 +69,8 @@ class LikeModel(Base):
 
         return {
             "id": self.id,
-            "userID": self.userID,
-            "photoID": self.photoID,
+            "userId": self.userId,
+            "photoId": self.photoId,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
         }
@@ -80,12 +90,12 @@ class LikeModel(Base):
             with session.begin():
                 existing = (
                     session.query(cls)
-                    .filter_by(userID=user_id, photoID=photo_id)
+                    .filter_by(userId=user_id, photoId=photo_id)
                     .first()
                 )
                 if existing:
                     return existing.to_dict()
-                obj = cls(userID=user_id, photoID=photo_id)
+                obj = cls(userId=user_id, photoId=photo_id)
                 session.add(obj)
                 session.flush()
                 return obj.to_dict()
@@ -105,7 +115,7 @@ class LikeModel(Base):
             with session.begin():
                 deleted = (
                     session.query(cls)
-                    .filter_by(userID=user_id, photoID=photo_id)
+                    .filter_by(userId=user_id, photoId=photo_id)
                     .delete()
                 )
                 return deleted > 0
@@ -124,7 +134,7 @@ class LikeModel(Base):
         """
         with SessionLocal() as session:
             return (
-                session.query(cls).filter_by(userID=user_id, photoID=photo_id).first()
+                session.query(cls).filter_by(userId=user_id, photoId=photo_id).first()
                 is not None
             )
 
@@ -140,7 +150,7 @@ class LikeModel(Base):
             int: The number of likes for the photo.
         """
         with SessionLocal() as session:
-            return session.query(cls).filter_by(photoID=photo_id).count()
+            return session.query(cls).filter_by(photoId=photo_id).count()
 
     @classmethod
     def get_liked_photos(cls, user_id: int) -> list:
@@ -156,5 +166,5 @@ class LikeModel(Base):
         with SessionLocal() as session:
             return [
                 like_obj.to_dict()
-                for like_obj in session.query(cls).filter_by(userID=user_id).all()
+                for like_obj in session.query(cls).filter_by(userId=user_id).all()
             ]

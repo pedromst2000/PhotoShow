@@ -119,7 +119,7 @@ class PhotoService:
                 str: The name of the category, or empty string if not found.
             """
 
-            match = next((c for c in categories if c["id"] == photo["categoryID"]), {})
+            match = next((c for c in categories if c["id"] == photo["categoryId"]), {})
             return match.get("category", "")
 
         # Helper to get username for a photo via its album's creatorID
@@ -133,10 +133,10 @@ class PhotoService:
                 str: The username of the photo's owner, or empty string if not found.
             """
 
-            album = next((a for a in albums if a["id"] == photo["albumID"]), None)
+            album = next((a for a in albums if a["id"] == photo["albumId"]), None)
             if not album:
                 return ""
-            match = next((u for u in users if u["id"] == album["creatorID"]), {})
+            match = next((u for u in users if u["id"] == album["creatorId"]), {})
             return match.get("username", "")
 
         result = []
@@ -188,8 +188,8 @@ class PhotoService:
         photo = PhotoModel.create(
             description=description,
             publishedDate=published_date or datetime.now(timezone.utc),
-            categoryID=category_id,
-            albumID=album_id,
+            categoryId=category_id,
+            albumId=album_id,
         )
         PhotoImageModel.create(photo_id=photo["id"], image=image_path)
         # return enriched photo dict
@@ -226,9 +226,9 @@ class PhotoService:
         from db.models import AlbumModel
 
         album = (
-            AlbumModel.get_by_id(photo.get("albumID")) if photo.get("albumID") else None
+            AlbumModel.get_by_id(photo.get("albumId")) if photo.get("albumId") else None
         )
-        owner_id = album["creatorID"] if album else None
+        owner_id = album["creatorId"] if album else None
         # if owner matches, delete
         if owner_id == user_id:
             return PhotoModel.delete(photo_id)
@@ -271,9 +271,9 @@ class PhotoService:
         from db.models import AlbumModel
 
         album = (
-            AlbumModel.get_by_id(photo.get("albumID")) if photo.get("albumID") else None
+            AlbumModel.get_by_id(photo.get("albumId")) if photo.get("albumId") else None
         )
-        owner_id = album["creatorID"] if album else None
+        owner_id = album["creatorId"] if album else None
         if owner_id == user_id:
             return PhotoModel.update({**photo, **updates})
         return False
@@ -378,9 +378,9 @@ class PhotoService:
         """
         like_rows = LikeModel.get_liked_photos(user_id)
         return [
-            PhotoModel.get_by_id(r["photoID"])
+            PhotoModel.get_by_id(r["photoId"])
             for r in like_rows
-            if PhotoModel.get_by_id(r["photoID"])
+            if PhotoModel.get_by_id(r["photoId"])
         ]
 
     @staticmethod

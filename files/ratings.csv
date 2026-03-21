@@ -1,4 +1,4 @@
-id,userID,photoID,rating
+﻿id,userId,photoId,rating
 1,1,1,5
 2,2,1,4
 3,3,1,3

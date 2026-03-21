@@ -110,7 +110,7 @@ class UserSession:
         Returns:
             int or None: The user's ID if logged in, None otherwise.
         """
-        return self._user_data.get("userID") if self._user_data else None
+        return self._user_data.get("id") if self._user_data else None
 
     @property
     def username(self) -> Optional[str]:

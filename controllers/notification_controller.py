@@ -70,16 +70,16 @@ class NotificationController:
     # ── Admin: notification settings ──────────────────────────────────────────
 
     @staticmethod
-    def get_settings() -> List[dict]:
+    def get_types() -> List[dict]:
         """
-        Retrieve all notification settings (admin only).
+        Retrieve all notification types (admin only).
         Returns:
-            List of notification setting dictionaries, or empty list if not admin.
+            List of notification type dictionaries, or empty list if not admin.
         """
 
         if not session.is_admin:
             return []
-        return NotificationService.get_all_settings()
+        return NotificationService.get_all_types()
 
     @staticmethod
     def toggle_notification_type(type_key: str, enabled: bool) -> Tuple[bool, str]:
@@ -95,7 +95,7 @@ class NotificationController:
             return False, "Admin privileges required"
         if not type_key:
             return False, "Notification type is required"
-        if NotificationService.toggle_setting(type_key, enabled):
+        if NotificationService.toggle_type(type_key, enabled):
             state = "enabled" if enabled else "disabled"
             return True, f"Notifications for '{type_key}' are now {state}"
         return False, f"Notification type '{type_key}' not found"

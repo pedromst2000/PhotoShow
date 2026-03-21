@@ -27,7 +27,7 @@ class UserModel(Base):
     email: str = Column(String(125), unique=True, nullable=False)
     password: str = Column(String(125), nullable=False)
 
-    roleID: int = Column(
+    roleId: int = Column(
         Integer, ForeignKey("roles.id", ondelete="SET NULL"), nullable=True
     )
     isBlocked: bool = Column(Boolean, default=False)
@@ -40,39 +40,89 @@ class UserModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # ORM relationships — passive_deletes=True relies on DB-level FK CASCADE
+    # ORM many-to-one: many users belong to one role (nullable — unsigned users have no role)
+    role_rel = relationship(
+        "RoleModel", foreign_keys=[roleId], back_populates="users_rel"
+    )
+    # ORM one-to-one: one user has one avatar
     avatar_rel = relationship(
-        "AvatarModel", uselist=False, cascade="all, delete-orphan", passive_deletes=True
+        "AvatarModel",
+        uselist=False,
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="user_rel",
     )
+    # ORM one-to-many: one user (creator) has many albums
     albums_rel = relationship(
-        "AlbumModel", cascade="all, delete-orphan", passive_deletes=True
+        "AlbumModel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="creator_rel",
     )
+    # ORM one-to-many: one user has many contact messages
     contacts_rel = relationship(
-        "ContactModel", cascade="all, delete-orphan", passive_deletes=True
+        "ContactModel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="user_rel",
     )
-    # child rows with two parent FKs: DB-level CASCADE handles delete, no delete-orphan here
-    likes_rel = relationship("LikeModel", passive_deletes=True)
-    ratings_rel = relationship("RatingModel", passive_deletes=True)
+    # ORM one-to-many: one user has many likes
+    likes_rel = relationship(
+        "LikeModel", passive_deletes=True, back_populates="user_rel"
+    )
+    # ORM one-to-many: one user has many ratings
+    ratings_rel = relationship(
+        "RatingModel", passive_deletes=True, back_populates="user_rel"
+    )
+    # ORM one-to-many: one user has many comments as author (foreign_keys required — authorId disambiguates)
     comments_rel = relationship(
-        "CommentModel", foreign_keys="[CommentModel.authorID]", passive_deletes=True
+        "CommentModel",
+        foreign_keys="[CommentModel.authorId]",
+        passive_deletes=True,
+        back_populates="author_rel",
     )
-    favorites_rel = relationship("FavoriteModel", passive_deletes=True)
-    # self-referential follows: foreign_keys required because both FKs point to users.id
+    # ORM one-to-many: one user has many favorites
+    favorites_rel = relationship(
+        "FavoriteModel", passive_deletes=True, back_populates="user_rel"
+    )
+    # ORM self-referential one-to-many: users this user follows (followerId = this user's id)
     following_rel = relationship(
-        "FollowModel", foreign_keys="[FollowModel.followerID]", passive_deletes=True
+        "FollowModel",
+        foreign_keys="[FollowModel.followerId]",
+        passive_deletes=True,
+        back_populates="follower_user_rel",
     )
 
     @property
     def following(self):
         return self.following_rel
 
+    # ORM self-referential one-to-many: users that follow this user (followedId = this user's id)
     followers_rel = relationship(
-        "FollowModel", foreign_keys="[FollowModel.followedID]", passive_deletes=True
+        "FollowModel",
+        foreign_keys="[FollowModel.followedId]",
+        passive_deletes=True,
+        back_populates="followed_user_rel",
     )
 
     @property
     def followers(self):
         return self.followers_rel
+
+    # ORM one-to-many: notifications received by this user (userId FK)
+    notifications_received_rel = relationship(
+        "NotificationModel",
+        foreign_keys="[NotificationModel.userId]",
+        passive_deletes=True,
+        back_populates="recipient_rel",
+    )
+    # ORM one-to-many: notifications sent/triggered by this user (senderId FK)
+    notifications_sent_rel = relationship(
+        "NotificationModel",
+        foreign_keys="[NotificationModel.senderId]",
+        passive_deletes=True,
+        back_populates="sender_rel",
+    )
 
     @property
     def role(self) -> str:
@@ -83,12 +133,23 @@ class UserModel(Base):
             str: The user's role ('admin', 'regular', 'unsigned').
         """
 
-        if self.roleID is None:
+        if self.roleId is None:
             return "unsigned"
+        try:
+            if getattr(self, "role_rel", None) is not None:
+                return (
+                    self.role_rel.role
+                    if self.role_rel and getattr(self.role_rel, "role", None)
+                    else "unsigned"
+                )
+        except Exception:
+            # fall back to explicit query if relationship access fails
+            pass
+
         from db.models.role import RoleModel
 
         with SessionLocal() as session:
-            r = session.query(RoleModel).filter_by(id=self.roleID).first()
+            r = session.query(RoleModel).filter_by(id=self.roleId).first()
             return r.role if r else "unsigned"
 
     def to_dict(self) -> dict:
@@ -118,7 +179,7 @@ class UserModel(Base):
             "password": self.password,
             "avatar": avatar_path,
             "role": self.role,
-            "roleID": self.roleID,
+            "roleId": self.roleId,
             "isBlocked": self.isBlocked,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
@@ -156,7 +217,7 @@ class UserModel(Base):
         username: str,
         email: str,
         password: str,
-        roleID: int = None,
+        roleId: int = None,
         isBlocked: bool = False,
     ) -> dict:
         """
@@ -167,7 +228,7 @@ class UserModel(Base):
             email (str): The email address of the user.
             password (str): The password of the user.
             avatar (str, optional): The avatar image path.
-            roleID (int, optional): The ID of the user's role.
+            roleId (int, optional): The ID of the user's role.
             isBlocked (bool, optional): Whether the user is blocked.
 
         Returns:
@@ -179,7 +240,7 @@ class UserModel(Base):
                     username=username,
                     email=email,
                     password=password,
-                    roleID=roleID,
+                    roleId=roleId,
                     isBlocked=isBlocked,
                 )
                 session.add(user)
@@ -201,7 +262,7 @@ class UserModel(Base):
             with session.begin():
                 u: UserModel = session.query(cls).filter_by(id=updated["id"]).first()
                 if u:
-                    ALLOWED = {"username", "email", "password", "roleID", "isBlocked"}
+                    ALLOWED = {"username", "email", "password", "roleId", "isBlocked"}
                     for key, value in updated.items():
                         if key in ALLOWED:
                             setattr(u, key, value)
@@ -284,14 +345,14 @@ class UserModel(Base):
                 return []
             return [
                 u.to_dict()
-                for u in session.query(cls).filter_by(roleID=role_row.id).all()
+                for u in session.query(cls).filter_by(roleId=role_row.id).all()
             ]
 
     __table_args__ = (
         CheckConstraint("id > 0 AND id < 10000000", name="ck_users_id_range"),
         CheckConstraint(
-            "(roleID IS NULL) OR (roleID > 0 AND roleID < 10000000)",
-            name="ck_users_roleID_null_or_range",
+            "(roleId IS NULL) OR (roleId > 0 AND roleId < 10000000)",
+            name="ck_users_roleId_null_or_range",
         ),
         CheckConstraint(
             "length(trim(username)) > 0", name="ck_users_username_not_empty"
@@ -299,7 +360,7 @@ class UserModel(Base):
         CheckConstraint("length(username) <= 125", name="ck_users_username_maxlen"),
         CheckConstraint("length(trim(email)) > 0", name="ck_users_email_not_empty"),
         CheckConstraint("length(email) <= 125", name="ck_users_email_maxlen"),
-        Index("ix_users_roleID", "roleID"),
+        Index("ix_users_roleId", "roleId"),
     )
 
     @classmethod
@@ -379,7 +440,7 @@ class UserModel(Base):
                     return False
                 u = session.query(cls).filter_by(id=user_id).first()
                 if u:
-                    u.roleID = role_row.id
+                    u.roleId = role_row.id
                     return True
         return False
 

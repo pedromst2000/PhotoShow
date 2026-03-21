@@ -11,6 +11,7 @@ from sqlalchemy import (
     desc,
 )
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -20,21 +21,21 @@ class PhotoImageModel(Base):
     PhotoImageModel represents an image associated with a photo in the database
     """
 
-    __tablename__ = "photo_images"
+    __tablename__ = "photo_image"
 
     __table_args__ = (
-        UniqueConstraint("photoID", name="uq_photo_images_photoID"),
-        CheckConstraint("id > 0 AND id < 10000000", name="ck_photo_images_id_range"),
+        UniqueConstraint("photoId", name="uq_photo_image_photoId"),
+        CheckConstraint("id > 0 AND id < 10000000", name="ck_photo_image_id_range"),
         CheckConstraint(
-            "photoID > 0 AND photoID < 10000000", name="ck_photo_images_photoID_range"
+            "photoId > 0 AND photoId < 10000000", name="ck_photo_image_photoId_range"
         ),
         CheckConstraint(
-            "length(trim(image)) > 0", name="ck_photo_images_image_not_empty"
+            "length(trim(image)) > 0", name="ck_photo_image_image_not_empty"
         ),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    photoID: int = Column(
+    photoId: int = Column(
         Integer, ForeignKey("photos.id", ondelete="CASCADE"), nullable=False
     )
     image: str = Column(String(255), nullable=False)
@@ -47,6 +48,11 @@ class PhotoImageModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    # ORM one-to-one: image for the photo (unique constraint enforces one image per photo)
+    photo_rel = relationship(
+        "PhotoModel", foreign_keys=[photoId], back_populates="image_rel", uselist=False
+    )
+
     def to_dict(self) -> dict:
         """
         Convert the PhotoImageModel instance to a dictionary.
@@ -57,7 +63,7 @@ class PhotoImageModel(Base):
 
         return {
             "id": self.id,
-            "photoID": self.photoID,
+            "photoId": self.photoId,
             "image": self.image,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
@@ -88,7 +94,7 @@ class PhotoImageModel(Base):
                     # If an image row already exists for this photo, update it in-place
                     existing = (
                         session.query(cls)
-                        .filter_by(photoID=photo_id)
+                        .filter_by(photoId=photo_id)
                         .order_by(desc(cls.createdAt))
                         .first()
                     )
@@ -97,7 +103,7 @@ class PhotoImageModel(Base):
                         session.flush()
                         return existing.to_dict()
 
-                    obj = cls(photoID=photo_id, image=trimmed)
+                    obj = cls(photoId=photo_id, image=trimmed)
                     session.add(obj)
                     session.flush()
                     return obj.to_dict()
@@ -107,7 +113,7 @@ class PhotoImageModel(Base):
                 with session.begin():
                     existing = (
                         session.query(cls)
-                        .filter_by(photoID=photo_id)
+                        .filter_by(photoId=photo_id)
                         .order_by(desc(cls.createdAt))
                         .first()
                     )
@@ -132,7 +138,7 @@ class PhotoImageModel(Base):
         with SessionLocal() as session:
             row = (
                 session.query(cls)
-                .filter_by(photoID=photo_id)
+                .filter_by(photoId=photo_id)
                 .order_by(desc(cls.createdAt))
                 .first()
             )
@@ -153,7 +159,7 @@ class PhotoImageModel(Base):
         with SessionLocal() as session:
             row = (
                 session.query(cls)
-                .filter_by(photoID=photo_id)
+                .filter_by(photoId=photo_id)
                 .order_by(desc(cls.createdAt))
                 .first()
             )

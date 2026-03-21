@@ -251,7 +251,7 @@ class UserService:
                 "id": c["id"],
                 "title": c["title"],
                 "message": c["message"],
-                "username": (UserModel.get_by_id(c["userID"]) or {}).get(
+                "username": (UserModel.get_by_id(c["userId"]) or {}).get(
                     "username", "Unknown"
                 ),
             }
@@ -314,7 +314,7 @@ class UserService:
         follows = FollowModel.get_followers(user_id)
         result = []
         for f in follows:
-            user = UserModel.get_by_id(f["followerID"])
+            user = UserModel.get_by_id(f["followerId"])
             if user:
                 result.append(user)
         return result
@@ -330,7 +330,7 @@ class UserService:
         follows = FollowModel.get_following(user_id)
         result = []
         for f in follows:
-            user = UserModel.get_by_id(f["followedID"])
+            user = UserModel.get_by_id(f["followedId"])
             if user:
                 result.append(user)
         return result
@@ -368,4 +368,4 @@ class UserService:
         Returns:
             dict: The created contact entry.
         """
-        return ContactModel.create(title=title, message=message, userID=user_id)
+        return ContactModel.create(title=title, message=message, userId=user_id)

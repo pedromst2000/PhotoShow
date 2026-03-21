@@ -15,7 +15,7 @@ from db.models import (
     FollowModel,
     LikeModel,
     NotificationModel,
-    NotificationSettingsModel,
+    NotificationTypeModel,
     PhotoImageModel,
     PhotoModel,
     RatingModel,
@@ -87,7 +87,7 @@ def backup_db_to_csv(output_dir: str | None = None) -> str:
         CommentModel,
         FavoriteModel,
         ContactModel,
-        NotificationSettingsModel,
+        NotificationTypeModel,
         NotificationModel,
         FollowModel,
         LikeModel,
@@ -99,8 +99,6 @@ def backup_db_to_csv(output_dir: str | None = None) -> str:
                 table_name = m.__table__.name
                 rows = session.query(m).all()
                 cols = [c.name for c in m.__table__.columns]
-                if not rows:
-                    continue
                 path = out_dir / f"{table_name}.csv"
                 with path.open("w", encoding="utf-8", newline="") as f:
                     writer = csv.writer(f)

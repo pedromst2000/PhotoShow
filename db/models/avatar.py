@@ -11,6 +11,7 @@ from sqlalchemy import (
     desc,
 )
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -23,16 +24,16 @@ class AvatarModel(Base):
     __tablename__ = "avatars"
 
     __table_args__ = (
-        UniqueConstraint("userID", name="uq_avatars_userID"),
+        UniqueConstraint("userId", name="uq_avatars_userId"),
         CheckConstraint("id > 0 AND id < 10000000", name="ck_avatars_id_range"),
         CheckConstraint(
-            "userID > 0 AND userID < 10000000", name="ck_avatars_userID_range"
+            "userId > 0 AND userId < 10000000", name="ck_avatars_userId_range"
         ),
         CheckConstraint("length(trim(avatar)) > 0", name="ck_avatars_avatar_not_empty"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    userID: int = Column(
+    userId: int = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     avatar: str = Column(String(255), nullable=False)
@@ -45,6 +46,11 @@ class AvatarModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    # ORM many-to-one: many avatars belong to one user (unique constraint makes it one-to-one in practice)
+    user_rel = relationship(
+        "UserModel", foreign_keys=[userId], back_populates="avatar_rel"
+    )
+
     def to_dict(self) -> dict:
         """
         Convert the AvatarModel instance to a dictionary.
@@ -55,7 +61,7 @@ class AvatarModel(Base):
 
         return {
             "id": self.id,
-            "userID": self.userID,
+            "userId": self.userId,
             "avatar": self.avatar,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
@@ -87,7 +93,7 @@ class AvatarModel(Base):
                 with session.begin():
                     existing = (
                         session.query(cls)
-                        .filter_by(userID=user_id)
+                        .filter_by(userId=user_id)
                         .order_by(desc(cls.createdAt))
                         .first()
                     )
@@ -96,7 +102,7 @@ class AvatarModel(Base):
                         session.flush()
                         return existing.to_dict()
 
-                    obj = cls(userID=user_id, avatar=trimmed)
+                    obj = cls(userId=user_id, avatar=trimmed)
                     session.add(obj)
                     session.flush()
                     return obj.to_dict()
@@ -106,7 +112,7 @@ class AvatarModel(Base):
                 with session.begin():
                     existing = (
                         session.query(cls)
-                        .filter_by(userID=user_id)
+                        .filter_by(userId=user_id)
                         .order_by(desc(cls.createdAt))
                         .first()
                     )
@@ -131,7 +137,7 @@ class AvatarModel(Base):
         with SessionLocal() as session:
             row = (
                 session.query(cls)
-                .filter_by(userID=user_id)
+                .filter_by(userId=user_id)
                 .order_by(desc(cls.createdAt))
                 .first()
             )
