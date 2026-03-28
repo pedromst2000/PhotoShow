@@ -20,7 +20,7 @@ class AuthController:
         """
         Process user login request.
 
-        Parameters:
+        Args:
             email: The user's email address.
             password: The user's password.
 
@@ -60,7 +60,7 @@ class AuthController:
         """
         Process user registration request.
 
-        Parameters:
+        Args:
             username: The desired username.
             email: The user's email address.
             password: The user's password.

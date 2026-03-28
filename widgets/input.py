@@ -10,11 +10,9 @@ def on_focus_in(event: tk.Event, input: tk.Entry) -> None:
     """
     This function will change the background color and the foreground color of the input when the input is focused.
 
-    Parameters:
+    Args:
         event (tk.Event): The event object.
         input (tk.Entry): The input widget.
-    Returns:
-        None
     """
 
     input["background"] = colors["secondary-500"]
@@ -26,11 +24,9 @@ def on_focus_out(event: tk.Event, input: tk.Entry) -> None:
     """
     This function will change the background color and the foreground color of the input when the input is not focused.
 
-    Parameters:
+    Args:
         event (tk.Event): The event object.
         input (tk.Entry): The input widget.
-    Returns:
-        None
     """
 
     input["background"] = colors["secondary-300"]
@@ -42,12 +38,10 @@ def on_click_outside(event: tk.Event, window: tk.Tk, *input_fields: tk.Entry) ->
     """
     This function will change the background color and the foreground color of the input when the input is not focused.
 
-    Parameters:
+    Args:
         event (tk.Event): The event object.
         window (tk.Tk): The window object.
         *input_fields (tk.Entry): The input fields to check if the click was outside of them.
-    Returns:
-        None
     """
 
     global last_focused_input

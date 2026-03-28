@@ -123,7 +123,7 @@ class NotificationModel(Base):
         """
         Retrieve all notifications for a specific user (newest first).
 
-        Parameters:
+        Args:
             user_id (int): The recipient user ID.
 
         Returns:
@@ -143,7 +143,7 @@ class NotificationModel(Base):
         """
         Return the number of unread notifications for a user.
 
-        Parameters:
+        Args:
             user_id (int): The recipient user ID.
 
         Returns:
@@ -159,7 +159,7 @@ class NotificationModel(Base):
         """
         Mark a single notification as read.
 
-        Parameters:
+        Args:
             notID (int): The notification ID.
 
         Returns:
@@ -178,7 +178,7 @@ class NotificationModel(Base):
         """
         Mark all notifications for a user as read.
 
-        Parameters:
+        Args:
             user_id (int): The recipient user ID.
         """
         with SessionLocal() as session:
@@ -201,7 +201,7 @@ class NotificationModel(Base):
         """
         Create a new notification.
 
-        Parameters:
+        Args:
             type_id (int): FK to notification_types.id.
             message (str): Human-readable notification message.
             user_id (int): The recipient user ID.

@@ -20,7 +20,7 @@ def registerWindow(Window: object):
     """
     This function is used to create the register window.
 
-    Parameters:
+    Args:
         Window (object): The window of the application.
     """
 
@@ -289,7 +289,7 @@ def checkRegister(
     """
     Handle register button click - delegates to AuthController.
 
-    Parameters:
+    Args:
         event (object): The event object from the button click.
         email (str): The email entered by the user.
         password (str): The password entered by the user.
@@ -318,7 +318,7 @@ def openSignInLink(event: object, registerWindow: object, window: object):
     """
     Open the sign in window from the register window.
 
-    Parameters:
+    Args:
         event (object): The event object from the button click.
         registerWindow (object): The current register window to be closed.
         window (object): The main application window to be passed to the login window.

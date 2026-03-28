@@ -126,7 +126,7 @@ class UserModel(Base):
         """
         Retrieve a user by their ID.
 
-        Parameters:
+        Args:
             userID (int): The ID of the user to retrieve.
 
         Returns:
@@ -148,7 +148,7 @@ class UserModel(Base):
         """
         Create a new user in the database.
 
-        Parameters:
+        Args:
             username (str): The username of the user.
             email (str): The email address of the user.
             password (str): The password of the user.
@@ -188,7 +188,7 @@ class UserModel(Base):
         """
         Update an existing user in the database.
 
-        Parameters:
+        Args:
             updated (dict): A dictionary containing the updated user information.
 
         Returns:
@@ -209,7 +209,7 @@ class UserModel(Base):
         """
         Retrieve a user by their email address.
 
-        Parameters:
+        Args:
             email (str): The email address to search for.
 
         Returns:
@@ -224,7 +224,7 @@ class UserModel(Base):
         """
         Retrieve a user by their username (case-insensitive).
 
-        Parameters:
+        Args:
             username (str): The username to search for.
 
         Returns:
@@ -239,7 +239,7 @@ class UserModel(Base):
         """
         Check if an email already exists in the database.
 
-        Parameters:
+        Args:
             email (str): The email address to check.
 
         Returns:
@@ -253,7 +253,7 @@ class UserModel(Base):
         """
         Check if a username already exists in the database (case-insensitive).
 
-        Parameters:
+        Args:
             username (str): The username to check.
 
         Returns:
@@ -267,7 +267,7 @@ class UserModel(Base):
         """
         Retrieve all users with a specific role.
 
-        Parameters:
+        Args:
             role (str): The role to filter by ('admin', 'regular', 'unsigned').
 
         Returns:
@@ -317,7 +317,7 @@ class UserModel(Base):
         """
         Update a user's avatar.
 
-        Parameters:
+        Args:
             user_id (int): The user's ID.
             avatar_path (str): The new avatar path.
 
@@ -340,7 +340,7 @@ class UserModel(Base):
         """
         Update a user's password.
 
-        Parameters:
+        Args:
             user_id (int): The user's ID.
             hashed_password (str): The new hashed password.
 
@@ -360,7 +360,7 @@ class UserModel(Base):
         """
         Update a user's role by role name.
 
-        Parameters:
+        Args:
             user_id (int): The user's ID.
             role (str): The new role name ('admin', 'regular', 'unsigned').
 
@@ -385,7 +385,7 @@ class UserModel(Base):
         """
         Set a user's blocked status.
 
-        Parameters:
+        Args:
             user_id (int): The user's ID.
             is_blocked (bool): The blocked status.
 
@@ -405,7 +405,7 @@ class UserModel(Base):
         """
         Delete a user from the database.
 
-        Parameters:
+        Args:
             user_id (int): The user's ID.
 
         Returns:

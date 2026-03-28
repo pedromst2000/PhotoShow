@@ -23,7 +23,7 @@ def uploadAvatar(
     """
     This function is used to upload the avatar.
 
-    Parameters:
+    Args:
         event (callable): The event object from the button click.
         canvasAvatar (tk.Canvas): The Canvas widget to display the avatar preview.
         btnSaveAvatar (tk.Button): The Button widget to save the avatar.
@@ -68,7 +68,7 @@ def _saveAvatar_(event: callable, avatar: str):
     """
     This function is used to save the avatar.
 
-    Parameters:
+    Args:
         event (callable): The event object from the button click.
         avatar (str): The file path of the new avatar image.
 

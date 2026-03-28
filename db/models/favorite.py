@@ -80,7 +80,7 @@ class FavoriteModel(Base):
         """
         Create a new favorite album entry in the database.
 
-        Parameters:
+        Args:
             albumId (int): The ID of the album being favorited.
             userId (int): The ID of the user who is favoriting the album.
 
@@ -105,7 +105,7 @@ class FavoriteModel(Base):
         """
         Return the IDs of all users who have favorited a given album.
 
-        Parameters:
+        Args:
             albumId (int): The album ID to query favorites for.
 
         Returns:
@@ -119,7 +119,7 @@ class FavoriteModel(Base):
     def get_by_user(cls, userId: int) -> list:
         """Return favorite rows for a user as dicts.
 
-        Parameters:
+        Args:
             userId (int): The user ID to query favorites for.
 
         Returns:
@@ -134,7 +134,7 @@ class FavoriteModel(Base):
         """
         Delete a favorite for a user.
 
-        Parameters:
+        Args:
             albumId (int): The ID of the album to remove from favorites.
             userId (int): The ID of the user whose favorite is being removed.
 

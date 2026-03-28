@@ -33,7 +33,7 @@ class main:
         """
         This class is used to display the main window.
 
-        Parameters:
+        Args:
             window (Tk, optional): The main application window.
             canvas (Canvas, optional): The canvas to place widgets on.
             mainImage (ImageTk.PhotoImage, optional): The background image for the main window.
@@ -41,8 +41,6 @@ class main:
             sloganText (Canvas.create_text, optional): The text widget for the slogan.
             signInButton (Button, optional): The button widget for signing in.
 
-        Returns:
-            None
         """
 
         self.window = window

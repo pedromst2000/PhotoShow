@@ -5,7 +5,7 @@ def hash_password(plaintext: str) -> str:
     """
     Hash a plaintext password using bcrypt and return the encoded string.
 
-    Parameters:
+    Args:
         plaintext: The plaintext password to be hashed.
 
     Returns:

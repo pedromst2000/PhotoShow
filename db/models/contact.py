@@ -81,7 +81,7 @@ class ContactModel(Base):
         """
         Create a new contact message in the database.
 
-        Parameters:
+        Args:
             title (str): The title of the contact message.
             message (str): The content of the contact message.
             userId (int): The ID of the user who submitted the contact message.

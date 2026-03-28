@@ -19,7 +19,7 @@ class AuthService:
         """
         Authenticate a user by email and password.
 
-        Parameters:
+        Args:
             email: The user's email address.
             password: The user's plaintext password.
 
@@ -40,7 +40,7 @@ class AuthService:
         """
         Register a new user with hashed password.
 
-        Parameters:
+        Args:
             username: The username for the new user.
             email: The email address for the new user.
             password: The plaintext password to be hashed.
@@ -81,7 +81,7 @@ class AuthService:
             \\.      - a literal dot '.'
             [^@]+   - one or more characters except '@'
 
-        Parameters:
+        Args:
             email: The email address to validate.
 
         Returns:
@@ -100,7 +100,7 @@ class AuthService:
             - Only letters, digits, underscore, dot, hyphen allowed
             - Cannot be only digits
 
-        Parameters:
+        Args:
             username: The username to validate.
 
         Returns:
@@ -117,7 +117,7 @@ class AuthService:
         """
         Check if an email address is available for registration.
 
-        Parameters:
+        Args:
             email: The email address to check.
 
         Returns:
@@ -130,7 +130,7 @@ class AuthService:
         """
         Check if a username is available for registration (case-insensitive).
 
-        Parameters:
+        Args:
             username: The username to check.
 
         Returns:
@@ -143,7 +143,7 @@ class AuthService:
         """
         Change a user's password after verifying the current password.
 
-        Parameters:
+        Args:
             user_id: The ID of the user.
             current_password: The user's current plaintext password to verify.
             new_password: The new plaintext password to be hashed.
@@ -172,7 +172,7 @@ class AuthService:
         """
         Verify if a password matches the user's stored password.
 
-        Parameters:
+        Args:
             user_id: The ID of the user.
             password: The plaintext password to verify.
 

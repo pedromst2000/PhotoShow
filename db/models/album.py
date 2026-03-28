@@ -84,7 +84,7 @@ class AlbumModel(Base):
         """
         Create a new album in the database.
 
-        Parameters:
+        Args:
             name (str): The name of the album.
             creatorId (int): The ID of the user creating the album.
 
@@ -110,7 +110,7 @@ class AlbumModel(Base):
         """
         Update an existing album in the database.
 
-        Parameters:
+        Args:
             updated (dict): A dictionary containing the updated album information, including "albumID" and "name".
         Returns:
             dict: A dictionary representation of the updated album.
@@ -127,7 +127,7 @@ class AlbumModel(Base):
         """
         Retrieve an album by its ID.
 
-        Parameters:
+        Args:
             album_id (int): The ID of the album to retrieve.
 
         Returns:
@@ -142,7 +142,7 @@ class AlbumModel(Base):
         """
         Retrieve all albums created by a specific user.
 
-        Parameters:
+        Args:
             creator_id (int): The ID of the user who created the albums.
 
         Returns:
@@ -159,7 +159,7 @@ class AlbumModel(Base):
         """
         Delete an album from the database by its ID.
 
-        Parameters:
+        Args:
             album_id (int): The ID of the album to delete.
 
         Returns:

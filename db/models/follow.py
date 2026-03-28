@@ -71,7 +71,7 @@ class FollowModel(Base):
         """
         Create a follow relationship.
 
-        Parameters:
+        Args:
             follower_id (int): The ID of the user doing the following.
             followed_id (int): The ID of the user being followed.
 
@@ -97,7 +97,7 @@ class FollowModel(Base):
         """
         Remove a follow relationship.
 
-        Parameters:
+        Args:
             follower_id (int): The ID of the user doing the unfollowing.
             followed_id (int): The ID of the user being unfollowed.
 
@@ -161,7 +161,7 @@ class FollowModel(Base):
         """
         Return the number of users following user_id.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user whose followers to count.
 
         Returns:
@@ -175,7 +175,7 @@ class FollowModel(Base):
         """
         Return the number of users that user_id follows.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user whose following to count.
 
         Returns:

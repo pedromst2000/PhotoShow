@@ -13,7 +13,7 @@ class NotificationService:
         """
         Get all notifications for a user, ordered by most recent first.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user to get notifications for.
         Returns:
             list: A list of notification dicts for the user.
@@ -26,7 +26,7 @@ class NotificationService:
         """
         Get the count of unread notifications for a user.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user to get unread notifications for.
         Returns:
             int: The count of unread notifications for the user.
@@ -39,7 +39,7 @@ class NotificationService:
         """
         Mark a notification as read.
 
-        Parameters:
+        Args:
             not_id (int): The ID of the notification to mark as read.
         Returns:
             bool: True if the notification was successfully marked as read, False otherwise.
@@ -51,10 +51,8 @@ class NotificationService:
     def mark_all_read(user_id: int) -> None:
         """
         Mark all notifications for a user as read.
-        Parameters:
+        Args:
             user_id (int): The ID of the user to mark all notifications as read.
-        Returns:
-            None
         """
 
         NotificationModel.mark_all_read(user_id)
@@ -72,7 +70,7 @@ class NotificationService:
         """
         Create a notification only if the type is enabled in notification_types.
 
-        Parameters:
+        Args:
             type_key (str): The type string of the notification (e.g. 'daily_content').
             message (str): The message content of the notification.
             user_id (int): The ID of the user to receive the notification.
@@ -116,7 +114,7 @@ class NotificationService:
         """
         Enable or disable a notification type.
 
-        Parameters:
+        Args:
             type_key (str): The key of the notification type to toggle (e.g. 'daily_content').
             enabled (bool): True to enable the notification type, False to disable it.
 
@@ -131,7 +129,7 @@ class NotificationService:
         """
         Check if a notification type is enabled.
 
-        Parameters:
+        Args:
             type_key (str): The key of the notification type to check (e.g. 'daily_content').
         Returns:
             bool: True if the notification type is enabled, False otherwise.

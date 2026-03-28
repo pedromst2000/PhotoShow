@@ -9,10 +9,8 @@ init(autoreset=True)
 def log_check(msg: str) -> None:
     """Yellow — checking / in-progress step.
 
-    Parameters:
+    Args:
         msg: Short, human-readable description of what is being checked.
-    Returns:
-        None
     """
     print(f"{Fore.YELLOW}[CHECK] {msg}{Style.RESET_ALL}")
 
@@ -20,10 +18,8 @@ def log_check(msg: str) -> None:
 def log_success(msg: str) -> None:
     """Green — step completed successfully.
 
-    Parameters:
+    Args:
         msg: Short, human-readable description of what succeeded.
-    Returns:
-        None
     """
     print(f"{Fore.GREEN}[SUCCESS] {msg}{Style.RESET_ALL}")
 
@@ -32,14 +28,12 @@ def log_issue(msg: str, exc: Exception = None, path: str = None) -> None:
     """
     Red — something went wrong.
 
-    Parameters:
+    Args:
         msg: Short, human-readable description of what failed.
         exc: Optional exception — prints the type and message (no noisy traceback).
         path: Optional file/resource path — resolved to an absolute path so the
            developer can click straight to the file.
 
-    Returns:
-        None
     """
     parts = [msg]
 

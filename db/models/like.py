@@ -69,7 +69,7 @@ class LikeModel(Base):
     def like(cls, user_id: int, photo_id: int) -> dict | None:
         """
         Create a like relationship.
-        Parameters:
+        Args:
             user_id (int): The ID of the user liking the photo.
             photo_id (int): The ID of the photo being liked.
         Returns:
@@ -94,7 +94,7 @@ class LikeModel(Base):
     def unlike(cls, user_id: int, photo_id: int) -> bool:
         """
         Remove a like relationship.
-        Parameters:
+        Args:
             user_id (int): The ID of the user unliking the photo.
             photo_id (int): The ID of the photo being unliked.
         Returns:
@@ -115,7 +115,7 @@ class LikeModel(Base):
         """
         Check whether a user has liked a photo.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user.
             photo_id (int): The ID of the photo.
 
@@ -133,7 +133,7 @@ class LikeModel(Base):
         """
         Count the number of likes for a given photo.
 
-        Parameters:
+        Args:
             photo_id (int): The ID of the photo.
 
         Returns:
@@ -147,7 +147,7 @@ class LikeModel(Base):
         """
         Get all photos liked by a user.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user.
 
         Returns:

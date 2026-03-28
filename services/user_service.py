@@ -15,7 +15,7 @@ class UserService:
         """
         Get a user's complete information by their ID.
 
-        Parameters:
+        Args:
             user_id: The ID of the user.
 
         Returns:
@@ -28,7 +28,7 @@ class UserService:
         """
         Get a user's complete information by their email.
 
-        Parameters:
+        Args:
             email: The email address to search for.
 
         Returns:
@@ -41,7 +41,7 @@ class UserService:
         """
         Get a user's complete information by their username.
 
-        Parameters:
+        Args:
             username: The username to search for.
 
         Returns:
@@ -54,7 +54,7 @@ class UserService:
         """
         Get only the user ID from an email address.
 
-        Parameters:
+        Args:
             email: The email address to search for.
 
         Returns:
@@ -100,7 +100,7 @@ class UserService:
         """
         Update a user's avatar.
 
-        Parameters:
+        Args:
             user_id: The user's ID.
             avatar_filename: The new avatar filename (not full path).
 
@@ -115,7 +115,7 @@ class UserService:
         """
         Change a user's role.
 
-        Parameters:
+        Args:
             username: The username of the user.
             new_role: The new role to assign.
 
@@ -139,7 +139,7 @@ class UserService:
         """
         Block a user by username.
 
-        Parameters:
+        Args:
             username: The username of the user to block.
 
         Returns:
@@ -157,7 +157,7 @@ class UserService:
         """
         Unblock a user by username.
 
-        Parameters:
+        Args:
             username: The username of the user to unblock.
 
         Returns:
@@ -175,7 +175,7 @@ class UserService:
         """
         Check if a user is blocked.
 
-        Parameters:
+        Args:
             user_id: The user's ID.
 
         Returns:
@@ -189,7 +189,7 @@ class UserService:
         """
         Get all users with a specific role.
 
-        Parameters:
+        Args:
             role: The role to filter by.
 
         Returns:
@@ -202,7 +202,7 @@ class UserService:
         """
         Delete a user from the database.
 
-        Parameters:
+        Args:
             user_id: The user's ID.
 
         Returns:
@@ -216,7 +216,7 @@ class UserService:
         Filter users by username prefix and/or email prefix (case-insensitive).
         Admin users are always excluded.
 
-        Parameters:
+        Args:
             username: Username prefix to filter by (empty string to skip).
             email: Email prefix to filter by (empty string to skip).
 
@@ -266,7 +266,7 @@ class UserService:
         Make follower_id follow followed_id.
         Updates the followers counter on the followed user.
 
-        Parameters:
+        Args:
             follower_id: The ID of the user doing the following.
             followed_id: The ID of the user being followed.
 
@@ -284,7 +284,7 @@ class UserService:
         Make follower_id unfollow followed_id.
         Updates the followers counter on the followed user.
 
-        Parameters:
+        Args:
             follower_id: The ID of the user doing the unfollowing.
             followed_id: The ID of the user being unfollowed.
 
@@ -360,7 +360,7 @@ class UserService:
         """
         Create a contact message from a user to the admin.
 
-        Parameters:
+        Args:
             title: Subject of the message.
             message: Body of the message.
             user_id: The ID of the user sending the message.

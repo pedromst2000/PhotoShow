@@ -5,7 +5,7 @@ def quickSandRegular(size: int) -> tkFont:
     """
     This function is used to set the font family to QuickSand Regular.
 
-    Parameters:
+    Args:
         size (int): The size of the font.
     Returns:
         tkFont: The font object with QuickSand Regular style.
@@ -19,7 +19,7 @@ def quickSandBold(size: int) -> tkFont:
     """
     This function is used to set the font family to QuickSand Bold.
 
-    Parameters:
+    Args:
         size (int): The size of the font.
     Returns:
         tkFont: The font object with QuickSand Bold style.
@@ -32,7 +32,7 @@ def quickSandRegularUnderline(size: int) -> tkFont:
     """
     This function is used to set the font family to QuickSand Regular Underline.
 
-    Parameters:
+    Args:
         size (int): The size of the font.
     Returns:
         tkFont: The font object with QuickSand Regular Underline style.
@@ -45,7 +45,7 @@ def quickSandBoldUnderline(size: int) -> tkFont:
     """
     This function is used to set the font family to QuickSand Bold Underline.
 
-    Parameters:
+    Args:
         size (int): The size of the font.
     Returns:
         tkFont: The font object with QuickSand Bold Underline style.

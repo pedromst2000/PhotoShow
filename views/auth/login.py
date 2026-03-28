@@ -22,7 +22,7 @@ def loginWindow(event: object, Window: object):
     """
     Create and display the login window for user authentication.
 
-    Parameters:
+    Args:
         event (object): The event object from Tkinter.
         Window (object): The main application window to pass to the login window.
     """
@@ -222,7 +222,7 @@ def loginWindow(event: object, Window: object):
         Helper function to trigger the login check using the current input values.
         Can be called by button click or Enter key event.
 
-        Parameters:
+        Args:
             event (tk.Event, optional): The event object from Tkinter. Defaults to None.
         """
         checkLogin(inputEmail.get(), inputPassword.get(), _loginWindow_, Window)
@@ -239,7 +239,7 @@ def checkLogin(email: str, password: str, loginWindow: object, Window: object) -
     """
     Handle login button click - delegates to AuthController.
 
-    Parameters:
+    Args:
         email (str): The email entered by the user.
         password (str): The password entered by the user.
         loginWindow (object): The login window instance to be destroyed on successful login.
@@ -269,7 +269,7 @@ def openSignUpLink(event: tk.Event, loginWindow: object, window: object):
     """
     Open the sign up (register) window from the login window.
 
-    Parameters:
+    Args:
         event (tk.Event): The event object from Tkinter.
         loginWindow (object): The login window instance to be destroyed.
         window (object): The main application window to pass to the register window.

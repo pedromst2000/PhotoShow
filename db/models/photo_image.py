@@ -68,7 +68,7 @@ class PhotoImageModel(Base):
         """
         Create a new PhotoImageModel record in the database.
 
-        Parameters:
+        Args:
             photo_id (int): The ID of the photo to which this image belongs.
             image (str): The file path or URL of the image.
         Returns:
@@ -123,7 +123,7 @@ class PhotoImageModel(Base):
         Return the single image record for a photo as a dict, or None.
         Photos in this app have only one image; this returns that image row.
 
-        Parameters:
+        Args:
             photo_id (int): The ID of the photo for which to retrieve the image.
 
         Returns:
@@ -144,7 +144,7 @@ class PhotoImageModel(Base):
         Return the primary image for a photo as a string, or None.
         Photos in this app have only one image; this returns that image row.
 
-        Parameters:
+        Args:
             photo_id (int): The ID of the photo for which to retrieve the primary image.
 
         Returns:

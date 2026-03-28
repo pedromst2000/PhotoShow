@@ -74,7 +74,7 @@ class RatingModel(Base):
         """
         Create or update a rating for a photo by a user.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user giving the rating.
             photo_id (int): The ID of the photo being rated.
             rating_value (int): The rating value (1-5).
@@ -105,7 +105,7 @@ class RatingModel(Base):
         """
         Retrieve all ratings for a given photo.
 
-        Parameters:
+        Args:
             photo_id (int): The ID of the photo for which to retrieve ratings.
 
         Returns:
@@ -123,7 +123,7 @@ class RatingModel(Base):
         """
         Calculate the average rating for a given photo.
 
-        Parameters:
+        Args:
             photo_id (int): The ID of the photo for which to calculate the average rating.
         Returns:
             float: The average rating for the photo, rounded to one decimal place. Returns 0.0 if there are no ratings.

@@ -8,7 +8,7 @@ EXCLUDE_DIRS = {"__pycache__", ".git", ".venv", "venv", "node_modules", ".tox"}
 def has_imports(filepath: Path) -> bool:
     """Return True if the file contains at least one import statement.
 
-    Parameters:
+    Args:
         filepath: Path to the Python file to check
     Returns:
         bool: True if the file has import statements, False otherwise
@@ -27,7 +27,7 @@ def has_imports(filepath: Path) -> bool:
 def iter_python_files(root: Path = None):
     """Recursively yield all .py files, excluding non-source directories.
 
-    Parameters:
+    Args:
         root: Optional Path to start from (defaults to ROOT)
     """
     if root is None:

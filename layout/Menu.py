@@ -24,12 +24,10 @@ class menu:
         """
         Initialize the menu with images, button widgets, and layout configuration.
 
-        Parameters:
+        Args:
             homeCanvas (tk.Canvas): The Canvas widget where the menu will be displayed.
             homeWindow (tk.Tk): The main application window.
 
-        Returns:
-            None
         """
         self.homeCanvas: tk.Canvas = homeCanvas
         self.homeWindow: tk.Tk = homeWindow
@@ -65,7 +63,7 @@ class menu:
             """
             Create a styled Tkinter button for the menu.
 
-            Parameters:
+            Args:
                 img (ImageTk.PhotoImage): The image to display on the button.
 
             Returns:
@@ -112,8 +110,6 @@ class menu:
         """
         Display the regular user menu and bind each button to its corresponding action.
 
-        Returns:
-            None
         """
         for i, opt in enumerate(self.menuOpts["regular"]):
             opt.place(
@@ -138,8 +134,6 @@ class menu:
         """
         Display the admin user menu and bind each button to its corresponding action.
 
-        Returns:
-            None
         """
         for i, opt in enumerate(self.menuOpts["admin"]):
             opt.place(

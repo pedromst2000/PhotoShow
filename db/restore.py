@@ -131,7 +131,7 @@ def _cast(value: str, col) -> object:
     Handles Boolean, Integer, DateTime (ISO format), and defaults to string for other types.
     Empty strings or None are treated as NULL (None in Python).
 
-    Parameters:
+    Args:
         value: The string value from the CSV to be cast.
         col: The SQLAlchemy column object, used to determine the target type.
 
@@ -159,7 +159,7 @@ def _restore_table(session, model, csv_file: Path) -> int:
     Reads the CSV, casts values to the correct types based on the model's column definitions,
     and inserts the rows into the database using the provided session.
 
-    Parameters:
+    Args:
         session: The active SQLAlchemy session to use for database operations.
         model: The SQLAlchemy ORM model class corresponding to the table being restored.
         csv_file: Path to the CSV file containing the backup data for this table.
@@ -191,11 +191,9 @@ def _print_available_backups(backups: list[Path] | None = None) -> None:
     Print available backup folders in `backups/` to the console, sorted by modified time (newest first).
     If `backups` is provided, it is used directly; otherwise, the function lists backups from the filesystem.
 
-    Parameters:
+    Args:
         backups: Optional list of Path objects representing backup folders. If None, the function will list backups from the `backups/` directory.
 
-    Returns:
-        None: This function only prints information to the console and does not return any value.
     """
 
     if backups is None:
@@ -221,7 +219,7 @@ def restore_db_from_backup(backup_dir: str | None = None) -> None:
     automatically. Drops and recreates all tables before inserting, so this
     is a full restore — it replaces whatever is currently in the DB.
 
-    Parameters:
+    Args:
         backup_dir: Optional path to a specific backup folder within `backups/`. If None, the latest backup folder is used.
 
     Usage:

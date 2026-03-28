@@ -17,7 +17,7 @@ def lint_csv(filepath: Path) -> list[str]:
     - Empty file (no header row)
     - Empty header row
     - Inconsistent number of columns across rows
-    Parameters:
+    Args:
         filepath: Path to the CSV file to lint
     Returns:
         list[str]: List of error messages found in the file, empty if no issues

@@ -59,7 +59,7 @@ class RoleModel(Base):
         """
         Retrieve a role by its name from the database.
 
-        Parameters:
+        Args:
             role_name (str): The name of the role to retrieve.
         Returns:
             dict | None: A dictionary representing the role if found, otherwise None.

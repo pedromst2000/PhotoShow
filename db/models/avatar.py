@@ -66,7 +66,7 @@ class AvatarModel(Base):
         """
         Create or update the avatar for a user. If an avatar exists it is updated in-place.
 
-        Parameters:
+        Args:
             user_id (int): ID of the user owning the avatar.
             avatar_path (str): File path or URL of the avatar image.
 
@@ -122,7 +122,7 @@ class AvatarModel(Base):
         """
         Return the user's active avatar as a dict, or None if not found.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user whose avatar is to be retrieved.
 
         Returns:

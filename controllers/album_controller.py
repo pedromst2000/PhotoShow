@@ -20,7 +20,7 @@ class AlbumController:
         """
         Get albums for a user.
 
-        Parameters:
+        Args:
             user_id: The user's ID. If None, uses current user.
 
         Returns:
@@ -46,7 +46,7 @@ class AlbumController:
         """
         Get a specific album by ID.
 
-        Parameters:
+        Args:
             album_id: The album's ID.
 
         Returns:
@@ -59,7 +59,7 @@ class AlbumController:
         """
         Create a new album for the current user.
 
-        Parameters:
+        Args:
             name: The name for the new album.
 
         Returns:
@@ -82,7 +82,7 @@ class AlbumController:
         """
         Rename an existing album.
 
-        Parameters:
+        Args:
             album_id: The ID of the album to rename.
             new_name: The new name for the album.
 
@@ -108,7 +108,7 @@ class AlbumController:
         """
         Delete an album.
 
-        Parameters:
+        Args:
             album_id: The ID of the album to delete.
 
         Returns:
@@ -131,7 +131,7 @@ class AlbumController:
         """
         Get album ID from album name for a user.
 
-        Parameters:
+        Args:
             album_name: The name of the album.
             user_id: The user's ID. If None, uses current user.
 
@@ -148,7 +148,7 @@ class AlbumController:
         """
         Get favorite albums for a user.
 
-        Parameters:
+        Args:
             user_id: The user's ID. If None, uses current user.
 
         Returns:
@@ -164,7 +164,7 @@ class AlbumController:
         """
         Check whether an album name already exists system-wide (case-insensitive).
 
-        Parameters:
+        Args:
             album_name: The album name to check.
 
         Returns:

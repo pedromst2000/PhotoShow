@@ -30,7 +30,7 @@ class PhotoController:
         """
         Get a specific photo by ID.
 
-        Parameters:
+        Args:
             photo_id: The photo's ID.
 
         Returns:
@@ -43,7 +43,7 @@ class PhotoController:
         """
         Get all photos in an album.
 
-        Parameters:
+        Args:
             album_id: The album's ID.
 
         Returns:
@@ -56,7 +56,7 @@ class PhotoController:
         """
         Get all photos uploaded by a user.
 
-        Parameters:
+        Args:
             user_id: The user's ID. If None, uses current user.
 
         Returns:
@@ -72,7 +72,7 @@ class PhotoController:
         """
         Get photos filtered by category and/or username.
 
-        Parameters:
+        Args:
             category: The category to filter by. "all" for all categories.
             username: The username to filter by. None to not filter by user.
 
@@ -86,7 +86,7 @@ class PhotoController:
         """
         Get all photos in a category.
 
-        Parameters:
+        Args:
             category_name: The name of the category.
 
         Returns:
@@ -105,7 +105,7 @@ class PhotoController:
         """
         Upload a new photo.
 
-        Parameters:
+        Args:
             image_path: The file path of the photo to upload.
             album_id: Optional album ID to associate with the photo.
             category_id: Optional category ID to associate with the photo.
@@ -137,7 +137,7 @@ class PhotoController:
         """
         Delete a photo.
 
-        Parameters:
+        Args:
             photo_id: The ID of the photo to delete.
 
         Returns:
@@ -156,7 +156,7 @@ class PhotoController:
         """
         Update photo information.
 
-        Parameters:
+        Args:
             photo_id: The ID of the photo to update.
             updates: Dictionary of fields to update.
 
@@ -176,7 +176,7 @@ class PhotoController:
         """
         Like a photo.
 
-        Parameters:
+        Args:
             photo_id: The ID of the photo to like.
         Returns:
             Tuple of (success, message)
@@ -192,7 +192,7 @@ class PhotoController:
     def unlike_photo(photo_id: int) -> Tuple[bool, str]:
         """
         Unlike a photo.
-        Parameters:
+        Args:
             photo_id: The ID of the photo to unlike.
         Returns:
             Tuple of (success, message)
@@ -209,7 +209,7 @@ class PhotoController:
         """
         Rate a photo (1-5) by the current user.
 
-        Parameters:
+        Args:
             photo_id: The ID of the photo to rate.
             rating_value: The rating value (1-5).
         Returns:
@@ -227,7 +227,7 @@ class PhotoController:
     def has_liked(photo_id: int) -> bool:
         """
         Check if the current user has liked a specific photo.
-        Parameters:
+        Args:
             photo_id: The ID of the photo to check.
         Returns:
             bool: True if the user has liked the photo, False otherwise.
@@ -241,7 +241,7 @@ class PhotoController:
     def count_likes(photo_id: int) -> int:
         """
         Get the total number of likes for a specific photo.
-        Parameters:
+        Args:
             photo_id: The ID of the photo.
         Returns:
             int: The total number of likes for the photo.
@@ -253,7 +253,7 @@ class PhotoController:
     def get_liked_photos(user_id: int = None) -> list:
         """
         Get all photos liked by a user.
-        Parameters:
+        Args:
             user_id: The user's ID. If None, uses current user.
         Returns:
             list: List of photo dictionaries liked by the user.

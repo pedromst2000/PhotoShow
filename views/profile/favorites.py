@@ -251,7 +251,7 @@ def favoritesProfileWindow():
         """
         Helper function to display the image at the given index.
 
-        Parameters:
+        Args:
             index (int): The index of the image to display.
         """
         if 0 <= index < photosListbox.size():
@@ -268,7 +268,7 @@ def favoritesProfileWindow():
         """
         This function is used to preview the next image.
 
-        Parameters:
+        Args:
             event (tk.Event): The event object from the button click.
         """
         global current_index
@@ -289,7 +289,7 @@ def favoritesProfileWindow():
         """
         This function is used to preview the previous image.
 
-        Parameters:
+        Args:
             event (tk.Event): The event object from the button click.
         """
         global current_index

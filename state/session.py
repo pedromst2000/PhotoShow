@@ -43,22 +43,16 @@ class UserSession:
         """
         Authenticate user and store session data.
 
-        Parameters:
+        Args:
             user_data: Dictionary containing user information from database.
             is_new_user: Whether this is a newly registered user.
-        Returns:
-            None
         """
         self._user_data = user_data.copy()
         self._is_authenticated = True
         self._is_new_user = is_new_user
 
     def logout(self) -> None:
-        """Clear session data and reset authentication state.
-
-        Returns:
-            None
-        """
+        """Clear session data and reset authentication state."""
         self._user_data = None
         self._is_authenticated = False
         self._is_new_user = False
@@ -67,10 +61,8 @@ class UserSession:
         """
         Update specific fields in the current user's session data.
 
-        Parameters:
+        Args:
             updates: Dictionary of fields to update.
-        Returns:
-            None
         """
         if self._user_data:
             self._user_data.update(updates)

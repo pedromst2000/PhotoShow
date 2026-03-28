@@ -32,7 +32,7 @@ def backup_db_to_csv(output_dir: str | None = None) -> str:
     """
     Export all current rows from tables to CSV files under `backups/<timestamp>/`.
 
-    Parameters:
+    Args:
         output_dir: Optional path to write backup CSV files. If not provided, defaults to `backups/<timestamp>/`.
 
     Returns:

@@ -22,7 +22,7 @@ class ProfileController:
         """
         Get a user's profile information.
 
-        Parameters:
+        Args:
             user_id: The user's ID. If None, returns the current user's profile from session.
 
         Returns:
@@ -37,7 +37,7 @@ class ProfileController:
         """
         Get profile statistics (follower count, photo count) for a user.
 
-        Parameters:
+        Args:
             user_id: The user's ID.
 
         Returns:
@@ -53,7 +53,7 @@ class ProfileController:
         """
         Update the current user's avatar.
 
-        Parameters:
+        Args:
             avatar_filename: The new avatar filename.
 
         Returns:
@@ -79,7 +79,7 @@ class ProfileController:
         """
         Change the current user's password.
 
-        Parameters:
+        Args:
             current_password: The user's current password.
             new_password: The desired new password.
             confirm_password: Confirmation of the new password.
@@ -129,7 +129,7 @@ class ProfileController:
         """
         Send a contact message to the admin (used by blocked users).
 
-        Parameters:
+        Args:
             title: Subject/title of the message.
             message: Body of the message.
 

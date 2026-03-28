@@ -18,7 +18,7 @@ def hidePasswordIcon(
     """
     Display the 'hide password' icon on the password field.
 
-    Parameters:
+    Args:
         ImageTk (ImageTk): The PIL ImageTk module.
         Image (Image): The PIL Image module.
         canvasManagePassword (tk.Canvas): The Canvas widget for the password visibility icon.
@@ -44,7 +44,7 @@ def showPasswordIcon(
     """
     Display the 'show password' icon on the password field.
 
-    Parameters:
+    Args:
         ImageTk (ImageTk): The PIL ImageTk module.
         Image (Image): The PIL Image module.
         canvasManagePassword (tk.Canvas): The Canvas widget for the password visibility icon.
@@ -72,7 +72,7 @@ def togglePasswordVisibility(
     """
     Toggle the visibility of the password field and update the icon.
 
-    Parameters:
+    Args:
         event (tk.Event): The event object from the mouse click.
         ImageTk (ImageTk): The PIL ImageTk module.
         Image (Image): The PIL Image module.
@@ -107,7 +107,7 @@ def manageVisibility(
     """
     Manage the visibility icon based on the password field content.
 
-    Parameters:
+    Args:
         event (tk.Event): The event object from the key release.
         ImageTk (ImageTk): The PIL ImageTk module.
         Image (Image): The PIL Image module.
@@ -130,7 +130,7 @@ def on_enter(event: tk.Event, label: tk.Label):
     """
     Underline the label font on mouse enter.
 
-    Parameters:
+    Args:
         event (tk.Event): The event object from the mouse entering the label.
         label (tk.Label): The label widget to underline.
     """
@@ -141,7 +141,7 @@ def on_leave(event: tk.Event, label: tk.Label):
     """
     Remove underline from the label font on mouse leave.
 
-    Parameters:
+    Args:
         event (tk.Event): The event object from the mouse leaving the label.
         label (tk.Label): The label widget to remove underline from.
     """

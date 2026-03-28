@@ -8,7 +8,7 @@ def insert_users(users: list[dict], usersTable: ttk.Treeview):
     """
     Insert user data into a Treeview widget.
 
-    Parameters:
+    Args:
         users (list[dict]): A list of user dictionaries, each containing 'username', 'email', 'role', and 'isBlocked' keys.
         usersTable (ttk.Treeview): The Treeview widget to insert user data into.
 
@@ -30,7 +30,7 @@ def insert_categories(categories: list[str], categoriesList: tk.Listbox):
     """
     Insert categories into a Listbox widget.
 
-    Parameters:
+    Args:
         categories (list[str]): A list of category names to insert.
         categoriesList (tk.Listbox): The Listbox widget to insert category names into.
 
@@ -43,7 +43,7 @@ def insert_albuns(albuns: list[dict], albunsListbox: tk.Listbox):
     """
     Insert album names into a Listbox widget.
 
-    Parameters:
+    Args:
         albuns (list[dict]): A list of album dictionaries, each containing a 'name' key.
         albunsListbox (tk.Listbox): The Listbox widget to insert album names into.
 
@@ -61,7 +61,7 @@ def insert_favorite_albuns(
     """
     Insert favorite album names into a Listbox widget.
 
-    Parameters:
+    Args:
         favorite_albuns (list[dict]): A list of favorite album dictionaries, each containing a 'name' key.
         favoriteAlbunsListbox (tk.Listbox): The Listbox widget to insert favorite album names into.
     """
@@ -76,7 +76,7 @@ def insert_contacts(contacts: list[dict], contactsListbox: tk.Listbox):
     """
     Insert contact usernames into a Listbox widget.
 
-    Parameters:
+    Args:
         contacts (list[dict]): A list of contact dictionaries, each containing a 'username' key.
         contactsListbox (tk.Listbox): The Listbox widget to insert contact usernames into.
     """
@@ -96,7 +96,7 @@ def previewSelectedPhoto(
     """
     Preview the selected photo in a Canvas widget.
 
-    Parameters:
+    Args:
         event (tk.Event): The event object from the Listbox selection.
         listAlbumPhotos (tk.Listbox): The Listbox widget containing photo names.
         canvasPreviewImage (tk.Canvas): The Canvas widget to display the photo preview.

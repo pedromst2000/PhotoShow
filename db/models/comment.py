@@ -84,7 +84,7 @@ class CommentModel(Base):
         """
         Retrieve all comments for a photo ordered by creation time (oldest first).
 
-        Parameters:
+        Args:
             photo_id (int): The photo ID.
 
         Returns:
@@ -109,7 +109,7 @@ class CommentModel(Base):
         """
         Create a new comment in the database.
 
-        Parameters:
+        Args:
             authorId (int): The ID of the user who authored the comment.
             comment (str): The content of the comment.
             photoId (int): The ID of the photo the comment belongs to.

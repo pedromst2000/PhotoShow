@@ -116,7 +116,7 @@ class PhotoModel(Base):
         """
         Create a new photo in the database.
 
-        Parameters:
+        Args:
             description (str): The description of the photo.
             publishedDate (datetime): The date and time when the photo was published.
             categoryId (int): The ID of the category the photo belongs to.
@@ -152,10 +152,8 @@ class PhotoModel(Base):
         """
         Delete a photo from the database by its ID.
 
-        Parameters:
+        Args:
             photoID (int): The ID of the photo to delete.
-        Returns:
-            None
         """
         with SessionLocal() as session:
             with session.begin():
@@ -168,10 +166,8 @@ class PhotoModel(Base):
         """
         Delete multiple photos from the database by their IDs.
 
-        Parameters:
+        Args:
             *photoIDs (int): A variable number of photo IDs to delete.
-        Returns:
-            None
         """
         with SessionLocal() as session:
             with session.begin():
@@ -185,7 +181,7 @@ class PhotoModel(Base):
         """
         Retrieve a photo by its ID.
 
-        Parameters:
+        Args:
             photo_id (int): The ID of the photo to retrieve.
 
         Returns:
@@ -215,7 +211,7 @@ class PhotoModel(Base):
         """
         Retrieve all photos in a specific album.
 
-        Parameters:
+        Args:
             album_id (int): The ID of the album.
 
         Returns:
@@ -232,7 +228,7 @@ class PhotoModel(Base):
         """
         Retrieve all photos in a specific category.
 
-        Parameters:
+        Args:
             category_id (int): The ID of the category.
 
         Returns:
@@ -249,7 +245,7 @@ class PhotoModel(Base):
         """
         Update an existing photo in the database.
 
-        Parameters:
+        Args:
             updated (dict): A dictionary containing the updated photo information.
 
         Returns:

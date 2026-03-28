@@ -44,7 +44,7 @@ class NotificationController:
     def mark_read(not_id: int) -> bool:
         """
         Mark a specific notification as read for the currently logged-in user.
-        Parameters:
+        Args:
             not_id (int): The ID of the notification to mark as read.
         Returns:
             bool: True if the notification was successfully marked as read, False otherwise.
@@ -85,7 +85,7 @@ class NotificationController:
     def toggle_notification_type(type_key: str, enabled: bool) -> Tuple[bool, str]:
         """
         Toggle a specific notification type on or off (admin only).
-        Parameters:
+        Args:
             type_key (str): The key of the notification type to toggle.
             enabled (bool): True to enable, False to disable.
         Returns:

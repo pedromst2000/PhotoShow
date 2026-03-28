@@ -23,7 +23,7 @@ class AlbumService:
         """
         Retrieve a specific album by ID.
 
-        Parameters:
+        Args:
             album_id: The ID of the album.
 
         Returns:
@@ -36,7 +36,7 @@ class AlbumService:
         """
         Retrieve all albums created by a specific user.
 
-        Parameters:
+        Args:
             user_id: The ID of the user.
 
         Returns:
@@ -49,7 +49,7 @@ class AlbumService:
         """
         Create a new album.
 
-        Parameters:
+        Args:
             name: The name of the new album.
             creator_id: The ID of the user creating the album.
 
@@ -75,7 +75,7 @@ class AlbumService:
         """
         Rename an existing album.
 
-        Parameters:
+        Args:
             album_id: The ID of the album to rename.
             new_name: The new name for the album.
 
@@ -106,7 +106,7 @@ class AlbumService:
         """
         Rename an album after verifying ownership.
 
-        Parameters:
+        Args:
             user_id: The ID of the requesting user.
             album_id: The ID of the album.
             new_name: The new name for the album.
@@ -130,7 +130,7 @@ class AlbumService:
         """
         Delete an album.
 
-        Parameters:
+        Args:
             album_id: The ID of the album to delete.
 
         Returns:
@@ -145,7 +145,7 @@ class AlbumService:
         """
         Delete an album after verifying ownership.
 
-        Parameters:
+        Args:
             user_id: The ID of the requesting user.
             album_id: The ID of the album to delete.
             is_admin: Whether the requesting user is an admin.
@@ -168,7 +168,7 @@ class AlbumService:
         """
         Get album ID from album name for a specific user.
 
-        Parameters:
+        Args:
             user_id: The ID of the user.
             album_name: The name of the album.
 
@@ -187,7 +187,7 @@ class AlbumService:
         """
         Retrieve all favorite albums for a specific user.
 
-        Parameters:
+        Args:
             user_id: The ID of the user.
 
         Returns:
@@ -210,7 +210,7 @@ class AlbumService:
         """
         Check if an album name already exists (case-insensitive).
 
-        Parameters:
+        Args:
             album_name: The album name to check.
 
         Returns:

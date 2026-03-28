@@ -31,7 +31,7 @@ class PhotoService:
         """
         Retrieve a specific photo by ID.
 
-        Parameters:
+        Args:
             photo_id: The ID of the photo.
 
         Returns:
@@ -44,7 +44,7 @@ class PhotoService:
         """
         Retrieve all photos in a specific album.
 
-        Parameters:
+        Args:
             album_id: The ID of the album.
 
         Returns:
@@ -57,7 +57,7 @@ class PhotoService:
         """
         Retrieve all photos uploaded by a specific user (through their albums).
 
-        Parameters:
+        Args:
             user_id: The ID of the user.
 
         Returns:
@@ -76,7 +76,7 @@ class PhotoService:
         """
         Retrieve all photos in a specific category.
 
-        Parameters:
+        Args:
             category_name: The name of the category.
 
         Returns:
@@ -94,7 +94,7 @@ class PhotoService:
         Retrieve photos filtered by category and/or username.
         Enriches photos with category name and username.
 
-        Parameters:
+        Args:
             category: The category to filter by. Use "all" for all categories.
             username: The username to filter by. None to not filter by user.
 
@@ -113,7 +113,7 @@ class PhotoService:
             """
             Get the category name for a photo.
 
-            Parameters:
+            Args:
                 photo (dict): The photo dictionary containing "categoryID".
             Returns:
                 str: The name of the category, or empty string if not found.
@@ -127,7 +127,7 @@ class PhotoService:
             """
             Get the username for a photo via the owning album's creatorID.
 
-            Parameters:
+            Args:
                 photo (dict): The photo dictionary containing "albumID".
             Returns:
                 str: The username of the photo's owner, or empty string if not found.
@@ -173,7 +173,7 @@ class PhotoService:
 
         Create a new photo entry in the database.
 
-        Parameters:
+        Args:
             image_path (str): The file path of the photo image.
             album_id (int, optional): The ID of the album to associate with the photo. Defaults to None.
             category_id (int, optional): The ID of the category to associate with the photo. Defaults to None.
@@ -200,7 +200,7 @@ class PhotoService:
         """
         Delete a photo.
 
-        Parameters:
+        Args:
             photo_id: The ID of the photo to delete.
 
         Returns:
@@ -213,7 +213,7 @@ class PhotoService:
         """
         Delete a photo if the given user is the owner (via album creator) or an admin.
 
-        Parameters:
+        Args:
             user_id: The ID of the requesting user.
             photo_id: The ID of the photo to delete.
 
@@ -240,7 +240,7 @@ class PhotoService:
         """
         Update photo information.
 
-        Parameters:
+        Args:
             photo_id: The ID of the photo to update.
             updates: Dictionary of fields to update.
 
@@ -257,7 +257,7 @@ class PhotoService:
         """
         Update a photo if the given user owns it.
 
-        Parameters:
+        Args:
             user_id: The ID of the requesting user.
             photo_id: The ID of the photo to update.
             updates: Fields to update.
@@ -283,7 +283,7 @@ class PhotoService:
         """
         Count all photos uploaded by a specific user.
 
-        Parameters:
+        Args:
             user_id: The ID of the user.
 
         Returns:
@@ -296,7 +296,7 @@ class PhotoService:
         """
         Like a photo.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user liking the photo.
             photo_id (int): The ID of the photo to like.
         Returns:
@@ -310,7 +310,7 @@ class PhotoService:
         """
         Add a rating (1-5) to a photo by a user.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user adding the rating.
             photo_id (int): The ID of the photo being rated.
             rating_value (int): The rating value (1-5).
@@ -332,7 +332,7 @@ class PhotoService:
         """
         Unlike a photo.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user unliking the photo.
             photo_id (int): The ID of the photo to unlike.
         Returns:
@@ -346,7 +346,7 @@ class PhotoService:
         """
         Check if a user has liked a specific photo.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user.
             photo_id (int): The ID of the photo to check.
         Returns:
@@ -359,7 +359,7 @@ class PhotoService:
         """
         Count the number of likes for a specific photo.
 
-        Parameters:
+        Args:
             photo_id (int): The ID of the photo to count likes for.
         Returns:
             int: The number of likes the photo has received.
@@ -371,7 +371,7 @@ class PhotoService:
         """
         Get all photos liked by a specific user.
 
-        Parameters:
+        Args:
             user_id (int): The ID of the user to get liked photos for.
         Returns:
             list: A list of photo dictionaries that the user has liked.
@@ -408,7 +408,7 @@ class PhotoService:
         """
         Check if a category with the given name already exists (case-insensitive).
 
-        Parameters:
+        Args:
             name: The category name to check.
 
         Returns:
@@ -423,7 +423,7 @@ class PhotoService:
         """
         Create a new category.
 
-        Parameters:
+        Args:
             name: The name of the category to create.
         """
         CategoryModel.create(name)
@@ -434,7 +434,7 @@ class PhotoService:
         Delete a category. Photos in the category are automatically removed
         by the database CASCADE on photos.categoryID.
 
-        Parameters:
+        Args:
             name: The name of the category to delete.
 
         Returns:

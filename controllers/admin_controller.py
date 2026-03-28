@@ -34,7 +34,7 @@ class AdminController:
         """
         Validate an email address format.
 
-        Parameters:
+        Args:
             email: The email address to validate.
 
         Returns:
@@ -72,7 +72,7 @@ class AdminController:
         """
         Change a user's role.
 
-        Parameters:
+        Args:
             username: The username of the user to modify.
             new_role: The new role to assign ('regular', 'unsigned', etc.)
 
@@ -97,7 +97,7 @@ class AdminController:
         """
         Block a user by username.
 
-        Parameters:
+        Args:
             username: The username of the user to block.
 
         Returns:
@@ -125,7 +125,7 @@ class AdminController:
         """
         Unblock a user by username.
 
-        Parameters:
+        Args:
             username: The username of the user to unblock.
 
         Returns:
@@ -149,7 +149,7 @@ class AdminController:
         """
         Delete a user from the system.
 
-        Parameters:
+        Args:
             user_id: The ID of the user to delete.
 
         Returns:
@@ -172,7 +172,7 @@ class AdminController:
         """
         Get all users with a specific role.
 
-        Parameters:
+        Args:
             role: The role to filter by.
 
         Returns:
@@ -187,7 +187,7 @@ class AdminController:
         """
         Filter users by username and/or email prefix (admin only).
 
-        Parameters:
+        Args:
             username: Username prefix to filter by (empty string to skip).
             email: Email prefix to filter by (empty string to skip).
 
@@ -213,7 +213,7 @@ class AdminController:
         """
         Add a new category (admin only).
 
-        Parameters:
+        Args:
             category_name: The name of the category to add.
 
         Returns:
@@ -233,7 +233,7 @@ class AdminController:
         """
         Delete a category and cascade-delete its photos (admin only).
 
-        Parameters:
+        Args:
             category_name: The name of the category to delete.
 
         Returns:

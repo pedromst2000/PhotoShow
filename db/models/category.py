@@ -65,7 +65,7 @@ class CategoryModel(Base):
         """
         Create a new category in the database.
 
-        Parameters:
+        Args:
             category (str): The name of the category to create.
 
         Returns:
@@ -90,10 +90,8 @@ class CategoryModel(Base):
         """
         Delete a category from the database by name.
 
-        Parameters:
+        Args:
             category (str): The name of the category to delete.
-        Returns:
-            None
         """
         trimmed = category.strip() if category is not None else ""
         if not trimmed:

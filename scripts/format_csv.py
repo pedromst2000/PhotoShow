@@ -20,7 +20,7 @@ def format_csv_file(filepath: Path) -> bool:
       - No empty rows
       - Consistent delimiter (comma)
 
-    Parameters:
+    Args:
         filepath: Path to the CSV file to format
     Returns:
         bool: True if the file was changed, False if it was already properly formatted
