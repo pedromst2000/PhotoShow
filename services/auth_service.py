@@ -67,13 +67,6 @@ class AuthService:
             roleId=unsigned_role["id"] if unsigned_role else None,
             isBlocked=False,
         )
-        # create default avatar entry
-        try:
-            UserModel.update_avatar(
-                user["id"], "assets/images/profile_avatars/default_avatar.jpg"
-            )
-        except Exception:
-            pass
         return user
 
     @staticmethod

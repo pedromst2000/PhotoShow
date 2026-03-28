@@ -9,7 +9,6 @@ from sqlalchemy import (
     Integer,
     UniqueConstraint,
 )
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -48,15 +47,6 @@ class LikeModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-    )
-
-    # ORM many-to-one: many likes belong to one user
-    user_rel = relationship(
-        "UserModel", foreign_keys=[userId], back_populates="likes_rel"
-    )
-    # ORM many-to-one: many likes belong to one photo
-    photo_rel = relationship(
-        "PhotoModel", foreign_keys=[photoId], back_populates="likes_rel"
     )
 
     def to_dict(self) -> dict:

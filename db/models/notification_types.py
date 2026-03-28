@@ -9,7 +9,6 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -46,14 +45,6 @@ class NotificationTypeModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-    )
-
-    # ORM back-reference: one notification_type has many notifications
-    notifications_rel = relationship(
-        "NotificationModel",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="type_rel",
     )
 
     def to_dict(self) -> dict:

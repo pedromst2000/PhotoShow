@@ -2,4 +2,3 @@ id,type,label,isEnabled
 1,daily_content,Notify when a followed user adds a new photo to an album,True
 2,comment_photos,Notify when someone comments on a photo you liked,True
 3,favorite_album,Notify when a new photo is added to a favorited album,True
-4,viewed_profile,Notify when someone views your profile,True

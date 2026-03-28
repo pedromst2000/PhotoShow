@@ -9,7 +9,6 @@ from sqlalchemy import (
     Integer,
     String,
 )
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -48,11 +47,6 @@ class ContactModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-    )
-
-    # ORM many-to-one: many contact messages belong to one user
-    user_rel = relationship(
-        "UserModel", foreign_keys=[userId], back_populates="contacts_rel"
     )
 
     def to_dict(self) -> dict:

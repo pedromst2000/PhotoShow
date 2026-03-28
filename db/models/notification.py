@@ -10,7 +10,6 @@ from sqlalchemy import (
     Integer,
     String,
 )
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -28,28 +27,31 @@ class NotificationModel(Base):
     __table_args__ = (
         CheckConstraint("id > 0 AND id < 10000000", name="ck_notifications_id_range"),
         CheckConstraint(
-            "userId > 0 AND userId < 10000000", name="ck_notifications_userId_range"
+            "recipientId > 0 AND recipientId < 10000000",
+            name="ck_notifications_recipientId_range",
         ),
         CheckConstraint(
-            "(senderId IS NULL) OR (senderId > 0 AND senderId < 10000000)",
-            name="ck_notifications_senderId_null_or_range",
+            "senderId > 0 AND senderId < 10000000",
+            name="ck_notifications_senderId_range",
         ),
         CheckConstraint(
             "length(trim(message)) > 0", name="ck_notifications_message_not_empty"
         ),
-        # targetType and targetId must be provided together or not at all
         CheckConstraint(
-            "(targetType IS NULL) = (targetId IS NULL)",
-            name="ck_notifications_target_pair",
+            "photoId IS NULL OR (photoId > 0 AND photoId < 10000000)",
+            name="ck_notifications_photoId_null_or_range",
         ),
-        # targetType must be one of the allowed discriminator values
         CheckConstraint(
-            "targetType IS NULL OR targetType IN ('photo', 'comment', 'album')",
-            name="ck_notifications_target_type_values",
+            "albumId IS NULL OR (albumId > 0 AND albumId < 10000000)",
+            name="ck_notifications_albumId_null_or_range",
+        ),
+        CheckConstraint(
+            "commentId IS NULL OR (commentId > 0 AND commentId < 10000000)",
+            name="ck_notifications_commentId_null_or_range",
         ),
         # performance indexes for common queries
-        Index("ix_notifications_userid_createdat", "userId", "createdAt"),
-        Index("ix_notifications_userid_isread", "userId", "isRead"),
+        Index("ix_notifications_recipientid_createdat", "recipientId", "createdAt"),
+        Index("ix_notifications_recipientid_isread", "recipientId", "isRead"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
@@ -58,15 +60,21 @@ class NotificationModel(Base):
         ForeignKey("notification_types.id", ondelete="CASCADE"),
         nullable=False,
     )
-    userId: int = Column(
+    recipientId: int = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )  # recipient
     senderId: int = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )  # who triggered it
-    # polymorphic target — both must be set together or both null
-    targetType: str = Column(String(20), nullable=True)  # 'photo' | 'comment' | 'album'
-    targetId: int = Column(Integer, nullable=True)  # PK of the referenced resource
+    photoId: int = Column(
+        Integer, ForeignKey("photos.id", ondelete="SET NULL"), nullable=True
+    )
+    albumId: int = Column(
+        Integer, ForeignKey("albuns.id", ondelete="SET NULL"), nullable=True
+    )
+    commentId: int = Column(
+        Integer, ForeignKey("comments.id", ondelete="SET NULL"), nullable=True
+    )
     message: str = Column(String(255), nullable=False)
     isRead: bool = Column(Boolean, default=False, nullable=False)
     createdAt: DateTime = Column(
@@ -76,21 +84,6 @@ class NotificationModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-    )
-
-    # ORM many-to-one: many notifications belong to one notification type
-    type_rel = relationship(
-        "NotificationTypeModel",
-        foreign_keys=[typeId],
-        back_populates="notifications_rel",
-    )
-    # ORM many-to-one: many notifications are received by one user (recipient)
-    recipient_rel = relationship(
-        "UserModel", foreign_keys=[userId], back_populates="notifications_received_rel"
-    )
-    # ORM many-to-one: many notifications are triggered by one sender user (nullable)
-    sender_rel = relationship(
-        "UserModel", foreign_keys=[senderId], back_populates="notifications_sent_rel"
     )
 
     def to_dict(self) -> dict:
@@ -103,10 +96,11 @@ class NotificationModel(Base):
         return {
             "id": self.id,
             "typeId": self.typeId,
-            "userId": self.userId,
+            "recipientId": self.recipientId,
             "senderId": self.senderId,
-            "targetType": self.targetType,
-            "targetId": self.targetId,
+            "photoId": self.photoId,
+            "albumId": self.albumId,
+            "commentId": self.commentId,
             "message": self.message,
             "isRead": self.isRead,
             "createdAt": self.createdAt,
@@ -139,7 +133,7 @@ class NotificationModel(Base):
             return [
                 n.to_dict()
                 for n in session.query(cls)
-                .filter_by(userId=user_id)
+                .filter_by(recipientId=user_id)
                 .order_by(cls.createdAt.desc())
                 .all()
             ]
@@ -156,7 +150,9 @@ class NotificationModel(Base):
             int: Count of unread notifications.
         """
         with SessionLocal() as session:
-            return session.query(cls).filter_by(userId=user_id, isRead=False).count()
+            return (
+                session.query(cls).filter_by(recipientId=user_id, isRead=False).count()
+            )
 
     @classmethod
     def mark_read(cls, notID: int) -> bool:
@@ -187,7 +183,7 @@ class NotificationModel(Base):
         """
         with SessionLocal() as session:
             with session.begin():
-                session.query(cls).filter_by(userId=user_id, isRead=False).update(
+                session.query(cls).filter_by(recipientId=user_id, isRead=False).update(
                     {"isRead": True}
                 )
 
@@ -197,9 +193,10 @@ class NotificationModel(Base):
         type_id: int,
         message: str,
         user_id: int,
-        sender_id: int = None,
-        target_type: str = None,
-        target_id: int = None,
+        sender_id: int,
+        photo_id: int = None,
+        album_id: int = None,
+        comment_id: int = None,
     ) -> dict:
         """
         Create a new notification.
@@ -208,28 +205,21 @@ class NotificationModel(Base):
             type_id (int): FK to notification_types.id.
             message (str): Human-readable notification message.
             user_id (int): The recipient user ID.
-            sender_id (int, optional): Who triggered the notification.
-            target_type (str, optional): Polymorphic discriminator — 'photo', 'comment', or 'album'.
-            target_id (int, optional): PK of the referenced resource (must pair with target_type).
+            sender_id (int): Who triggered the notification (required).
+            photo_id (int, optional): FK to photos.id  set when the notification targets a photo.
+            album_id (int, optional): FK to albuns.id — set when the notification targets an album.
+            comment_id (int, optional): FK to comments.id — set when the notification targets a comment.
 
         Returns:
             dict: A dictionary representation of the newly created notification.
         """
         m = message.strip() if message is not None else ""
+        if sender_id is None:
+            raise ValueError("sender_id is required")
         if not m:
             raise ValueError("Notification message must not be empty")
         if len(m) > 255:
             raise ValueError("Notification message must be at most 255 characters")
-
-        # target_type and target_id must both be provided or both omitted
-        if (target_type is None) != (target_id is None):
-            raise ValueError(
-                "target_type and target_id must both be provided or both be None"
-            )
-        if target_type is not None and target_type not in ("photo", "comment", "album"):
-            raise ValueError(
-                f"target_type must be 'photo', 'comment', or 'album', got: {target_type!r}"
-            )
 
         from db.models.notification_types import NotificationTypeModel
 
@@ -241,10 +231,11 @@ class NotificationModel(Base):
                 obj = cls(
                     typeId=type_id,
                     message=m,
-                    userId=user_id,
+                    recipientId=user_id,
                     senderId=sender_id,
-                    targetType=target_type,
-                    targetId=target_id,
+                    photoId=photo_id,
+                    albumId=album_id,
+                    commentId=comment_id,
                 )
                 session.add(obj)
                 session.flush()

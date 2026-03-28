@@ -9,7 +9,6 @@ from sqlalchemy import (
     Integer,
     UniqueConstraint,
 )
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -49,15 +48,6 @@ class FollowModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-    )
-
-    # ORM many-to-one: the user who is following (followerId = this user's id)
-    follower_user_rel = relationship(
-        "UserModel", foreign_keys=[followerId], back_populates="following_rel"
-    )
-    # ORM many-to-one: the user being followed (followedId = this user's id)
-    followed_user_rel = relationship(
-        "UserModel", foreign_keys=[followedId], back_populates="followers_rel"
     )
 
     def to_dict(self) -> dict:

@@ -395,20 +395,19 @@ def _read_notifications() -> list:
             for parts in csv.reader(f):
                 if parts[0] == "id":
                     continue
-                if len(parts) < 8:
+                if len(parts) < 9:
                     continue
-                target_type = parts[4].strip() or None
-                target_id = int(parts[5]) if parts[5].strip() else None
                 data.append(
                     NotificationModel(
                         id=int(parts[0]),
                         typeId=int(parts[1]),
-                        userId=int(parts[2]),
-                        senderId=int(parts[3]) if parts[3].strip() else None,
-                        targetType=target_type,
-                        targetId=target_id,
-                        message=parts[6],
-                        isRead=parts[7].strip() == "True",
+                        recipientId=int(parts[2]),
+                        senderId=int(parts[3]),
+                        photoId=int(parts[4]) if parts[4].strip() else None,
+                        albumId=int(parts[5]) if parts[5].strip() else None,
+                        commentId=int(parts[6]) if parts[6].strip() else None,
+                        message=parts[7],
+                        isRead=parts[8].strip() == "True",
                     )
                 )
         log_success(f"Loaded {len(data)} notifications.")

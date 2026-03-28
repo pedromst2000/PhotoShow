@@ -9,9 +9,10 @@ from sqlalchemy import (
     Integer,
     String,
 )
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
+
+from .photo_image import PhotoImageModel
 
 
 class PhotoModel(Base):
@@ -28,7 +29,7 @@ class PhotoModel(Base):
             name="ck_photos_categoryId_range",
         ),
         CheckConstraint(
-            "albumId > 0 AND albumId < 10000000",
+            "albumId IS NULL OR (albumId > 0 AND albumId < 10000000)",
             name="ck_photos_albumId_range",
         ),
         CheckConstraint(
@@ -48,7 +49,7 @@ class PhotoModel(Base):
         Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False
     )
     albumId: int = Column(
-        Integer, ForeignKey("albuns.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("albuns.id", ondelete="SET NULL"), nullable=True
     )
     createdAt: DateTime = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
@@ -59,58 +60,17 @@ class PhotoModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # ORM many-to-one: many photos belong to one category
-    category_rel = relationship(
-        "CategoryModel", foreign_keys=[categoryId], back_populates="photos_rel"
-    )
-    # ORM many-to-one: many photos belong to one album (nullable — photo may not be in an album)
-    album_rel = relationship(
-        "AlbumModel", foreign_keys=[albumId], back_populates="photos_rel"
-    )
-    # ORM one-to-one: one photo has a single image (photo_image.photoID unique)
-    image_rel = relationship(
-        "PhotoImageModel",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="photo_rel",
-        uselist=False,
-    )
-
     @property
     def image(self):
         return self.image_rel
-
-    # ORM one-to-many: one photo has many ratings
-    ratings_rel = relationship(
-        "RatingModel",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="photo_rel",
-    )
 
     @property
     def ratings(self):
         return self.ratings_rel
 
-    # ORM one-to-many: one photo has many comments
-    comments_rel = relationship(
-        "CommentModel",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="photo_rel",
-    )
-
     @property
     def comments(self):
         return self.comments_rel
-
-    # ORM one-to-many: one photo has many likes
-    likes_rel = relationship(
-        "LikeModel",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="photo_rel",
-    )
 
     @property
     def likes(self):
@@ -175,6 +135,16 @@ class PhotoModel(Base):
                 )
                 session.add(obj)
                 session.flush()
+                # ensure the photo has a PhotoImage row (DER: 1:1 mandatory)
+                try:
+
+                    default_image = "assets/images/photos_gallery/default_photo.jpg"
+                    img_obj = PhotoImageModel(photoId=obj.id, image=default_image)
+                    session.add(img_obj)
+                    session.flush()
+                except Exception:
+                    # do not fail photo creation if image insertion fails
+                    pass
                 return obj.to_dict()
 
     @classmethod

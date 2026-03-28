@@ -11,7 +11,6 @@ from sqlalchemy import (
     desc,
 )
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -46,11 +45,6 @@ class PhotoImageModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-    )
-
-    # ORM one-to-one: image for the photo (unique constraint enforces one image per photo)
-    photo_rel = relationship(
-        "PhotoModel", foreign_keys=[photoId], back_populates="image_rel", uselist=False
     )
 
     def to_dict(self) -> dict:

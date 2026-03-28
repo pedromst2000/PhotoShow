@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import CheckConstraint, Column, DateTime, Integer, String
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -30,14 +29,6 @@ class CategoryModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-    )
-
-    # ORM one-to-many: one category has many photos (cascade delete when category is removed)
-    photos_rel = relationship(
-        "PhotoModel",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="category_rel",
     )
 
     @property

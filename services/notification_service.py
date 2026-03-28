@@ -64,9 +64,10 @@ class NotificationService:
         type_key: str,
         message: str,
         user_id: int,
-        sender_id: int = None,
-        target_type: str = None,
-        target_id: int = None,
+        sender_id: int,
+        photo_id: int = None,
+        album_id: int = None,
+        comment_id: int = None,
     ) -> Optional[dict]:
         """
         Create a notification only if the type is enabled in notification_types.
@@ -75,9 +76,10 @@ class NotificationService:
             type_key (str): The type string of the notification (e.g. 'daily_content').
             message (str): The message content of the notification.
             user_id (int): The ID of the user to receive the notification.
-            sender_id (int, optional): The ID of the user who triggered the notification.
-            target_type (str, optional): Polymorphic discriminator — 'photo', 'comment', or 'album'.
-            target_id (int, optional): PK of the referenced resource.
+            sender_id (int): The ID of the user who triggered the notification (required).
+            photo_id (int, optional): FK to photos.id — set when the notification targets a photo.
+            album_id (int, optional): FK to albuns.id — set when the notification targets an album.
+            comment_id (int, optional): FK to comments.id — set when the notification targets a comment.
 
         Returns:
             dict: The created notification as a dict, or None if the type is disabled or unknown.
@@ -91,8 +93,9 @@ class NotificationService:
             message=message,
             user_id=user_id,
             sender_id=sender_id,
-            target_type=target_type,
-            target_id=target_id,
+            photo_id=photo_id,
+            album_id=album_id,
+            comment_id=comment_id,
         )
 
     # ── Notification types (admin) ─────────────────────────────────────────────

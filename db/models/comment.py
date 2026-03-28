@@ -9,7 +9,6 @@ from sqlalchemy import (
     Integer,
     String,
 )
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -51,15 +50,6 @@ class CommentModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-    )
-
-    # ORM many-to-one: many comments belong to one author user
-    author_rel = relationship(
-        "UserModel", foreign_keys=[authorId], back_populates="comments_rel"
-    )
-    # ORM many-to-one: many comments belong to one photo
-    photo_rel = relationship(
-        "PhotoModel", foreign_keys=[photoId], back_populates="comments_rel"
     )
 
     def to_dict(self) -> dict:

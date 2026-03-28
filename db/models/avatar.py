@@ -11,7 +11,6 @@ from sqlalchemy import (
     desc,
 )
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -44,11 +43,6 @@ class AvatarModel(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-    )
-
-    # ORM many-to-one: many avatars belong to one user (unique constraint makes it one-to-one in practice)
-    user_rel = relationship(
-        "UserModel", foreign_keys=[userId], back_populates="avatar_rel"
     )
 
     def to_dict(self) -> dict:

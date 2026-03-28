@@ -10,7 +10,6 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
 
@@ -46,29 +45,9 @@ class AlbumModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # ORM many-to-one: many albums belong to one creator user
-    creator_rel = relationship(
-        "UserModel", foreign_keys=[creatorId], back_populates="albums_rel"
-    )
-    # ORM one-to-many: one album has many photos
-    photos_rel = relationship(
-        "PhotoModel",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="album_rel",
-    )
-
     @property
     def photos(self):
         return self.photos_rel
-
-    # ORM one-to-many: one album has many favorites
-    favorites_rel = relationship(
-        "FavoriteModel",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="album_rel",
-    )
 
     @property
     def favorites(self):

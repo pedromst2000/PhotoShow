@@ -10,9 +10,10 @@ from sqlalchemy import (
     Integer,
     String,
 )
-from sqlalchemy.orm import relationship
 
 from db.engine import Base, SessionLocal
+
+from .avatar import AvatarModel
 
 
 class UserModel(Base):
@@ -40,89 +41,13 @@ class UserModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # ORM many-to-one: many users belong to one role (nullable — unsigned users have no role)
-    role_rel = relationship(
-        "RoleModel", foreign_keys=[roleId], back_populates="users_rel"
-    )
-    # ORM one-to-one: one user has one avatar
-    avatar_rel = relationship(
-        "AvatarModel",
-        uselist=False,
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="user_rel",
-    )
-    # ORM one-to-many: one user (creator) has many albums
-    albums_rel = relationship(
-        "AlbumModel",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="creator_rel",
-    )
-    # ORM one-to-many: one user has many contact messages
-    contacts_rel = relationship(
-        "ContactModel",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        back_populates="user_rel",
-    )
-    # ORM one-to-many: one user has many likes
-    likes_rel = relationship(
-        "LikeModel", passive_deletes=True, back_populates="user_rel"
-    )
-    # ORM one-to-many: one user has many ratings
-    ratings_rel = relationship(
-        "RatingModel", passive_deletes=True, back_populates="user_rel"
-    )
-    # ORM one-to-many: one user has many comments as author (foreign_keys required — authorId disambiguates)
-    comments_rel = relationship(
-        "CommentModel",
-        foreign_keys="[CommentModel.authorId]",
-        passive_deletes=True,
-        back_populates="author_rel",
-    )
-    # ORM one-to-many: one user has many favorites
-    favorites_rel = relationship(
-        "FavoriteModel", passive_deletes=True, back_populates="user_rel"
-    )
-    # ORM self-referential one-to-many: users this user follows (followerId = this user's id)
-    following_rel = relationship(
-        "FollowModel",
-        foreign_keys="[FollowModel.followerId]",
-        passive_deletes=True,
-        back_populates="follower_user_rel",
-    )
-
     @property
     def following(self):
         return self.following_rel
 
-    # ORM self-referential one-to-many: users that follow this user (followedId = this user's id)
-    followers_rel = relationship(
-        "FollowModel",
-        foreign_keys="[FollowModel.followedId]",
-        passive_deletes=True,
-        back_populates="followed_user_rel",
-    )
-
     @property
     def followers(self):
         return self.followers_rel
-
-    # ORM one-to-many: notifications received by this user (userId FK)
-    notifications_received_rel = relationship(
-        "NotificationModel",
-        foreign_keys="[NotificationModel.userId]",
-        passive_deletes=True,
-        back_populates="recipient_rel",
-    )
-    # ORM one-to-many: notifications sent/triggered by this user (senderId FK)
-    notifications_sent_rel = relationship(
-        "NotificationModel",
-        foreign_keys="[NotificationModel.senderId]",
-        passive_deletes=True,
-        back_populates="sender_rel",
-    )
 
     @property
     def role(self) -> str:
@@ -245,6 +170,17 @@ class UserModel(Base):
                 )
                 session.add(user)
                 session.flush()
+                # ensure the user has an avatar row (DER: 1:1 mandatory)
+                try:
+
+                    default_avatar = "assets/images/profile_avatars/default_avatar.jpg"
+                    # create avatar in the same transaction; if it already exists, ignore
+                    avatar_obj = AvatarModel(userId=user.id, avatar=default_avatar)
+                    session.add(avatar_obj)
+                    session.flush()
+                except Exception:
+                    # do not fail user creation if avatar creation has issues
+                    pass
                 return user.to_dict()
 
     @classmethod
