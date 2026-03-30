@@ -162,15 +162,15 @@ jobs:
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             # No args → script scans the whole project by default
-            if ! python scripts/check_imports.py; then
-              echo "::error::Import order issues found. Run 'python scripts/format_imports.py' locally and commit."
+            if ! python app/scripts/check_imports.py; then
+              echo "::error::Import order issues found. Run 'python app/scripts/format_imports.py' locally and commit."
               exit 1
             fi
           else
             FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
             if [ -n "$FILES" ]; then
-              if ! python scripts/check_imports.py $FILES; then
-                echo "::error::Import order issues found. Run 'python scripts/format_imports.py' locally and commit."
+              if ! python app/scripts/check_imports.py $FILES; then
+                echo "::error::Import order issues found. Run 'python app/scripts/format_imports.py' locally and commit."
                 exit 1
               fi
             fi
@@ -185,8 +185,8 @@ jobs:
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             echo "Running CSV linter on: files/ (all)"
-            if ! python scripts/lint_csv.py; then
-              echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally to auto-fix style issues."
+            if ! python app/scripts/lint_csv.py; then
+              echo "::error::CSV issues found. Run 'python app/scripts/format_csv.py' locally to auto-fix style issues."
               echo "::error::Other CSV problems must be fixed manually and then committed."
               exit 1
             fi
@@ -196,8 +196,8 @@ jobs:
             FILES=$(echo "$FILES" | tr '\n' ' ' | xargs)
             if [ -n "$FILES" ]; then
               echo "Running CSV linter on: $FILES"
-              if ! python scripts/lint_csv.py $FILES; then
-                echo "::error::CSV issues found. Run 'python scripts/format_csv.py' locally to auto-fix style issues."
+              if ! python app/scripts/lint_csv.py $FILES; then
+                echo "::error::CSV issues found. Run 'python app/scripts/format_csv.py' locally to auto-fix style issues."
                 echo "::error::Other CSV problems must be fixed manually and then committed."
                 exit 1
               fi

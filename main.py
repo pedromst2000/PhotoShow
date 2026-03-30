@@ -2,10 +2,10 @@ import tkinter as tk
 
 from PIL import Image, ImageTk
 
-from styles.colors import colors
-from styles.fonts import quickSandBold
-from views.auth.login import loginWindow
-from widgets.button import on_enter, on_leave
+from app.presentation.styles.colors import colors
+from app.presentation.styles.fonts import quickSandBold
+from app.presentation.views.auth.login import loginWindow
+from app.presentation.widgets.button import on_enter, on_leave
 
 
 class main:
@@ -63,7 +63,7 @@ class main:
         self.window.geometry("1350x700")
 
         # to insert the icon on the window
-        self.window.iconbitmap("assets/PhotoShowIcon.ico")
+        self.window.iconbitmap("app/assets/PhotoShowIcon.ico")
 
         # remove the maximize button
         self.window.resizable(0, 0)
@@ -72,14 +72,16 @@ class main:
         self.canvas: tk.Canvas = tk.Canvas(self.window, width=1350, height=700)
         self.canvas.place(x=0, y=0)
 
-        self.mainImage: Image.Image = Image.open("assets/images/main_background.png")
+        self.mainImage: Image.Image = Image.open(
+            "app/assets/images/main_background.png"
+        )
         self.mainImage = self.mainImage.resize((1350, 700))
 
         self.mainImage: ImageTk.PhotoImage = ImageTk.PhotoImage(self.mainImage)
 
         self.canvas.create_image(0, 0, image=self.mainImage, anchor=tk.NW)
 
-        self.logoImage: Image.Image = Image.open("assets/images/Logo.png")
+        self.logoImage: Image.Image = Image.open("app/assets/images/Logo.png")
 
         self.logoImage: Image.Image = self.logoImage.resize((600, 200))
 
@@ -129,8 +131,8 @@ if __name__ == "__main__":
     # when this file is imported elsewhere (e.g., for testing or as a module).
     import sys
 
-    from db.engine import check_db, init_db
-    from db.reset import reset_db
+    from app.core.db.engine import check_db, init_db
+    from app.core.db.reset import reset_db
 
     if "--resetDB" in sys.argv:
         # ── Reset: wipe database and re-seed from CSV files ──────────────────
@@ -145,7 +147,7 @@ if __name__ == "__main__":
         # Usage:  python main.py --restoreDB
         #         python main.py --restoreDB backups/20260320_002126
         # If no path is given, the latest folder inside backups/ is used.
-        from db.restore import restore_db_from_backup
+        from app.core.db.restore import restore_db_from_backup
 
         _idx = sys.argv.index("--restoreDB")
         _backup_path = (
