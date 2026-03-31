@@ -41,14 +41,16 @@
 
 ## :bulb: About
 
-PhotoShow is a lightweight local desktop app for organizing, viewing, and sharing photo collections. Users can sign in to access personalized and role-based features.
+PhotoShow is a local desktop application for browsing, organizing, and sharing photo collections. Sign in for a personalized, role-based experience.
 
-**:sparkles: Key features**:
+**:sparkles: Key Features**
 
-- :camera: Organize and browse albums and photos
-- :bust_in_silhouette: Personalize your profile, avatar, and favorites
-- :speech_balloon: Comment, rate, like, follow, and receive notifications
-- :shield: Admin moderation and user management
+- Create and manage albums; upload and view photos.
+- Explore and navigate community content.
+- Like, comment on, and rate photos.
+- Add other users' albums to your favorites.
+- Follow other users and receive in-app notifications.
+- Personalize your profile and avatar; admin tools to manage users and categories.
 
 ## :clapper: Demo Video
 
@@ -58,34 +60,37 @@ A demo video for PhotoShow will be added soon.
 
 ## :computer: Tech Stack
 
-### :gear: Core Application
+**Core Technologies**
 
-- [Python 3.14.3](https://www.python.org/) — Main programming language
-- [Tkinter](https://docs.python.org/3/library/tkinter.html) — GUI framework
-- [Pillow](https://pillow.readthedocs.io/en/stable/) — Image processing library
+- [Python 3.14+](https://www.python.org/) — Main programming language.
+- [Tkinter](https://docs.python.org/3/library/tkinter.html) — GUI framework.
+- [Pillow](https://pillow.readthedocs.io/en/stable/) — Image processing library.
+- [pip](https://pip.pypa.io/en/stable/) — Package manager.
 
-### :floppy_disk: Data & Security
+**Data & Security**
 
-- [SQLite](https://www.sqlite.org/) — Embedded relational database
-- [SQLAlchemy](https://www.sqlalchemy.org/) — ORM and database toolkit
-- [bcrypt](https://github.com/pyca/bcrypt) — Password hashing
+- [SQLite](https://www.sqlite.org/) — Embedded relational database.
+- [SQLAlchemy](https://www.sqlalchemy.org/) — ORM and database toolkit.
+- [bcrypt](https://github.com/pyca/bcrypt) — Password hashing.
 
-### :wrench: Code Quality & Linting
+**Code Quality & Linting**
 
-- [Black](https://black.readthedocs.io/en/stable/) — Code formatter
-- [flake8](https://flake8.pycqa.org/en/latest/) — Code linter
-- [isort](https://pycqa.github.io/isort/) — Import sorter
-- [yamllint](https://yamllint.readthedocs.io/en/stable/) — YAML linter
+- [Black](https://black.readthedocs.io/en/stable/) — Code formatter.
+- [flake8](https://flake8.pycqa.org/en/latest/) — Code linter.
+- [isort](https://pycqa.github.io/isort/) — Import sorter.
+- [yamllint](https://yamllint.readthedocs.io/en/stable/) — YAML linter.
+- [mypy](https://mypy.readthedocs.io/en/stable/) — Static type checker.
 
-### :test_tube: Testing
+**Testing**
 
-- [pytest](https://docs.pytest.org/en/stable/) — Testing framework
-- [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) — Coverage reporting
-- [pytest-mock](https://github.com/pytest-dev/pytest-mock) — Mocking in tests
+- [pytest](https://docs.pytest.org/en/stable/) — Testing framework.
+- [pytest-mock](https://github.com/pytest-dev/pytest-mock) — Mocking in tests.
+- [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) — Coverage reporting.
+- [codecov](https://about.codecov.io/) — Code coverage reporting service.
 
-### :package: Packaging
+**Packaging**
 
-- [PyInstaller](https://www.pyinstaller.org/) — Build standalone executables
+- [PyInstaller](https://www.pyinstaller.org/) — Build standalone executables.
 
 <br>
 
@@ -103,6 +108,8 @@ A demo video for PhotoShow will be added soon.
 
 > :warning: The preview below may be slightly outdated and will be refreshed in a later update.
 
+The database model is shown as a `DER (Diagram Entity-Relationship)` preview so the main entities and relationships stay readable at a glance.
+
 <div align="center">
   <p>
     <br>
@@ -117,7 +124,23 @@ A demo video for PhotoShow will be added soon.
   </p>
 </div>
 
-ORM models live in `app/core/db/models/` and cover `users`, `roles`, `avatars`, `albums`, `photos`, `image files`, `ratings`, `comments`, `favorites`, `contacts`, `notification types`, `notifications`, `follows`, and `likes`.
+ORM models live in `app/core/db/models/` and are implemented with `SQLAlchemy`. Key models:
+
+- **User** — Account: username, email, password hash, profile, role.
+- **Role** — Named user roles (e.g., admin, user).
+- **Avatar** — User avatar image metadata.
+- **Album** — Photo collection: title, description, owner, category.
+- **Photo** — Photo record: filename, title, description, upload date; links to album and owner.
+- **PhotoImage** — Stored image variants/paths linked to a `Photo`.
+- **Comment** — Photo comment: author, content, timestamp.
+- **Like** — Like relationship between a user and a photo.
+- **Favorite** — User-saved album reference.
+- **Follow** — Follow relationship between users.
+- **Contact** — User-submitted contact or feedback message.
+- **NotificationType** — Notification kind identifiers.
+- **Notification** — In-app notification: recipient, content, read status.
+- **Rating** — Numeric rating by a user for a photo.
+- **Category** — Photo category: name and description.
 
 <br>
 
@@ -144,6 +167,11 @@ ORM models live in `app/core/db/models/` and cover `users`, `roles`, `avatars`, 
 
 ```bash
 git clone https://github.com/pedromst2000/PhotoShow.git
+```
+
+#### Navigate to the project directory
+
+```bash
 cd PhotoShow
 ```
 
@@ -222,25 +250,106 @@ python main.py --restoreDB
 python main.py --restoreDB backups/<folder>
 ```
 
-> :warning: Backup folders may contain sensitive data (emails, password hashes). Keep them local and out of version control.
+> :warning: Backups may contain sensitive data (e.g., emails, password hashes). Keep backups local and do not commit them to version control — add backup folders or a matching pattern to your `.gitignore`.
 
 <br>
 
 ## :test_tube: Linting & Formatting
 
-The main development checks are the linting, formatting, and staged-file commands below:
+Run these checks locally before committing to keep the codebase consistent and avoid CI failures.
 
-| Command                                           | Description              |
-| ------------------------------------------------- | ------------------------ |
-| `python app/scripts/lint_csv.py`                  | Lint CSV file formatting |
-| `python app/scripts/format_csv.py`                | Auto-format CSV files    |
-| `python app/scripts/check_imports.py`             | Check import ordering    |
-| `python app/scripts/format_imports.py`            | Auto-format imports      |
-| `python -m flake8 .`                              | Lint Python code         |
-| `python -m black .`                               | Format Python code       |
-| `python -m yamllint .`                            | Lint YAML files          |
-| `python app/scripts/check_changed_files.py`       | Check staged changes     |
-| `python app/scripts/check_changed_files.py --fix` | Auto-fix staged files    |
+#### Lint CSV data files
+
+Checks CSV seed data files for structural and formatting issues.
+
+```bash
+python app/scripts/lint_csv.py
+```
+
+#### Format CSV data files
+
+Auto-formats CSV seed data files to conform to project standards.
+
+```bash
+python app/scripts/format_csv.py
+```
+
+#### Check Python imports
+
+Checks that Python imports are correctly ordered according to `isort` conventions.
+
+```bash
+python app/scripts/check_imports.py
+```
+
+#### Format Python imports
+
+Auto-formats Python imports to match `isort` ordering conventions.
+
+```bash
+python app/scripts/format_imports.py
+```
+
+#### Lint Python files
+
+Checks Python files for style violations and errors (`PEP 8` compliance).
+
+```bash
+python -m flake8 .
+```
+
+#### Format Python files
+
+Auto-formats all Python files using the `Black` code formatter.
+
+```bash
+python -m black .
+```
+
+#### Check Python types
+
+Runs static type checks on `app/` and `main.py` using `mypy`.
+
+```bash
+python -m mypy app main.py
+```
+
+> Configuration is managed via [`mypy.ini`](mypy.ini) at the project root.
+
+#### Lint YAML files
+
+Checks YAML configuration files for syntax and formatting issues.
+
+```bash
+python -m yamllint .
+```
+
+#### Check staged files
+
+Runs all relevant checks (formatting, imports, CSV structure) on staged files only.
+
+```bash
+python app/scripts/check_changed_files.py
+```
+
+#### Auto-fix staged files
+
+Automatically fixes all fixable issues in staged files — formatting, import ordering, and CSV structure. Only modifies currently staged files.
+
+```bash
+python app/scripts/check_changed_files.py --fix
+```
+
+---
+
+> :warning: **Before every commit**, run the staged-file check to catch issues early and prevent CI failures:
+>
+> ```bash
+> python app/scripts/check_changed_files.py
+> ```
+>
+> Use `--fix` to apply automatic fixes, then review with `git diff --staged` before committing.
+> If CI still fails, open the **Actions** tab on GitHub for detailed logs and fix any reported issues promptly.
 
 <br>
 
