@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.messagebox as messagebox
+from typing import Optional
 
 from PIL import Image, ImageTk
 
@@ -18,7 +19,7 @@ from app.presentation.widgets.button import on_leave as button_on_leave
 from app.presentation.widgets.input import on_click_outside, on_focus_in, on_focus_out
 
 
-def loginWindow(event: object, Window: object):
+def loginWindow(event: object, Window: tk.Tk):
     """
     Create and display the login window for user authentication.
 
@@ -38,9 +39,9 @@ def loginWindow(event: object, Window: object):
 
     screenHeight: int = _loginWindow_.winfo_screenheight()  # height of the screen
 
-    x: int = (screenWidth / 2) - (loginWindowWidth / 2)  # calculate x position
+    x: int = int((screenWidth / 2) - (loginWindowWidth / 2))  # calculate x position
 
-    y: int = (screenHeight / 2) - (loginWindowHeight / 2)  # calculate y position
+    y: int = int((screenHeight / 2) - (loginWindowHeight / 2))  # calculate y position
 
     # setting the window size and position
     # %d = integer
@@ -49,7 +50,7 @@ def loginWindow(event: object, Window: object):
     _loginWindow_.geometry("%dx%d+%d+%d" % (loginWindowWidth, loginWindowHeight, x, y))
     _loginWindow_.title("Sign In")
     _loginWindow_.iconbitmap("app/assets/PhotoShowIcon.ico")
-    _loginWindow_.resizable(0, 0)
+    _loginWindow_.resizable(False, False)
     _loginWindow_.config(bg=colors["primary-50"])
 
     canvasLogo: tk.Canvas = tk.Canvas(
@@ -161,7 +162,7 @@ def loginWindow(event: object, Window: object):
     inputPassword.bind(
         "<KeyRelease>",
         lambda event: manageVisibility(
-            ImageTk, Image, canvasManagePassword, tk.NW, inputPassword, 445, 325
+            event, ImageTk, Image, canvasManagePassword, tk.NW, inputPassword, 445, 325
         ),
     )
 
@@ -169,7 +170,7 @@ def loginWindow(event: object, Window: object):
     canvasManagePassword.bind(
         "<Button-1>",
         lambda event: togglePasswordVisibility(
-            ImageTk, Image, canvasManagePassword, tk.NW, inputPassword, 445, 325
+            event, ImageTk, Image, canvasManagePassword, tk.NW, inputPassword, 445, 325
         ),
     )
 
@@ -219,7 +220,7 @@ def loginWindow(event: object, Window: object):
         lambda event: on_click_outside(event, _loginWindow_, inputEmail, inputPassword),
     )
 
-    def trigger_check_login(event: tk.Event = None):
+    def trigger_check_login(event: Optional[tk.Event] = None):
         """
         Helper function to trigger the login check using the current input values.
         Can be called by button click or Enter key event.
@@ -237,7 +238,9 @@ def loginWindow(event: object, Window: object):
     _loginWindow_.grab_set()
 
 
-def checkLogin(email: str, password: str, loginWindow: object, Window: object) -> None:
+def checkLogin(
+    email: str, password: str, loginWindow: tk.Toplevel, Window: tk.Tk
+) -> None:
     """
     Handle login button click - delegates to AuthController.
 
@@ -267,7 +270,7 @@ def checkLogin(email: str, password: str, loginWindow: object, Window: object) -
         homeWindow()
 
 
-def openSignUpLink(event: tk.Event, loginWindow: object, window: object):
+def openSignUpLink(event: tk.Event, loginWindow: tk.Toplevel, window: tk.Tk):
     """
     Open the sign up (register) window from the login window.
 

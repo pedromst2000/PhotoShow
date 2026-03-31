@@ -63,9 +63,9 @@ class NotificationService:
         message: str,
         user_id: int,
         sender_id: int,
-        photo_id: int = None,
-        album_id: int = None,
-        comment_id: int = None,
+        photo_id: Optional[int] = None,
+        album_id: Optional[int] = None,
+        comment_id: Optional[int] = None,
     ) -> Optional[dict]:
         """
         Create a notification only if the type is enabled in notification_types.

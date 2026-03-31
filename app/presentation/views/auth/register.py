@@ -48,7 +48,7 @@ def registerWindow(Window: object):
     )
     _registerWindow_.title("Sign Up")
     _registerWindow_.iconbitmap("app/assets/PhotoShowIcon.ico")
-    _registerWindow_.resizable(0, 0)
+    _registerWindow_.resizable(False, False)
     _registerWindow_.config(bg=colors["primary-50"])
 
     canvasLogo: tk.Canvas = tk.Canvas(

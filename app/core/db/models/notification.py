@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -194,9 +195,9 @@ class NotificationModel(Base):
         message: str,
         user_id: int,
         sender_id: int,
-        photo_id: int = None,
-        album_id: int = None,
-        comment_id: int = None,
+        photo_id: Optional[int] = None,
+        album_id: Optional[int] = None,
+        comment_id: Optional[int] = None,
     ) -> dict:
         """
         Create a new notification.

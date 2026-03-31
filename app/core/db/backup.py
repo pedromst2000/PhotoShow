@@ -96,7 +96,7 @@ def backup_db_to_csv(output_dir: str | None = None) -> str:
     try:
         with SessionLocal() as session:
             for m in models:
-                table_name = m.__table__.name
+                table_name: str = m.__tablename__
                 rows = session.query(m).all()
                 cols = [c.name for c in m.__table__.columns]
                 path = out_dir / f"{table_name}.csv"

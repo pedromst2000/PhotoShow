@@ -1,4 +1,5 @@
 import tkinter as tk
+from typing import Optional
 
 from PIL import Image, ImageTk
 
@@ -18,8 +19,8 @@ class menu:
 
     def __init__(
         self,
-        homeCanvas: tk.Canvas = None,
-        homeWindow: tk.Tk = None,
+        homeCanvas: Optional[tk.Canvas] = None,
+        homeWindow: Optional[tk.Tk] = None,
     ) -> None:
         """
         Initialize the menu with images, button widgets, and layout configuration.
@@ -127,7 +128,7 @@ class menu:
             elif i == 4:
                 opt.bind(
                     "<Button-1>",
-                    lambda e: (session.logout(), self.homeWindow.destroy()),
+                    lambda e: (session.logout() or self.homeWindow.destroy()),  # type: ignore[union-attr]
                 )
 
     def adminMenu(self) -> None:
@@ -155,5 +156,5 @@ class menu:
             elif i == 6:
                 opt.bind(
                     "<Button-1>",
-                    lambda e: (session.logout(), self.homeWindow.destroy()),
+                    lambda e: (session.logout() or self.homeWindow.destroy()),  # type: ignore[union-attr]
                 )

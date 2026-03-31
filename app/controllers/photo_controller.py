@@ -52,7 +52,7 @@ class PhotoController:
         return PhotoService.get_photos_by_album(album_id)
 
     @staticmethod
-    def get_photos_by_user(user_id: int = None) -> List[dict]:
+    def get_photos_by_user(user_id: Optional[int] = None) -> List[dict]:
         """
         Get all photos uploaded by a user.
 
@@ -68,7 +68,9 @@ class PhotoController:
         return PhotoService.get_photos_by_user(target_user_id)
 
     @staticmethod
-    def get_filtered_photos(category: str = "all", username: str = None) -> List[dict]:
+    def get_filtered_photos(
+        category: str = "all", username: Optional[str] = None
+    ) -> List[dict]:
         """
         Get photos filtered by category and/or username.
 
@@ -97,8 +99,8 @@ class PhotoController:
     @staticmethod
     def upload_photo(
         image_path: str,
-        album_id: int = None,
-        category_id: int = None,
+        album_id: Optional[int] = None,
+        category_id: Optional[int] = None,
         description: str = "",
         published_date=None,
     ) -> Tuple[bool, str]:
@@ -145,6 +147,7 @@ class PhotoController:
         """
         if not session.is_authenticated:
             return False, "You must be logged in to delete photos"
+        assert session.user_id is not None
 
         # Delegate ownership check and deletion to service (business logic)
         if PhotoService.delete_photo_for_user(session.user_id, photo_id):
@@ -165,6 +168,7 @@ class PhotoController:
         """
         if not session.is_authenticated:
             return False, "You must be logged in to update photos"
+        assert session.user_id is not None
 
         # Delegate ownership check and update to service (business logic)
         if PhotoService.update_photo_for_user(session.user_id, photo_id, updates):
@@ -184,6 +188,7 @@ class PhotoController:
 
         if not session.is_authenticated:
             return False, "You must be logged in to like photos"
+        assert session.user_id is not None
         if PhotoService.like_photo(session.user_id, photo_id):
             return True, "Photo liked"
         return False, "You have already liked this photo"
@@ -200,6 +205,7 @@ class PhotoController:
 
         if not session.is_authenticated:
             return False, "You must be logged in to unlike photos"
+        assert session.user_id is not None
         if PhotoService.unlike_photo(session.user_id, photo_id):
             return True, "Photo unliked"
         return False, "You have not liked this photo"
@@ -217,6 +223,7 @@ class PhotoController:
         """
         if not session.is_authenticated:
             return False, "You must be logged in to rate photos"
+        assert session.user_id is not None
         try:
             PhotoService.add_rating(session.user_id, photo_id, rating_value)
             return True, "Rating submitted"
@@ -235,6 +242,7 @@ class PhotoController:
 
         if not session.is_authenticated:
             return False
+        assert session.user_id is not None
         return PhotoService.has_liked(session.user_id, photo_id)
 
     @staticmethod
@@ -250,7 +258,7 @@ class PhotoController:
         return PhotoService.count_likes(photo_id)
 
     @staticmethod
-    def get_liked_photos(user_id: int = None) -> list:
+    def get_liked_photos(user_id: Optional[int] = None) -> list:
         """
         Get all photos liked by a user.
         Args:

@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import (
     CheckConstraint,
@@ -110,8 +111,8 @@ class PhotoModel(Base):
         cls,
         description: str,
         publishedDate,
-        categoryId: int,
-        albumId: int,
+        categoryId: Optional[int],
+        albumId: Optional[int],
     ) -> dict:
         """
         Create a new photo in the database.

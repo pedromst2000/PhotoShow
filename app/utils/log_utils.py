@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 from colorama import Fore, Style, init
 
@@ -24,7 +25,9 @@ def log_success(msg: str) -> None:
     print(f"{Fore.GREEN}[SUCCESS] {msg}{Style.RESET_ALL}")
 
 
-def log_issue(msg: str, exc: Exception = None, path: str = None) -> None:
+def log_issue(
+    msg: str, exc: Optional[Exception] = None, path: Optional[str] = None
+) -> None:
     """
     Red — something went wrong.
 

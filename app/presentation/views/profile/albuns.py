@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.messagebox as messagebox
+from typing import Optional
 
 from PIL import Image, ImageTk
 
@@ -438,7 +439,9 @@ def albunsProfileWindow():
                 parent=_albunsProfileWindow_,
             )
         album_name: str = albunsListbox.get(albunsListbox.curselection())
-        album_id: int = AlbumController.get_album_id_by_name(album_name, userID)
+        album_id: Optional[int] = AlbumController.get_album_id_by_name(
+            album_name, userID
+        )
         listAlbumPhotos.delete(0, "end")
         if album_id is not None:
             for photo in PhotoController.get_photos_by_album(album_id):
@@ -548,7 +551,9 @@ def albunsProfileWindow():
             return messagebox.showerror(
                 "Error", "This album name already exists.", parent=_albunsProfileWindow_
             )
-        album_id: int = AlbumController.get_album_id_by_name(current_name, userID)
+        album_id: Optional[int] = AlbumController.get_album_id_by_name(
+            current_name, userID
+        )
         if album_id is None:
             return messagebox.showerror(
                 "Error", "Album not found.", parent=_albunsProfileWindow_

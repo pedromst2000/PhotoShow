@@ -176,6 +176,21 @@ jobs:
             fi
           fi
 
+      # --- Type checking ---
+      # mypy always runs on the full target (app + main.py) regardless of mode
+      # because type checking requires the full module graph — partial runs miss
+      # cross-module type errors and give false-clean results.
+      - name: Type check Python (mypy)
+        if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
+        run: |
+          if ! python -m mypy app main.py; then
+            echo "::error::Type checking issues found. Run 'python -m mypy app main.py' locally and fix the errors before committing."
+            exit 1
+          fi
+
       # --- CSV ---
       - name: Lint CSV
         if: >-

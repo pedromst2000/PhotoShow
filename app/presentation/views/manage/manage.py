@@ -487,9 +487,9 @@ def manageWindow():
                 "Error", "Please select a role.", parent=_manageWindow_
             )
             return
-        username: str = usersTable.item(usersTable.selection())["values"][0]
+        username: str = usersTable.item(usersTable.selection()[0])["values"][0]
         new_role: str = initialRoleVal.get()
-        if new_role == usersTable.item(usersTable.selection())["values"][2]:
+        if new_role == usersTable.item(usersTable.selection()[0])["values"][2]:
             messagebox.showerror(
                 "Error", f'"{username}" is already {new_role}.', parent=_manageWindow_
             )
@@ -524,9 +524,9 @@ def manageWindow():
                 "Error", "Please select a status.", parent=_manageWindow_
             )
             return
-        username: str = usersTable.item(usersTable.selection())["values"][0]
+        username: str = usersTable.item(usersTable.selection()[0])["values"][0]
         new_status: str = initialStatusVal.get()
-        current_status: str = usersTable.item(usersTable.selection())["values"][3]
+        current_status: str = usersTable.item(usersTable.selection()[0])["values"][3]
         if new_status == "blocked" and current_status == "Blocked":
             messagebox.showerror(
                 "Error", f'"{username}" is already blocked.', parent=_manageWindow_

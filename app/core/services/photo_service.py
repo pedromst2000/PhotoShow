@@ -89,7 +89,9 @@ class PhotoService:
         return []
 
     @staticmethod
-    def get_filtered_photos(category: str = "all", username: str = None) -> list:
+    def get_filtered_photos(
+        category: str = "all", username: Optional[str] = None
+    ) -> list:
         """
         Retrieve photos filtered by category and/or username.
         Enriches photos with category name and username.
@@ -119,8 +121,10 @@ class PhotoService:
                 str: The name of the category, or empty string if not found.
             """
 
-            match = next((c for c in categories if c["id"] == photo["categoryId"]), {})
-            return match.get("category", "")
+            m: dict = next(
+                (c for c in categories if c["id"] == photo["categoryId"]), {}
+            )
+            return str(m.get("category", ""))
 
         # Helper to get username for a photo via its album's creatorID
         def get_username(photo: dict) -> str:
@@ -136,8 +140,8 @@ class PhotoService:
             album = next((a for a in albums if a["id"] == photo["albumId"]), None)
             if not album:
                 return ""
-            match = next((u for u in users if u["id"] == album["creatorId"]), {})
-            return match.get("username", "")
+            m: dict = next((u for u in users if u["id"] == album["creatorId"]), {})
+            return str(m.get("username", ""))
 
         result = []
         for photo in photos:
@@ -164,11 +168,11 @@ class PhotoService:
     @staticmethod
     def create_photo(
         image_path: str,
-        album_id: int,
-        category_id: int = None,
+        album_id: Optional[int],
+        category_id: Optional[int] = None,
         description: str = "",
         published_date=None,
-    ) -> dict:
+    ) -> Optional[dict]:
         """
 
         Create a new photo entry in the database.
@@ -206,7 +210,8 @@ class PhotoService:
         Returns:
             bool: True if deleted successfully, False otherwise.
         """
-        return PhotoModel.delete(photo_id)
+        PhotoModel.delete(photo_id)
+        return True
 
     @staticmethod
     def delete_photo_for_user(user_id: int, photo_id: int) -> bool:
@@ -231,7 +236,8 @@ class PhotoService:
         owner_id = album["creatorId"] if album else None
         # if owner matches, delete
         if owner_id == user_id:
-            return PhotoModel.delete(photo_id)
+            PhotoModel.delete(photo_id)
+            return True
         # otherwise deny
         return False
 

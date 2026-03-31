@@ -1,6 +1,5 @@
 import tkinter as tk
-
-from PIL import Image, ImageTk
+from typing import Any
 
 from app.presentation.styles.fonts import quickSandRegular, quickSandRegularUnderline
 
@@ -8,8 +7,8 @@ isPasswordVisible: bool = False
 
 
 def hidePasswordIcon(
-    ImageTk: ImageTk,
-    Image: Image,
+    ImageTk: Any,
+    Image: Any,
     canvasManagePassword: tk.Canvas,
     NW: str,
     X: int,
@@ -26,16 +25,16 @@ def hidePasswordIcon(
         X (int): The X coordinate for placing the icon.
         Y (int): The Y coordinate for placing the icon.
     """
-    eye: Image.Image = Image.open("app/assets/images/UI_Icons/Hide_Eye_Icon.png")
+    eye: Any = Image.open("app/assets/images/UI_Icons/Hide_Eye_Icon.png")
     eye = eye.resize((60, 40))
-    canvasManagePassword.image = ImageTk.PhotoImage(eye)
-    canvasManagePassword.create_image(0, 0, anchor=NW, image=canvasManagePassword.image)
+    canvasManagePassword.image = ImageTk.PhotoImage(eye)  # type: ignore[attr-defined]
+    canvasManagePassword.create_image(0, 0, anchor=NW, image=canvasManagePassword.image)  # type: ignore[attr-defined]
     canvasManagePassword.place(x=X, y=Y)
 
 
 def showPasswordIcon(
-    ImageTk: ImageTk,
-    Image: Image,
+    ImageTk: Any,
+    Image: Any,
     canvasManagePassword: tk.Canvas,
     NW: str,
     X: int,
@@ -52,17 +51,17 @@ def showPasswordIcon(
         X (int): The X coordinate for placing the icon.
         Y (int): The Y coordinate for placing the icon.
     """
-    eye: Image.Image = Image.open("app/assets/images/UI_Icons/Eye_Icon.png")
+    eye: Any = Image.open("app/assets/images/UI_Icons/Eye_Icon.png")
     eye = eye.resize((60, 40))
-    canvasManagePassword.image = ImageTk.PhotoImage(eye)
-    canvasManagePassword.create_image(0, 0, anchor=NW, image=canvasManagePassword.image)
+    canvasManagePassword.image = ImageTk.PhotoImage(eye)  # type: ignore[attr-defined]
+    canvasManagePassword.create_image(0, 0, anchor=NW, image=canvasManagePassword.image)  # type: ignore[attr-defined]
     canvasManagePassword.place(x=X, y=Y)
 
 
 def togglePasswordVisibility(
     event: tk.Event,
-    ImageTk: ImageTk,
-    Image: Image,
+    ImageTk: Any,
+    Image: Any,
     canvasManagePassword: tk.Canvas,
     NW: str,
     inputPassword: tk.Entry,
@@ -96,8 +95,8 @@ def togglePasswordVisibility(
 
 def manageVisibility(
     event: tk.Event,
-    ImageTk: ImageTk,
-    Image: Image,
+    ImageTk: Any,
+    Image: Any,
     canvasManagePassword: tk.Canvas,
     NW: str,
     inputPassword: tk.Entry,

@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.messagebox as messagebox
+from typing import Optional
 
 from PIL import Image, ImageTk
 
@@ -44,7 +45,7 @@ def homeBannedWindow():
     )
     _homeBannedWindow_.title("PhotoShow - Banned Notice")
     _homeBannedWindow_.iconbitmap("app/assets/PhotoShowIcon.ico")
-    _homeBannedWindow_.resizable(0, 0)
+    _homeBannedWindow_.resizable(False, False)
     _homeBannedWindow_.config(bg=colors["primary-50"])
 
     homeBannedCanvas: tk.Canvas = tk.Canvas(_homeBannedWindow_, width=1350, height=700)
@@ -174,7 +175,7 @@ def homeBannedWindow():
         dx = (_homeBannedWindow_.winfo_screenwidth() // 2) - (dialogWidth // 2)
         dy = (_homeBannedWindow_.winfo_screenheight() // 2) - (dialogHeight // 2)
         dialog.geometry("%dx%d+%d+%d" % (dialogWidth, dialogHeight, dx, dy))
-        dialog.resizable(0, 0)
+        dialog.resizable(False, False)
         dialog.config(bg=colors["primary-50"])
 
         tk.Label(
@@ -224,7 +225,7 @@ def homeBannedWindow():
         )
         messageText.place(x=30, y=158)
 
-        def _submit_(e: tk.Event = None):
+        def _submit_(e: Optional[tk.Event] = None):
             success, msg = ProfileController.contact_admin(
                 titleEntry.get(),
                 messageText.get("1.0", "end-1c"),

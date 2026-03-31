@@ -27,6 +27,7 @@ class NotificationController:
 
         if not session.is_authenticated:
             return []
+        assert session.user_id is not None
         return NotificationService.get_for_user(session.user_id)
 
     @staticmethod
@@ -38,6 +39,7 @@ class NotificationController:
         """
         if not session.is_authenticated:
             return 0
+        assert session.user_id is not None
         return NotificationService.get_unread_count(session.user_id)
 
     @staticmethod
@@ -64,6 +66,7 @@ class NotificationController:
 
         if not session.is_authenticated:
             return False, "You must be logged in"
+        assert session.user_id is not None
         NotificationService.mark_all_read(session.user_id)
         return True, "All notifications marked as read"
 

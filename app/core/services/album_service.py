@@ -45,7 +45,7 @@ class AlbumService:
         return AlbumModel.get_by_creator(user_id)
 
     @staticmethod
-    def create_album(name: str, creator_id: int) -> dict:
+    def create_album(name: str, creator_id: int) -> Optional[dict]:
         """
         Create a new album.
 
@@ -71,7 +71,7 @@ class AlbumService:
         return AlbumModel.create(name=trimmed, creatorId=creator_id)
 
     @staticmethod
-    def rename_album(album_id: int, new_name: str) -> bool:
+    def rename_album(album_id: int, new_name: str) -> Optional[dict]:
         """
         Rename an existing album.
 
@@ -90,7 +90,7 @@ class AlbumService:
 
         album = AlbumModel.get_by_id(album_id)
         if not album:
-            return False
+            return None
 
         # prevent renaming to a name already used by the same creator
         existing_id = AlbumService.get_album_id_by_name(album["creatorId"], trimmed)
@@ -123,7 +123,7 @@ class AlbumService:
             raise ValueError("Album not found")
         if album["creatorId"] != user_id and not is_admin:
             raise ValueError("You can only rename your own albums")
-        return AlbumService.rename_album(album_id, new_name)
+        return bool(AlbumService.rename_album(album_id, new_name))
 
     @staticmethod
     def delete_album(album_id: int) -> bool:
@@ -179,7 +179,7 @@ class AlbumService:
         target = album_name.strip().lower()
         for album in albums:
             if album["name"].strip().lower() == target:
-                return album["id"]
+                return int(album["id"])
         return None
 
     @staticmethod

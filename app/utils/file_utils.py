@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 ROOT = Path(__file__).parent.parent
 FILES_DIR = ROOT / "files"
@@ -24,7 +25,7 @@ def has_imports(filepath: Path) -> bool:
     return False
 
 
-def iter_python_files(root: Path = None):
+def iter_python_files(root: Optional[Path] = None):
     """Recursively yield all .py files, excluding non-source directories.
 
     Args:

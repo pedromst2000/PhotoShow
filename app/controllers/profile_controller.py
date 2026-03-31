@@ -18,7 +18,7 @@ class ProfileController:
     """
 
     @staticmethod
-    def get_profile(user_id: int = None) -> Optional[dict]:
+    def get_profile(user_id: Optional[int] = None) -> Optional[dict]:
         """
         Get a user's profile information.
 
@@ -61,6 +61,7 @@ class ProfileController:
         """
         if not session.is_authenticated:
             return False, "You must be logged in to change your avatar"
+        assert session.user_id is not None
 
         if not avatar_filename:
             return False, "Please select an avatar"
@@ -89,6 +90,7 @@ class ProfileController:
         """
         if not session.is_authenticated:
             return False, "You must be logged in to change your password"
+        assert session.user_id is not None
 
         if not current_password or not new_password or not confirm_password:
             return False, "All password fields are required"
@@ -117,6 +119,7 @@ class ProfileController:
         """
         if not session.is_authenticated:
             return False
+        assert session.user_id is not None
 
         user = UserService.get_user_by_id(session.user_id)
         if user:
@@ -138,6 +141,7 @@ class ProfileController:
         """
         if not session.is_authenticated:
             return False, "You must be logged in to contact the admin"
+        assert session.user_id is not None
         if not title or not title.strip():
             return False, "Title is required"
         if not message or not message.strip():

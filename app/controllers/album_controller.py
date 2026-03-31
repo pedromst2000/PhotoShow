@@ -16,7 +16,7 @@ class AlbumController:
     """
 
     @staticmethod
-    def get_user_albums(user_id: int = None) -> List[dict]:
+    def get_user_albums(user_id: Optional[int] = None) -> List[dict]:
         """
         Get albums for a user.
 
@@ -67,6 +67,7 @@ class AlbumController:
         """
         if not session.is_authenticated:
             return False, "You must be logged in to create an album"
+        assert session.user_id is not None
 
         if not name or not name.strip():
             return False, "Album name is required"
@@ -91,6 +92,7 @@ class AlbumController:
         """
         if not session.is_authenticated:
             return False, "You must be logged in to rename an album"
+        assert session.user_id is not None
 
         if not new_name or not new_name.strip():
             return False, "New album name is required"
@@ -116,6 +118,7 @@ class AlbumController:
         """
         if not session.is_authenticated:
             return False, "You must be logged in to delete an album"
+        assert session.user_id is not None
 
         try:
             if AlbumService.delete_album_for_user(
@@ -127,7 +130,9 @@ class AlbumController:
             return False, str(e)
 
     @staticmethod
-    def get_album_id_by_name(album_name: str, user_id: int = None) -> Optional[int]:
+    def get_album_id_by_name(
+        album_name: str, user_id: Optional[int] = None
+    ) -> Optional[int]:
         """
         Get album ID from album name for a user.
 
@@ -144,7 +149,7 @@ class AlbumController:
         return AlbumService.get_album_id_by_name(target_user_id, album_name)
 
     @staticmethod
-    def get_favorite_albums(user_id: int = None) -> List[dict]:
+    def get_favorite_albums(user_id: Optional[int] = None) -> List[dict]:
         """
         Get favorite albums for a user.
 

@@ -1,4 +1,5 @@
 import tkinter as tk
+from typing import Optional
 
 from PIL import Image, ImageTk
 
@@ -14,21 +15,21 @@ class main:
     It initializes the main window and sets up the user interface elements.
     """
 
-    window: tk.Tk = None
-    canvas: tk.Canvas = None
-    mainImage: ImageTk.PhotoImage = None
-    logoImage: ImageTk.PhotoImage = None
-    sloganText: tk.Canvas.create_text = None
-    signInButton: tk.Button = None
+    window: Optional[tk.Tk] = None
+    canvas: Optional[tk.Canvas] = None
+    mainImage: Optional[ImageTk.PhotoImage] = None
+    logoImage: Optional[ImageTk.PhotoImage] = None
+    sloganText: Optional[int] = None
+    signInButton: Optional[tk.Button] = None
 
     def __init__(
         self,
-        window: tk.Tk = None,
-        canvas: tk.Canvas = None,
-        mainImage: ImageTk.PhotoImage = None,
-        logoImage: ImageTk.PhotoImage = None,
-        sloganText: tk.Canvas.create_text = None,
-        signInButton: tk.Button = None,
+        window: Optional[tk.Tk] = None,
+        canvas: Optional[tk.Canvas] = None,
+        mainImage: Optional[ImageTk.PhotoImage] = None,
+        logoImage: Optional[ImageTk.PhotoImage] = None,
+        sloganText: Optional[int] = None,
+        signInButton: Optional[tk.Button] = None,
     ) -> None:
         """
         This class is used to display the main window.

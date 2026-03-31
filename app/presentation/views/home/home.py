@@ -17,7 +17,7 @@ def homeWindow() -> None:
     # set the title
     _homeWindow_.title("PhotoShow - Home")
     _homeWindow_.iconbitmap("app/assets/PhotoShowIcon.ico")
-    _homeWindow_.resizable(0, 0)
+    _homeWindow_.resizable(False, False)
     _homeWindow_.geometry("1350x700")
     _homeWindow_.config(bg=colors["primary-50"])
     homeCanvas: Canvas = Canvas(_homeWindow_, width=1350, height=700)
@@ -26,28 +26,28 @@ def homeWindow() -> None:
     homeImage: Image.Image = Image.open("app/assets/images/main_background.png")
     homeImage = homeImage.resize((1350, 700))
 
-    homeImage: ImageTk.PhotoImage = ImageTk.PhotoImage(homeImage)
+    homeImageTk: ImageTk.PhotoImage = ImageTk.PhotoImage(homeImage)
 
-    homeCanvas.create_image(0, 0, image=homeImage, anchor=NW)
+    homeCanvas.create_image(0, 0, image=homeImageTk, anchor=NW)
 
     backgroundMenu: Image.Image = Image.open(
         "assets/images/home/menu/backgroundMenu.png"
     )
     backgroundMenu = backgroundMenu.resize((1145, 396))
 
-    backgroundMenu: ImageTk.PhotoImage = ImageTk.PhotoImage(backgroundMenu)
+    backgroundMenuTk: ImageTk.PhotoImage = ImageTk.PhotoImage(backgroundMenu)
 
     # centering the image on the canvas
-    x: float = (1350 - 1145) / 2
-    y: float = (700 - 396) / 2
+    x: int = (1350 - 1145) // 2
+    y: int = (700 - 396) // 2
 
-    homeCanvas.create_image(x, y, image=backgroundMenu, anchor=NW)
+    homeCanvas.create_image(x, y, image=backgroundMenuTk, anchor=NW)
 
     logoImage: Image.Image = Image.open("app/assets/images/Logo.png")
     logoImage = logoImage.resize((306, 65))
 
-    logoImage: ImageTk.PhotoImage = ImageTk.PhotoImage(logoImage)
-    homeCanvas.create_image(522, 180, image=logoImage, anchor=NW)
+    logoImageTk: ImageTk.PhotoImage = ImageTk.PhotoImage(logoImage)
+    homeCanvas.create_image(522, 180, image=logoImageTk, anchor=NW)
 
     _menu_: menu = menu(homeCanvas=homeCanvas, homeWindow=_homeWindow_)
 

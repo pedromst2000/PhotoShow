@@ -1,9 +1,10 @@
 import tkinter as tk
+from typing import Optional
 
 from app.presentation.styles.colors import colors
 
 # Global variable
-last_focused_input: tk.Entry = None
+last_focused_input: Optional[tk.Entry] = None
 
 
 def on_focus_in(event: tk.Event, input: tk.Entry) -> None:

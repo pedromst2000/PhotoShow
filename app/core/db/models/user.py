@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -142,7 +143,7 @@ class UserModel(Base):
         username: str,
         email: str,
         password: str,
-        roleId: int = None,
+        roleId: Optional[int] = None,
         isBlocked: bool = False,
     ) -> dict:
         """

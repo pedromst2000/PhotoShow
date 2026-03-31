@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
+from typing import Any, Callable
 
 from PIL import Image, ImageTk
 
@@ -11,14 +12,17 @@ from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.widgets.button import on_enter as button_on_enter
 from app.presentation.widgets.button import on_leave as button_on_leave
 
-image = ""
-photo_image = ""
+image: Any = ""
+photo_image: Any = ""
 statusBtn = "disabled"
 cursorBtn = "arrow"
 
 
 def uploadAvatar(
-    event: callable, canvasAvatar: tk.Canvas, btnSaveAvatar: tk.Button, userID: int
+    event: Callable[..., Any],
+    canvasAvatar: tk.Canvas,
+    btnSaveAvatar: tk.Button,
+    userID: int,
 ):
     """
     This function is used to upload the avatar.
@@ -64,7 +68,7 @@ def uploadAvatar(
         btnSaveAvatar.bind("<Button-1>", lambda event: _saveAvatar_(event, image_path))
 
 
-def _saveAvatar_(event: callable, avatar: str):
+def _saveAvatar_(event: Callable[..., Any], avatar: str):
     """
     This function is used to save the avatar.
 
