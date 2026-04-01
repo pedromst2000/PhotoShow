@@ -324,32 +324,25 @@ Checks YAML configuration files for syntax and formatting issues.
 python -m yamllint .
 ```
 
-#### Check staged files
+#### Validate staged files before committing
 
-Runs all relevant checks (formatting, imports, CSV structure) on staged files only.
+#### Validate staged files before committing
+
+Before committing, run the check on your staged changes and (if needed) auto-fix style issues:
+
+Run the check:
 
 ```bash
 python app/scripts/check_changed_files.py
 ```
 
-#### Auto-fix staged files
-
-Automatically fixes all fixable issues in staged files — formatting, import ordering, and CSV structure. Only modifies currently staged files.
+To auto-fix style-only problems (formatting, imports, CSV structure):
 
 ```bash
 python app/scripts/check_changed_files.py --fix
 ```
 
----
-
-> :warning: **Before every commit**, run the staged-file check to catch issues early and prevent CI failures:
->
-> ```bash
-> python app/scripts/check_changed_files.py
-> ```
->
-> Use `--fix` to apply automatic fixes, then review with `git diff --staged` before committing.
-> If CI still fails, open the **Actions** tab on GitHub for detailed logs and fix any reported issues promptly.
+Note: `--fix` only addresses style issues. Re-run the first command after fixes to confirm everything is clean before committing.
 
 <br>
 
