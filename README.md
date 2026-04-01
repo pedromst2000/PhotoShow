@@ -124,23 +124,7 @@ The database model is shown as a `DER (Diagram Entity-Relationship)` preview so 
   </p>
 </div>
 
-ORM models live in `app/core/db/models/` and are implemented with `SQLAlchemy`. Key models:
-
-- **User** — Account: username, email, password hash, profile, role.
-- **Role** — Named user roles (e.g., admin, user).
-- **Avatar** — User avatar image metadata.
-- **Album** — Photo collection: title, description, owner, category.
-- **Photo** — Photo record: filename, title, description, upload date; links to album and owner.
-- **PhotoImage** — Stored image variants/paths linked to a `Photo`.
-- **Comment** — Photo comment: author, content, timestamp.
-- **Like** — Like relationship between a user and a photo.
-- **Favorite** — User-saved album reference.
-- **Follow** — Follow relationship between users.
-- **Contact** — User-submitted contact or feedback message.
-- **NotificationType** — Notification kind identifiers.
-- **Notification** — In-app notification: recipient, content, read status.
-- **Rating** — Numeric rating by a user for a photo.
-- **Category** — Photo category: name and description.
+ORM models live in `app/core/db/models/` and are implemented with `SQLAlchemy`. You can check also in `app\core\db\models\__init__.py` for a quick overview of all the main entities and their relationships.
 
 <br>
 
@@ -323,8 +307,6 @@ Checks YAML configuration files for syntax and formatting issues.
 ```bash
 python -m yamllint .
 ```
-
-#### Validate staged files before committing
 
 #### Validate staged files before committing
 
