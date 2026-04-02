@@ -3,17 +3,17 @@ from typing import Optional
 
 from app.presentation.styles.colors import colors
 
-# Global variable
+# Module-scoped state used by the input helpers
 last_focused_input: Optional[tk.Entry] = None
 
 
 def on_focus_in(event: tk.Event, input: tk.Entry) -> None:
     """
-    This function will change the background color and the foreground color of the input when the input is focused.
+    Change styling when an input receives focus.
 
     Args:
-        event (tk.Event): The event object.
-        input (tk.Entry): The input widget.
+        event (tk.Event): The focus event.
+        input (tk.Entry): The Entry widget.
     """
 
     input["background"] = colors["secondary-500"]
@@ -23,11 +23,11 @@ def on_focus_in(event: tk.Event, input: tk.Entry) -> None:
 
 def on_focus_out(event: tk.Event, input: tk.Entry) -> None:
     """
-    This function will change the background color and the foreground color of the input when the input is not focused.
+    Restore styling when an input loses focus.
 
     Args:
-        event (tk.Event): The event object.
-        input (tk.Entry): The input widget.
+        event (tk.Event): The focus event.
+        input (tk.Entry): The Entry widget.
     """
 
     input["background"] = colors["secondary-300"]
@@ -37,12 +37,14 @@ def on_focus_out(event: tk.Event, input: tk.Entry) -> None:
 
 def on_click_outside(event: tk.Event, window: tk.Tk, *input_fields: tk.Entry) -> None:
     """
-    This function will change the background color and the foreground color of the input when the input is not focused.
+    If a click occurs outside the provided input fields, move focus to the
+    given window (clearing focus from the inputs). Tracks the last focused
+    input in `last_focused_input`.
 
     Args:
-        event (tk.Event): The event object.
-        window (tk.Tk): The window object.
-        *input_fields (tk.Entry): The input fields to check if the click was outside of them.
+        event (tk.Event): The click event.
+        window (tk.Tk): The window to focus if click outside inputs.
+        *input_fields (tk.Entry): Entry widgets to consider as "inside" clicks.
     """
 
     global last_focused_input

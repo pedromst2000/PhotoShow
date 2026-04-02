@@ -1,12 +1,14 @@
 import tkinter as tk
 from typing import Optional
 
-from PIL import Image, ImageTk
+from PIL import ImageTk
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
 from app.presentation.views.auth.login import loginWindow
-from app.presentation.widgets.button import on_enter, on_leave
+from app.presentation.widgets.helpers.button import on_enter, on_leave
+from app.presentation.widgets.window import create_main_window
+from app.utils.image_utils import load_image
 
 
 class main:
@@ -58,52 +60,43 @@ class main:
         This method is used to create the main window.
 
         """
-
-        self.window: tk.Tk = tk.Tk()
-        self.window.title("PhotoShow")
-        self.window.geometry("1350x700")
-
-        # to insert the icon on the window
-        self.window.iconbitmap("app/assets/PhotoShowIcon.ico")
-
-        # remove the maximize button
-        self.window.resizable(0, 0)
+        self.window = create_main_window(
+            title="PhotoShow",
+            width=1350,
+            height=700,
+            icon_path="app/assets/PhotoShowIcon.ico",
+        )
 
         # canvas
-        self.canvas: tk.Canvas = tk.Canvas(self.window, width=1350, height=700)
+        self.canvas = tk.Canvas(self.window, width=1350, height=700)
         self.canvas.place(x=0, y=0)
 
-        self.mainImage: Image.Image = Image.open(
-            "app/assets/images/main_background.png"
+        # Background
+        self._main_image = load_image(
+            "app/assets/images/main_background.png", (1350, 700)
         )
-        self.mainImage = self.mainImage.resize((1350, 700))
+        self.canvas.create_image(0, 0, image=self._main_image, anchor=tk.NW)
 
-        self.mainImage: ImageTk.PhotoImage = ImageTk.PhotoImage(self.mainImage)
+        # Logo
+        self._logo_image = load_image("app/assets/images/Logo.png", (600, 200))
+        self.canvas.create_image(390, 50, image=self._logo_image, anchor=tk.NW)
 
-        self.canvas.create_image(0, 0, image=self.mainImage, anchor=tk.NW)
-
-        self.logoImage: Image.Image = Image.open("app/assets/images/Logo.png")
-
-        self.logoImage: Image.Image = self.logoImage.resize((600, 200))
-
-        self.logoImage: ImageTk.PhotoImage = ImageTk.PhotoImage(self.logoImage)
-
-        self.canvas.create_image(390, 50, image=self.logoImage, anchor=tk.NW)
-
-        self.sloganText: tk.Canvas.create_text = self.canvas.create_text(
+        # Slogan
+        self.slogan_text = self.canvas.create_text(
             550,
             300,
             text="Every Pixel Tells a Tale",
-            font=(quickSandBold(25)),
+            font=quickSandBold(25),
             fill=colors["accent-500"],
             anchor=tk.NW,
         )
 
-        self.signInButton: tk.Button = tk.Button(
+        # Sign-in button
+        self.signInButton = tk.Button(
+            master=self.canvas,
             width=18,
             height=2,
             text="Sign In",
-            master=self.canvas,
             borderwidth=10,
             font=quickSandBold(16),
             background=colors["accent-300"],
@@ -112,7 +105,6 @@ class main:
             activebackground=colors["accent-100"],
             cursor="hand2",
         )
-
         self.signInButton.place(x=600, y=500)
         self.signInButton.bind(
             "<Button-1>", lambda event: loginWindow(event, self.window)
@@ -123,6 +115,9 @@ class main:
         self.signInButton.bind(
             "<Leave>", lambda event: on_leave(event, self.signInButton)
         )
+
+        # Keep references to images on the instance to avoid garbage collection (garbage collection can cause images to disappear from the UI if not referenced)
+        self._images = (self._main_image, self._logo_image)
 
         self.window.mainloop()
 

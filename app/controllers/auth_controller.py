@@ -2,6 +2,7 @@ from typing import Optional, Tuple
 
 from app.core.services.auth_service import AuthService
 from app.core.state.session import session
+from app.utils.file_utils import resolve_avatar_path
 
 
 class AuthController:
@@ -43,6 +44,9 @@ class AuthController:
         if user is None:
             return False, "Invalid credentials", None
 
+        # Normalize avatar path so presentation code can open it reliably
+        user["avatar"] = resolve_avatar_path(user.get("avatar"))
+
         # Check if user is blocked
         if user.get("isBlocked", False):
             # Still login but flag as blocked
@@ -52,6 +56,20 @@ class AuthController:
         # Successful login - update session
         session.login(user, is_new_user=False)
         return True, f"Welcome back {user['username']}", user
+
+    @staticmethod
+    def get_post_login_destination() -> str:
+        """
+        Helper to determine the view destination after a successful login.
+
+        Returns:
+            str: 'home_banned' when the user is blocked, otherwise 'home'.
+
+        This keeps the routing decision in the controller layer while leaving
+        the actual view navigation to the presentation layer, avoiding
+        circular imports.
+        """
+        return "home_banned" if AuthController.is_current_user_blocked() else "home"
 
     @staticmethod
     def register(
@@ -95,6 +113,8 @@ class AuthController:
         # Register user
         try:
             user = AuthService.register_user(username, email, password)
+            # Normalize avatar path so presentation code can open it reliably
+            user["avatar"] = resolve_avatar_path(user.get("avatar"))
             # Auto-login after registration
             session.login(user, is_new_user=True)
             return True, f"Welcome {username}! Your account has been created.", user

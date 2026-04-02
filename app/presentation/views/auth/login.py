@@ -1,22 +1,24 @@
 import tkinter as tk
 import tkinter.messagebox as messagebox
-from typing import Optional
-
-from PIL import Image, ImageTk
 
 from app.controllers.auth_controller import AuthController
 from app.presentation.styles.colors import colors
-from app.presentation.styles.fonts import quickSandBold, quickSandRegular
+from app.presentation.styles.fonts import quickSandBold
+from app.presentation.views.auth.helpers import auth_switch_label, trigger_check_login
 from app.presentation.views.auth.register import registerWindow
 from app.presentation.views.home.home import homeWindow
 from app.presentation.views.home.home_banned import homeBannedWindow
-from app.presentation.widgets.auth_icons import manageVisibility
-from app.presentation.widgets.auth_icons import on_enter as label_on_enter
-from app.presentation.widgets.auth_icons import on_leave as label_on_leave
-from app.presentation.widgets.auth_icons import togglePasswordVisibility
-from app.presentation.widgets.button import on_enter as button_on_enter
-from app.presentation.widgets.button import on_leave as button_on_leave
-from app.presentation.widgets.input import on_click_outside, on_focus_in, on_focus_out
+from app.presentation.widgets.helpers.button import on_enter as button_on_enter
+from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.icon_label import add_icon_canvas, add_label
+from app.presentation.widgets.helpers.input import (
+    on_click_outside,
+    on_focus_in,
+    on_focus_out,
+)
+from app.presentation.widgets.helpers.password_visibility import (
+    attach_password_visibility,
+)
 from app.presentation.widgets.window import add_logo_canvas, create_toplevel
 
 
@@ -26,10 +28,9 @@ def loginWindow(event: object, Window: tk.Tk):
 
     Args:
         event (object): The event object from Tkinter.
-        Window (object): The main application window to pass to the login window.
+        Window (tk.Tk): The main application window to pass to the login window.
     """
 
-    # open and configure the window using the reusable helper
     _loginWindow_: tk.Toplevel = create_toplevel(
         title="Sign In",
         width=573,
@@ -49,60 +50,31 @@ def loginWindow(event: object, Window: tk.Tk):
     )
 
     # ---------------------------
-
-    # email icon label
-    emailIcon: Image.Image = Image.open("app/assets/images/UI_Icons/Email_Icon.png")
-    emailIcon = emailIcon.resize((48, 44))
-
-    canvasEmailIcon: tk.Canvas = tk.Canvas(
-        _loginWindow_, height=40, width=46, highlightthickness=0
-    )
-    canvasEmailIcon.place(x=130, y=170)
-
-    canvasEmailIcon.image = ImageTk.PhotoImage(emailIcon)
-
-    canvasEmailIcon.create_image(0, 0, anchor=tk.NW, image=canvasEmailIcon.image)
-
-    # ---------------------------
-
-    # password icon label
-    passwordIcon: Image.Image = Image.open(
-        "app/assets/images/UI_Icons/Password_Icon.png"
-    )
-    passwordIcon = passwordIcon.resize((48, 44))
-
-    canvasPasswordIcon: tk.Canvas = tk.Canvas(
-        _loginWindow_, height=40, width=46, highlightthickness=0
-    )
-    canvasPasswordIcon.place(x=130, y=280)
-
-    canvasPasswordIcon.image = ImageTk.PhotoImage(passwordIcon)
-    canvasPasswordIcon.create_image(0, 0, anchor=tk.NW, image=canvasPasswordIcon.image)
-
-    # ---------------------------
-
-    emailLabel: tk.Label = tk.Label(
+    # Icon Email
+    add_icon_canvas(
+        "email",
         _loginWindow_,
-        text="email",
-        font=quickSandBold(14),
-        bg=colors["primary-50"],
-        fg=colors["secondary-500"],
+        "app/assets/images/UI_Icons/Email_Icon.png",
+        icon_pos=(130, 170),
     )
-    emailLabel.place(x=175, y=190, anchor="w")
 
-    # ---------------------------
-    passwordLabel: tk.Label = tk.Label(
+    # Icon Password
+    add_icon_canvas(
+        "password",
         _loginWindow_,
-        text="password",
-        font=quickSandBold(14),
-        bg=colors["primary-50"],
-        fg=colors["secondary-500"],
+        "app/assets/images/UI_Icons/Password_Icon.png",
+        icon_pos=(130, 280),
     )
-    passwordLabel.place(x=175, y=302, anchor="w")
 
-    # ---------------------------
+    # Label Email
+    add_label("email", _loginWindow_, "email", label_pos=(175, 190))
 
-    inputEmail: tk.Entry = tk.Entry(
+    # Label Password
+    add_label("password", _loginWindow_, "password", label_pos=(175, 302))
+
+    # -- Inputs ---------------------------------------------------
+
+    inputEmail = tk.Entry(
         _loginWindow_,
         width=30,
         borderwidth=0,
@@ -111,70 +83,42 @@ def loginWindow(event: object, Window: tk.Tk):
         fg=colors["secondary-500"],
         highlightthickness=0,
         cursor="xterm",
+    )
+
+    inputPassword = tk.Entry(
+        _loginWindow_,
+        width=30,
+        borderwidth=0,
+        font=quickSandBold(12),
+        bg=colors["secondary-300"],
+        fg=colors["secondary-500"],
+        highlightthickness=0,
+        cursor="xterm",
+        show="*",
     )
 
     inputEmail.place(x=140, y=220)
     inputEmail.bind("<FocusIn>", lambda event: on_focus_in(event, inputEmail))
     inputEmail.bind("<FocusOut>", lambda event: on_focus_out(event, inputEmail))
-    # ---------------------------
 
-    inputPassword: tk.Entry = tk.Entry(
-        _loginWindow_,
-        width=30,
-        borderwidth=0,
-        font=quickSandBold(12),
-        bg=colors["secondary-300"],
-        fg=colors["secondary-500"],
-        highlightthickness=0,
-        show="*",
-        cursor="xterm",
-    )
     inputPassword.place(x=140, y=330)
     inputPassword.bind("<FocusIn>", lambda event: on_focus_in(event, inputPassword))
     inputPassword.bind("<FocusOut>", lambda event: on_focus_out(event, inputPassword))
 
-    # ---------------------------
-    #  manage password
-    canvasManagePassword: tk.Canvas = tk.Canvas(
-        _loginWindow_, height=36, width=50, highlightthickness=0, cursor="hand2"
-    )
-
-    canvasManagePassword.config(highlightthickness=0, bd=0, bg=colors["primary-50"])
-
-    # bind - when the user releases the key (onKeyPress), the function will be called
-    inputPassword.bind(
-        "<KeyRelease>",
-        lambda event: manageVisibility(
-            event, ImageTk, Image, canvasManagePassword, tk.NW, inputPassword, 445, 325
-        ),
-    )
-
-    # bind - when the user clicks (onClick) on the canvas, the function will be called
-    canvasManagePassword.bind(
-        "<Button-1>",
-        lambda event: togglePasswordVisibility(
-            event, ImageTk, Image, canvasManagePassword, tk.NW, inputPassword, 445, 325
-        ),
-    )
+    # password visibility canvas + bindings
+    attach_password_visibility(_loginWindow_, inputPassword, 445, 325)
 
     # ---------------------------
 
-    labelInfo: tk.Label = tk.Label(
+    # Create the "Don't have an account? Sign up!" label with click handler to open register window
+    auth_switch_label(
+        "Don't have an account? Sign up!",
         _loginWindow_,
-        text="Don't have an account? Sign up!",
-        font=quickSandRegular(12),
-        bd=0,
-        bg=colors["primary-50"],
-        highlightthickness=0,
-        fg=colors["secondary-500"],
-        cursor="hand2",
-    )
-    labelInfo.place(x=162, y=409)
-    labelInfo.bind("<Enter>", lambda event: label_on_enter(event, labelInfo))
-    labelInfo.bind("<Leave>", lambda event: label_on_leave(event, labelInfo))
-    labelInfo.bind(
-        "<Button-1>",
-        lambda event: openSignUpLink(event, _loginWindow_, Window),
+        162,
+        409,
+        openSignUpLink,
+        _loginWindow_,
+        Window,
     )
 
     # ---------------------------
@@ -203,20 +147,14 @@ def loginWindow(event: object, Window: tk.Tk):
         lambda event: on_click_outside(event, _loginWindow_, inputEmail, inputPassword),
     )
 
-    def trigger_check_login(event: Optional[tk.Event] = None):
-        """
-        Helper function to trigger the login check using the current input values.
-        Can be called by button click or Enter key event.
+    # Create and bind the login trigger handler using helper factory
+    trigger_check_login_handler = trigger_check_login(
+        checkLogin, inputEmail, inputPassword, _loginWindow_, Window
+    )
 
-        Args:
-            event (tk.Event, optional): The event object from Tkinter. Defaults to None.
-        """
-        checkLogin(inputEmail.get(), inputPassword.get(), _loginWindow_, Window)
-
-    # Bind button click
-    btnSignIn.bind("<Button-1>", trigger_check_login)
-    # Bind Enter key (Return) to window
-    _loginWindow_.bind("<Return>", trigger_check_login)
+    # Bind button click and Enter key to the handler
+    btnSignIn.bind("<Button-1>", trigger_check_login_handler)
+    _loginWindow_.bind("<Return>", trigger_check_login_handler)
 
     _loginWindow_.grab_set()
 
@@ -246,8 +184,9 @@ def checkLogin(
     loginWindow.destroy()
     Window.destroy()
 
-    # Navigate to appropriate home based on user state
-    if AuthController.is_current_user_blocked():
+    # Navigate to appropriate home based on controller decision
+    destination = AuthController.get_post_login_destination()
+    if destination == "home_banned":
         homeBannedWindow()
     else:
         homeWindow()
@@ -264,4 +203,4 @@ def openSignUpLink(event: tk.Event, loginWindow: tk.Toplevel, window: tk.Tk):
 
     """
     loginWindow.destroy()
-    registerWindow(window)
+    registerWindow(event, window)

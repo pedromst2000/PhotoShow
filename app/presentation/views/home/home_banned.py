@@ -8,9 +8,9 @@ from app.controllers.profile_controller import ProfileController
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
-from app.presentation.widgets.button import on_enter as button_on_enter
-from app.presentation.widgets.button import on_leave as button_on_leave
-from app.presentation.widgets.window import create_toplevel
+from app.presentation.widgets.helpers.button import on_enter as button_on_enter
+from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.window import create_main_window, create_toplevel
 
 # fallback image
 signoutBtnImage: str = ""
@@ -27,7 +27,7 @@ def homeBannedWindow():
     homeBannedWindowWidth: int = 1350  # width of the window
     homeBannedWindowHeight: int = 700  # height of the window
 
-    _homeBannedWindow_: tk.Toplevel = create_toplevel(
+    _homeBannedWindow_: tk.Tk = create_main_window(
         title="PhotoShow - Banned Notice",
         width=homeBannedWindowWidth,
         height=homeBannedWindowHeight,
@@ -39,7 +39,7 @@ def homeBannedWindow():
     homeBannedCanvas.place(x=0, y=0)
 
     homeBannedImage: Image.Image = Image.open(
-        "assets/images/home/mainBlockedBackground.png"
+        "app/assets/images/home/mainBlockedBackground.png"
     )
     homeBannedImage = homeBannedImage.resize((1350, 700))
 
@@ -48,7 +48,7 @@ def homeBannedWindow():
     homeBannedCanvas.create_image(0, 0, image=homeBannedImage, anchor=tk.NW)
 
     backgroundBanned: Image.Image = Image.open(
-        "assets/images/home/blockedBackground.png"
+        "app/assets/images/home/blockedBackground.png"
     )
     backgroundBanned = backgroundBanned.resize((1146, 530))
 
@@ -147,6 +147,14 @@ def homeBannedWindow():
         cursor="hand2",
     )
     signoutBtn.place(x=1130, y=510)
+
+    # keep references to PhotoImage objects on the window to avoid garbage collection
+    _homeBannedWindow_._images = (
+        homeBannedImage,
+        backgroundBanned,
+        logoImage,
+        signoutBtnImage,
+    )
 
     contactAdminButton.bind(
         "<Enter>", lambda event: button_on_enter(event, contactAdminButton)

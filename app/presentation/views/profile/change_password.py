@@ -5,9 +5,13 @@ from typing import Optional
 from app.controllers.profile_controller import ProfileController
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
-from app.presentation.widgets.button import on_enter as button_on_enter
-from app.presentation.widgets.button import on_leave as button_on_leave
-from app.presentation.widgets.input import on_click_outside, on_focus_in, on_focus_out
+from app.presentation.widgets.helpers.button import on_enter as button_on_enter
+from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.input import (
+    on_click_outside,
+    on_focus_in,
+    on_focus_out,
+)
 from app.presentation.widgets.window import create_toplevel
 
 

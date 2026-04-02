@@ -33,7 +33,7 @@ def homeWindow() -> None:
     homeCanvas.create_image(0, 0, image=homeImageTk, anchor=tk.NW)
 
     backgroundMenu: Image.Image = Image.open(
-        "assets/images/home/menu/backgroundMenu.png"
+        "app/assets/images/home/menu/backgroundMenu.png"
     )
     backgroundMenu = backgroundMenu.resize((1145, 396))
 
@@ -50,6 +50,9 @@ def homeWindow() -> None:
 
     logoImageTk: ImageTk.PhotoImage = ImageTk.PhotoImage(logoImage)
     homeCanvas.create_image(522, 180, image=logoImageTk, anchor=tk.NW)
+
+    # keep references to PhotoImage objects to prevent garbage collection
+    _homeWindow_._images = (homeImageTk, backgroundMenuTk, logoImageTk)
 
     _menu_: menu = menu(homeCanvas=homeCanvas, homeWindow=_homeWindow_)
 

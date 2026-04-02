@@ -1,31 +1,34 @@
 import tkinter as tk
 import tkinter.messagebox as messagebox
 
-from PIL import Image, ImageTk
-
 from app.controllers.auth_controller import AuthController
 from app.presentation.styles.colors import colors
-from app.presentation.styles.fonts import quickSandBold, quickSandRegular
+from app.presentation.styles.fonts import quickSandBold
+from app.presentation.views.auth.helpers import auth_switch_label
 from app.presentation.views.home.home import homeWindow
-from app.presentation.widgets.auth_icons import manageVisibility
-from app.presentation.widgets.auth_icons import on_enter as label_on_enter
-from app.presentation.widgets.auth_icons import on_leave as label_on_leave
-from app.presentation.widgets.auth_icons import togglePasswordVisibility
-from app.presentation.widgets.button import on_enter as button_on_enter
-from app.presentation.widgets.button import on_leave as button_on_leave
-from app.presentation.widgets.input import on_click_outside, on_focus_in, on_focus_out
+from app.presentation.widgets.helpers.button import on_enter as button_on_enter
+from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.icon_label import add_icon_canvas, add_label
+from app.presentation.widgets.helpers.input import (
+    on_click_outside,
+    on_focus_in,
+    on_focus_out,
+)
+from app.presentation.widgets.helpers.password_visibility import (
+    attach_password_visibility,
+)
 from app.presentation.widgets.window import add_logo_canvas, create_toplevel
 
 
-def registerWindow(Window: object):
+def registerWindow(event: object, Window: object):
     """
     This function is used to create the register window.
 
     Args:
+        event (object): The event object from Tkinter.
         Window (object): The window of the application.
     """
 
-    # open and configure the window using the reusable helper
     _registerWindow_: tk.Toplevel = create_toplevel(
         title="Sign Up",
         width=590,
@@ -46,88 +49,42 @@ def registerWindow(Window: object):
 
     # ---------------------------
 
-    # email icon label
-    emailIcon: Image.Image = Image.open("app/assets/images/UI_Icons/Email_Icon.png")
-    emailIcon = emailIcon.resize((48, 44))
-
-    canvasEmailIcon: tk.Canvas = tk.Canvas(
-        _registerWindow_, height=40, width=46, highlightthickness=0
-    )
-    canvasEmailIcon.place(x=130, y=170)
-
-    canvasEmailIcon.image = ImageTk.PhotoImage(emailIcon)
-
-    canvasEmailIcon.create_image(0, 0, anchor=tk.NW, image=canvasEmailIcon.image)
-
-    # ---------------------------
-
-    # password icon label
-    passwordIcon: Image.Image = Image.open(
-        "app/assets/images/UI_Icons/Password_Icon.png"
-    )
-    passwordIcon = passwordIcon.resize((48, 44))
-
-    canvasPasswordIcon: tk.Canvas = tk.Canvas(
-        _registerWindow_, height=40, width=46, highlightthickness=0
-    )
-    canvasPasswordIcon.place(x=130, y=280)
-
-    canvasPasswordIcon.image = ImageTk.PhotoImage(passwordIcon)
-    canvasPasswordIcon.create_image(0, 0, anchor=tk.NW, image=canvasPasswordIcon.image)
-
-    # ---------------------------
-
-    # username icon label
-    usernameIcon: Image.Image = Image.open(
-        "app/assets/images/UI_Icons/Username_Icon.png"
-    )
-    usernameIcon = usernameIcon.resize((48, 44))
-
-    canvasUsernameIcon: tk.Canvas = tk.Canvas(
-        _registerWindow_, height=40, width=46, highlightthickness=0
-    )
-
-    canvasUsernameIcon.place(x=130, y=390)
-
-    canvasUsernameIcon.image = ImageTk.PhotoImage(usernameIcon)
-
-    canvasUsernameIcon.create_image(0, 0, anchor=tk.NW, image=canvasUsernameIcon.image)
-
-    # ---------------------------
-
-    emailLabel: tk.Label = tk.Label(
+    # Icon Email
+    add_icon_canvas(
+        "email",
         _registerWindow_,
-        text="email",
-        font=quickSandBold(14),
-        bg=colors["primary-50"],
-        fg=colors["secondary-500"],
+        "app/assets/images/UI_Icons/Email_Icon.png",
+        icon_pos=(130, 170),
     )
-    emailLabel.place(x=175, y=190, anchor=tk.W)
 
-    # ---------------------------
-    passwordLabel: tk.Label = tk.Label(
+    # Icon Password
+    add_icon_canvas(
+        "password",
         _registerWindow_,
-        text="password",
-        font=quickSandBold(14),
-        bg=colors["primary-50"],
-        fg=colors["secondary-500"],
+        "app/assets/images/UI_Icons/Password_Icon.png",
+        icon_pos=(130, 280),
     )
-    passwordLabel.place(x=175, y=302, anchor=tk.W)
 
-    # ---------------------------
-
-    usernameLabel: tk.Label = tk.Label(
+    # Icon Username
+    add_icon_canvas(
+        "username",
         _registerWindow_,
-        text="username",
-        font=quickSandBold(14),
-        bg=colors["primary-50"],
-        fg=colors["secondary-500"],
+        "app/assets/images/UI_Icons/Username_Icon.png",
+        icon_pos=(130, 390),
     )
-    usernameLabel.place(x=175, y=412, anchor=tk.W)
 
-    # ---------------------------
+    # Label Email
+    add_label("email", _registerWindow_, "email", label_pos=(175, 190))
 
-    inputEmail: tk.Entry = tk.Entry(
+    # Label Password
+    add_label("password", _registerWindow_, "password", label_pos=(175, 302))
+
+    # Label Username
+    add_label("username", _registerWindow_, "username", label_pos=(175, 412))
+
+    # -- Inputs ---------------------------------------------------
+
+    inputEmail = tk.Entry(
         _registerWindow_,
         width=30,
         borderwidth=0,
@@ -137,13 +94,11 @@ def registerWindow(Window: object):
         highlightthickness=0,
         cursor="xterm",
     )
-
     inputEmail.place(x=140, y=220)
     inputEmail.bind("<FocusIn>", lambda event: on_focus_in(event, inputEmail))
     inputEmail.bind("<FocusOut>", lambda event: on_focus_out(event, inputEmail))
-    # ---------------------------
 
-    inputPassword: tk.Entry = tk.Entry(
+    inputPassword = tk.Entry(
         _registerWindow_,
         width=30,
         borderwidth=0,
@@ -151,16 +106,14 @@ def registerWindow(Window: object):
         bg=colors["secondary-300"],
         fg=colors["secondary-500"],
         highlightthickness=0,
-        show="*",
         cursor="xterm",
+        show="*",
     )
     inputPassword.place(x=140, y=330)
     inputPassword.bind("<FocusIn>", lambda event: on_focus_in(event, inputPassword))
     inputPassword.bind("<FocusOut>", lambda event: on_focus_out(event, inputPassword))
 
-    # ---------------------------
-
-    inputUsername: tk.Entry = tk.Entry(
+    inputUsername = tk.Entry(
         _registerWindow_,
         width=30,
         borderwidth=0,
@@ -170,55 +123,24 @@ def registerWindow(Window: object):
         highlightthickness=0,
         cursor="xterm",
     )
-
     inputUsername.place(x=140, y=440)
     inputUsername.bind("<FocusIn>", lambda event: on_focus_in(event, inputUsername))
     inputUsername.bind("<FocusOut>", lambda event: on_focus_out(event, inputUsername))
 
-    # ---------------------------
-
-    #  manage password
-    canvasManagePassword: tk.Canvas = tk.Canvas(
-        _registerWindow_, height=36, width=50, highlightthickness=0, cursor="hand2"
-    )
-
-    canvasManagePassword.config(highlightthickness=0, bd=0, bg=colors["primary-50"])
-
-    # bind - when the user releases the key (onKeyPress), the function will be called
-    inputPassword.bind(
-        "<KeyRelease>",
-        lambda event: manageVisibility(
-            event, ImageTk, Image, canvasManagePassword, tk.NW, inputPassword, 445, 325
-        ),
-    )
-
-    # bind - when the user clicks (onClick) on the canvas, the function will be called
-    canvasManagePassword.bind(
-        "<Button-1>",
-        lambda event: togglePasswordVisibility(
-            event, ImageTk, Image, canvasManagePassword, tk.NW, inputPassword, 445, 325
-        ),
-    )
+    # password visibility canvas + bindings
+    attach_password_visibility(_registerWindow_, inputPassword, 445, 325)
 
     # ---------------------------
 
-    labelInfo: tk.Label = tk.Label(
+    # Create the "Already have an account? Sign In!" label with click handler to open login window
+    auth_switch_label(
+        "Already have an account? Sign In!",
         _registerWindow_,
-        text="Already have an account? Sign In!",
-        font=quickSandRegular(12),
-        bd=0,
-        bg=colors["primary-50"],
-        highlightthickness=0,
-        fg=colors["secondary-500"],
-        cursor="hand2",
-    )
-
-    labelInfo.place(x=164, y=500)
-    labelInfo.bind("<Enter>", lambda event: label_on_enter(event, labelInfo))
-    labelInfo.bind("<Leave>", lambda event: label_on_leave(event, labelInfo))
-    labelInfo.bind(
-        "<Button-1>",
-        lambda event: openSignInLink(event, _registerWindow_, Window),
+        164,
+        500,
+        openSignInLink,
+        _registerWindow_,
+        Window,
     )
 
     btnSignUp: tk.Button = tk.Button(

@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 from app.core.db.models import (
+    AlbumModel,
     CategoryModel,
     LikeModel,
     PhotoImageModel,
@@ -63,7 +64,6 @@ class PhotoService:
         Returns:
             list: A list of photo dictionaries owned by the user.
         """
-        from db.models import AlbumModel
 
         albums = AlbumModel.get_by_creator(user_id)
         result = []

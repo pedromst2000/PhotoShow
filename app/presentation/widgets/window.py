@@ -3,6 +3,35 @@ from typing import Optional
 
 from PIL import Image, ImageTk
 
+# Module-level storage for the current main window (for use as parent when creating Toplevels)
+_current_main_window: Optional[tk.Tk] = None
+
+
+def set_main_window(window: tk.Tk) -> None:
+    """Store the main window globally so Toplevels can use it as parent."""
+    global _current_main_window
+    _current_main_window = window
+
+
+def _get_parent_window() -> Optional[tk.Tk]:
+    """Get the current main window to use as parent for Toplevels."""
+    global _current_main_window
+    if _current_main_window:
+        try:
+            if _current_main_window.winfo_exists():
+                return _current_main_window
+        except Exception:
+            # Window was destroyed or other error; clear reference
+            _current_main_window = None
+    # Fallback: try the Tk default root
+    try:
+        root = tk.Tk._default_root
+        if root and root.winfo_exists():
+            return root
+    except Exception:
+        pass
+    return None
+
 
 def create_toplevel(
     title: str,
@@ -25,7 +54,9 @@ def create_toplevel(
     Returns:
         :tk.Toplevel: Configured `tk.Toplevel` instance.
     """
-    win = tk.Toplevel(parent) if parent else tk.Toplevel()
+    # If no parent provided, use the stored main window; otherwise create without parent
+    effective_parent = parent if parent else _get_parent_window()
+    win = tk.Toplevel(effective_parent) if effective_parent else tk.Toplevel()
     screen_width = win.winfo_screenwidth()
     screen_height = win.winfo_screenheight()
     x = int((screen_width / 2) - (width / 2))
@@ -119,4 +150,5 @@ def create_main_window(
     root.resizable(False, False)
     if bg_color is not None:
         root.config(bg=bg_color)
+    set_main_window(root)  # Store as parent for future Toplevels
     return root
