@@ -87,6 +87,11 @@ def main():
         if rc != 0:
             exit_code = 1
 
+        # Run mypy type checking on changed files
+        rc = _run("mypy (types)", ["python", "-m", "mypy"] + py_files)
+        if rc != 0:
+            exit_code = 1
+
         if fix:
             _run("black (format)", ["python", "-m", "black"] + py_files)
             _run(
