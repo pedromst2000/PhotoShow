@@ -24,6 +24,21 @@ class UserModel(Base):
 
     __tablename__: str = "users"
 
+    __table_args__ = (
+        CheckConstraint("id > 0 AND id < 10000000", name="ck_users_id_range"),
+        CheckConstraint(
+            "roleId > 0 AND roleId < 10000000",
+            name="ck_users_roleId_range",
+        ),
+        CheckConstraint(
+            "length(trim(username)) > 0", name="ck_users_username_not_empty"
+        ),
+        CheckConstraint("length(username) <= 125", name="ck_users_username_maxlen"),
+        CheckConstraint("length(trim(email)) > 0", name="ck_users_email_not_empty"),
+        CheckConstraint("length(email) <= 125", name="ck_users_email_maxlen"),
+        Index("ix_users_roleId", "roleId"),
+    )
+
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     username: str = Column(String(125), unique=True, nullable=False)
     email: str = Column(String(125), unique=True, nullable=False)
@@ -91,13 +106,13 @@ class UserModel(Base):
             from .avatar import AvatarModel
 
             avatar = AvatarModel.get_for_user(self.id)
-            avatar_path = (
-                avatar["avatar"]
-                if avatar
-                else "assets/images/profile_avatars/default_avatar.jpg"
-            )
+            from app.utils.file_utils import resolve_avatar_path
+
+            avatar_path = resolve_avatar_path(avatar["avatar"] if avatar else None)
         except Exception:
-            avatar_path = "assets/images/profile_avatars/default_avatar.jpg"
+            from app.utils.file_utils import _DEFAULT_AVATAR
+
+            avatar_path = _DEFAULT_AVATAR
         return {
             "id": self.id,
             "username": self.username,
@@ -173,10 +188,10 @@ class UserModel(Base):
                 session.flush()
                 # ensure the user has an avatar row (DER: 1:1 mandatory)
                 try:
+                    from app.utils.file_utils import _DEFAULT_AVATAR
 
-                    default_avatar = "assets/images/profile_avatars/default_avatar.jpg"
                     # create avatar in the same transaction; if it already exists, ignore
-                    avatar_obj = AvatarModel(userId=user.id, avatar=default_avatar)
+                    avatar_obj = AvatarModel(userId=user.id, avatar=_DEFAULT_AVATAR)
                     session.add(avatar_obj)
                     session.flush()
                 except Exception:
@@ -284,21 +299,6 @@ class UserModel(Base):
                 u.to_dict()
                 for u in session.query(cls).filter_by(roleId=role_row.id).all()
             ]
-
-    __table_args__ = (
-        CheckConstraint("id > 0 AND id < 10000000", name="ck_users_id_range"),
-        CheckConstraint(
-            "roleId > 0 AND roleId < 10000000",
-            name="ck_users_roleId_range",
-        ),
-        CheckConstraint(
-            "length(trim(username)) > 0", name="ck_users_username_not_empty"
-        ),
-        CheckConstraint("length(username) <= 125", name="ck_users_username_maxlen"),
-        CheckConstraint("length(trim(email)) > 0", name="ck_users_email_not_empty"),
-        CheckConstraint("length(email) <= 125", name="ck_users_email_maxlen"),
-        Index("ix_users_roleId", "roleId"),
-    )
 
     @classmethod
     def get_blocked_users(cls) -> list:
