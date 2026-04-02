@@ -11,9 +11,10 @@ from app.presentation.views.profile.change_avatar import changeAvatarWindow
 from app.presentation.views.profile.change_password import changePasswordWindow
 from app.presentation.views.profile.contacts import contactsWindow
 from app.presentation.views.profile.favorites import favoritesProfileWindow
-from app.presentation.widgets.button import on_enter as button_on_enter
-from app.presentation.widgets.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import on_enter as button_on_enter
+from app.presentation.widgets.helpers.button import on_leave as button_on_leave
 from app.presentation.widgets.window import create_toplevel
+from app.utils.file_utils import resolve_avatar_path
 
 # # fallback images
 backgroundProfile: str = ""
@@ -50,7 +51,15 @@ def profileWindow():
     backgroundProfile = Image.open("app/assets/images/profile/backgroundProfile.png")
     backgroundProfile = backgroundProfile.resize((profileWindowWidth, 220))
 
-    avatarImage = Image.open(userPayload["avatar"])
+    # Resolve avatar path robustly (stored values may be relative to project root)
+    avatar_found = resolve_avatar_path(userPayload.get("avatar"))
+
+    try:
+        avatarImage = Image.open(avatar_found)
+    except Exception:
+        # fallback placeholder
+        avatarImage = Image.new("RGB", (130, 130), color="#cccccc")
+
     avatarImage = avatarImage.resize((130, 130))
 
     followersImageIcon = Image.open("app/assets/images/UI_Icons/followersIcon.png")
@@ -128,6 +137,13 @@ def profileWindow():
 
     canvasBackgroundProfile.create_image(
         820, 177, image=followersImageIcon, anchor=tk.NW
+    )
+
+    # keep references to PhotoImage objects on the window to avoid GC
+    _profileWindow_._images = (
+        canvasBackgroundProfile.image,
+        avatarCanvas.image,
+        followersImageIcon,
     )
 
     canvasBackgroundProfile.create_text(
