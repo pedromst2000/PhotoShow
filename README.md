@@ -14,6 +14,11 @@
     ·
     <a href="https://github.com/pedromst2000/PhotoShow/issues/new?labels=enhancement">Request Feature</a>
   </p>
+  <p>
+    <a href="https://github.com/pedromst2000/PhotoShow/actions/workflows/code-quality.yml">
+      <img src="https://github.com/pedromst2000/PhotoShow/actions/workflows/code-quality.yml/badge.svg" alt="Code Quality" />
+    </a>
+  </p>
 </div>
 
 <br>
