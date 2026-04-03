@@ -204,7 +204,11 @@ def checkRegister(
         registerWindow (object): The current register window to be closed if registration is successful.
         Window (object): The main application window to be passed to the home window if registration is successful.
     """
-    success, message, _ = AuthController.register(username, email, password)
+
+    # discarding user object returned by controller since we don't need it here, and it would be redundant to fetch it again in the home window after registration. If registration is successful, the session will already have the user data stored, so the home window can access it from there without needing it to be passed through this function. This keeps the code cleaner and avoids unnecessary data handling in this part of the flow.
+    success, message, _ = AuthController.register(
+        username, email, password
+    )  # '_' intentionally unused (discarded user object)
 
     if not success:
         messagebox.showerror("Error", message, parent=registerWindow)

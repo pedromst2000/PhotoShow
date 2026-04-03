@@ -138,6 +138,19 @@ class UserModel(Base):
             return [u.to_dict() for u in session.query(cls).all()]
 
     @classmethod
+    def get_password_hashes(cls) -> list:
+        """
+        Retrieve only the password column for all users.
+
+        Returns:
+            list: A list of password strings (hashed or plaintext depending on storage).
+        """
+        with SessionLocal() as session:
+            rows = session.query(cls.password).all()
+            # rows are tuples like [(password,), ...]
+            return [r[0] for r in rows if r and r[0] is not None]
+
+    @classmethod
     def get_by_id(cls, userID: int) -> dict | None:
         """
         Retrieve a user by their ID.

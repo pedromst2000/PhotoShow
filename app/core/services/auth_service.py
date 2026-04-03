@@ -1,9 +1,9 @@
 import re as regex
-from typing import Optional
+from typing import Optional, Tuple
 
 import bcrypt
 
-from app.core.db.models import UserModel
+from app.core.db.models import RoleModel, UserModel
 
 
 class AuthService:
@@ -33,7 +33,7 @@ class AuthService:
         # Verify password using bcrypt
         if bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
             return user
-        return None
+        return None  # Authentication failed
 
     @staticmethod
     def register_user(username: str, email: str, password: str) -> dict:
@@ -55,8 +55,6 @@ class AuthService:
         hashed_password: str = bcrypt.hashpw(
             password.encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
-
-        from db.models import RoleModel
 
         unsigned_role = RoleModel.get_by_name("unsigned")
         # Create user in database (avatar is stored in avatars table)
@@ -94,11 +92,15 @@ class AuthService:
     @staticmethod
     def validate_username_format(username: str) -> bool:
         """
-        Validate username format using regex.
+        Validate username format.
 
-        Rules:
-            - Only letters, digits, underscore, dot, hyphen allowed
-            - Cannot be only digits
+        Rules enforced by this function:
+            - Allowed characters: letters (A-Z, a-z), digits (0-9), underscore (_),
+              dot (.), and hyphen (-)
+            - No spaces or other special characters are allowed
+            - Username must include at least one letter (A-Z or a-z).
+              Usernames composed only of digits or only of punctuation
+              characters (underscore/dot/hyphen) are invalid.
 
         Args:
             username: The username to validate.
@@ -106,9 +108,11 @@ class AuthService:
         Returns:
             bool: True if the username format is valid, False otherwise.
         """
-        if not regex.match(r"^[a-zA-Z0-9_.-]+$", username):
+        # Fast-fail: ensure only allowed characters are present
+        if not regex.fullmatch(r"[A-Za-z0-9_.-]+", username):
             return False
-        if regex.match(r"^[0-9]+$", username):
+        # Ensure there's at least one ASCII letter (prevents digits-only or punctuation-only)
+        if not regex.search(r"[A-Za-z]", username):
             return False
         return True
 
@@ -137,6 +141,118 @@ class AuthService:
             bool: True if username is available, False if already taken.
         """
         return not UserModel.username_exists(username)
+
+    @staticmethod
+    def is_password_available(password: str) -> bool:
+        """
+        Check if a password is available for registration by verifying it against
+        all stored password hashes in the database.
+
+        Args:
+            password: The plaintext password to check.
+        Returns:
+            bool: True if password is available (not taken), False if already taken.
+        """
+        try:
+            stored_passwords = UserModel.get_password_hashes()
+            password_encoded = password.encode("utf-8")
+
+            for stored in stored_passwords:
+                if not stored:
+                    continue
+
+                # Verify against bcrypt hashes (all production passwords)
+                if isinstance(stored, str) and stored.startswith("$2"):
+                    try:
+                        if bcrypt.checkpw(password_encoded, stored.encode("utf-8")):
+                            return False  # Password is taken
+                    except (ValueError, AttributeError):
+                        # Malformed hash; skip and check next
+                        continue
+                else:
+                    # Fallback for plaintext entries (sample CSV only)
+                    if password == stored:
+                        return False  # Password is taken
+
+            return True  # Password is available
+        except Exception:
+            # If database fetch fails, assume password is available (safer than blocking)
+            return True
+
+    @staticmethod
+    def validate_password_format(password: str) -> Tuple[bool, Optional[str]]:
+        """
+        Validate password format with strong security rules.
+
+        Rules enforced:
+            - Minimum 7 characters (security best practice)
+            - No spaces allowed
+            - Allowed characters: letters (A-Z, a-z), digits (0-9), underscore (_), dot (.), hyphen (-)
+            - Must contain at least one uppercase letter (A-Z)
+            - Must contain at least one lowercase letter (a-z)
+            - Must contain at least one digit (0-9)
+            - Must contain at least one special character from: underscore, dot, hyphen (_.-)
+
+        Args:
+            password: The password to validate.
+
+        Returns:
+            Tuple[bool, Optional[str]]: `(True, None)` when the password meets all
+            criteria, otherwise `(False, "error message")` with a short
+            explanation.
+        """
+
+        # Evaluate checks and compute the first failing rule as a code string.
+        checks = [
+            ("TOO_SHORT", len(password) < 7),
+            ("HAS_SPACE", " " in password),
+            ("INVALID_CHARS", not regex.fullmatch(r"[A-Za-z0-9_.-]+", password)),
+            ("NO_UPPER", not regex.search(r"[A-Z]", password)),
+            ("NO_LOWER", not regex.search(r"[a-z]", password)),
+            ("NO_DIGIT", not regex.search(r"[0-9]", password)),
+            ("NO_SPECIAL", not regex.search(r"[_.-]", password)),
+            ("REPEATED", bool(regex.search(r"(.)\\1\\1", password))),
+        ]
+
+        violation = next((code for code, cond in checks if cond), None)
+
+        match violation:
+            case "TOO_SHORT":
+                return False, "Password must be at least 7 characters long."
+            case "HAS_SPACE":
+                return False, "Password cannot contain spaces."
+            case "INVALID_CHARS":
+                return False, (
+                    "Password contains invalid characters. Use only letters (A-Z, a-z), "
+                    "digits (0-9), underscore (_), dot (.), and hyphen (-)."
+                )
+            case "NO_UPPER":
+                return (
+                    False,
+                    "Password must contain at least one uppercase letter (A-Z).",
+                )
+            case "NO_LOWER":
+                return (
+                    False,
+                    "Password must contain at least one lowercase letter (a-z).",
+                )
+            case "NO_DIGIT":
+                return False, "Password must contain at least one digit (0-9)."
+            case "NO_SPECIAL":
+                return False, (
+                    "Password must contain at least one special character from: "
+                    "underscore (_), dot (.), or hyphen (-)."
+                )
+            case "REPEATED":
+                return (
+                    False,
+                    "Password cannot contain three or more repeated characters in a row.",
+                )
+            case None:
+                return True, None
+
+        # Fallback return to satisfy static checkers (redundant at runtime).
+        return True, None
 
     @staticmethod
     def change_password(user_id: int, current_password: str, new_password: str) -> bool:

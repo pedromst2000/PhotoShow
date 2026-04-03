@@ -171,7 +171,11 @@ def checkLogin(
         loginWindow (object): The login window instance to be destroyed on successful login.
         Window (object): The main application window to pass to the home window.
     """
-    success, message, _ = AuthController.login(email, password)
+
+    # discarding user object returned by controller since we don't need it here, and it would be redundant to fetch it again in the home window after login. If login is successful, the session will already have the user data stored, so the home window can access it from there without needing it to be passed through this function. This keeps the code cleaner and avoids unnecessary data handling in this part of the flow.
+    success, message, _ = AuthController.login(
+        email, password
+    )  # '_' intentionally unused (discarded user object)
 
     if not success:
         messagebox.showerror("Error", message, parent=loginWindow)

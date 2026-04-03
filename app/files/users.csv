@@ -1,7 +1,7 @@
 ﻿id,username,email,password,roleId,isBlocked
-1,admin,admin@gmail.com,123admin,1,False
-2,pedromst,pedromst@gmail.com,123pedro,2,False
-3,Charles,charles@gmail.com,123charles,2,True
-4,AnaKirk,anak@gmail.com,123ana,2,False
-5,katrine,katrinePetrova@gmail.com,123katrine,2,False
-6,asd,asd@hotmail.com,asd,3,False
+1,admin,admin@gmail.com,Admin_123,1,False
+2,pedromst,pedromst@gmail.com,Pedromst_123,2,False
+3,Charles,charles@gmail.com,Charles_123,2,True
+4,AnaKirk,anak@gmail.com,AnaKirk_123,2,False
+5,katrine,katrinePetrova@gmail.com,Katrine_123,2,False
+6,asd,asd@hotmail.com,Asd_123,3,False

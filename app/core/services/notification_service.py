@@ -1,7 +1,6 @@
 from typing import Optional
 
-from app.core.db.models import NotificationModel
-from app.core.db.models.notification_types import NotificationTypeModel
+from app.core.db.models import NotificationModel, NotificationTypeModel
 
 
 class NotificationService:

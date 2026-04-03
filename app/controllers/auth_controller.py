@@ -16,6 +16,10 @@ class AuthController:
     - Input validation
     """
 
+    # Validate inputs
+    # NOTE: All failure returns provide `None` as the third tuple element
+    # (`user_data`) so callers can always unpack three values safely.
+
     @staticmethod
     def login(email: str, password: str) -> Tuple[bool, str, Optional[dict]]:
         """
@@ -42,6 +46,8 @@ class AuthController:
         user = AuthService.authenticate(email, password)
 
         if user is None:
+            # Return a consistent 3-tuple: (success, message, user_data).
+            # `user_data` is `None` on failures to avoid leaking which part failed.
             return False, "Invalid credentials", None
 
         # Normalize avatar path so presentation code can open it reliably
@@ -89,19 +95,24 @@ class AuthController:
             - message (str): Status message for display
             - user_data (dict|None): New user data if successful
         """
-        # Validate inputs
+
         if not username or not email or not password:
             return False, "All fields are required", None
 
         if not AuthService.validate_username_format(username):
             return (
                 False,
-                "Invalid username format. Use only letters, numbers, underscore, dot, or hyphen",
+                "Invalid username. Use only letters (A-Z, a-z), digits (0-9), underscore (_), dot (.), and hyphen (-). No spaces or other characters. Username must include at least one letter.",
                 None,
             )
 
         if not AuthService.validate_email_format(email):
             return False, "Invalid email format", None
+
+        # Validate password format with strong security rules
+        password_valid, password_error = AuthService.validate_password_format(password)
+        if not password_valid:
+            return False, (password_error or "Invalid password"), None
 
         # Check availability
         if not AuthService.is_username_available(username):
@@ -109,6 +120,13 @@ class AuthController:
 
         if not AuthService.is_email_available(email):
             return False, "Email is already registered", None
+
+        if not AuthService.is_password_available(password):
+            return (
+                False,
+                "Password is too common. Please choose a stronger password.",
+                None,
+            )
 
         # Register user
         try:
@@ -118,8 +136,14 @@ class AuthController:
             # Auto-login after registration
             session.login(user, is_new_user=True)
             return True, f"Welcome {username}! Your account has been created.", user
-        except Exception as e:
-            return False, f"Registration failed: {str(e)}", None
+        except Exception:
+            # Keep the return shape consistent and avoid exposing internals.
+            return (
+                False,
+                "Registration failed: Something went wrong! Try again later.",
+                None,
+            )
+            # return False, f"Registration failed: {str(e)}", None # Uncomment for detailed error messages during development!
 
     @staticmethod
     def logout() -> Tuple[bool, str]:
