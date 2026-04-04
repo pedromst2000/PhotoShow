@@ -2,8 +2,6 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 import tkinter.ttk as ttk
 
-from PIL import Image, ImageTk
-
 from app.controllers.admin_controller import AdminController
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
@@ -14,6 +12,7 @@ from app.presentation.widgets.helpers.input import (
     on_focus_in,
     on_focus_out,
 )
+from app.presentation.widgets.helpers.window import load_image
 from app.presentation.widgets.lists import insert_categories, insert_users
 from app.presentation.widgets.window import create_toplevel
 
@@ -54,21 +53,19 @@ def manageWindow():
 
     # -------------------------------------------------------------------------
     # filter username section
-    filterUsernameIcon: Image.Image = Image.open(
-        "assets/images/UI_Icons/Filter_Icon.png"
-    )
-    filterUsernameIcon = filterUsernameIcon.resize((48, 44))
-
     canvasFilterUsernameIcon: tk.Canvas = tk.Canvas(
         _manageWindow_, height=40, width=46, highlightthickness=0
     )
     canvasFilterUsernameIcon.place(x=10, y=10)
-
-    canvasFilterUsernameIcon.image = ImageTk.PhotoImage(filterUsernameIcon)
-
-    canvasFilterUsernameIcon.create_image(
-        0, 0, anchor=tk.NW, image=canvasFilterUsernameIcon.image
+    # load and render filter icon
+    filter_photo = load_image(
+        "assets/images/UI_Icons/Filter_Icon.png",
+        size=(48, 44),
+        canvas=canvasFilterUsernameIcon,
+        x=0,
+        y=0,
     )
+    canvasFilterUsernameIcon.image = filter_photo
 
     filterUsernameLabel: tk.Label = tk.Label(
         _manageWindow_,
@@ -102,21 +99,18 @@ def manageWindow():
     # -------------------------------------------------------------------------
     # filter email section
 
-    filterEmailIcon: Image.Image = Image.open(
-        "app/assets/images/UI_Icons/Filter_Icon.png"
-    )
-    filterEmailIcon = filterEmailIcon.resize((48, 44))
-
     canvasFilterEmailIcon: tk.Canvas = tk.Canvas(
         _manageWindow_, height=40, width=46, highlightthickness=0
     )
     canvasFilterEmailIcon.place(x=10, y=94)
-
-    canvasFilterEmailIcon.image = ImageTk.PhotoImage(filterEmailIcon)
-
-    canvasFilterEmailIcon.create_image(
-        0, 0, anchor=tk.NW, image=canvasFilterEmailIcon.image
+    filter_email_photo = load_image(
+        "app/assets/images/UI_Icons/Filter_Icon.png",
+        size=(48, 44),
+        canvas=canvasFilterEmailIcon,
+        x=0,
+        y=0,
     )
+    canvasFilterEmailIcon.image = filter_email_photo
 
     filterEmailLabel: tk.Label = tk.Label(
         _manageWindow_,
@@ -384,12 +378,8 @@ def manageWindow():
 
     categoriesList.place(x=900, y=120)
 
-    addIcon = ImageTk.PhotoImage(
-        Image.open("app/assets/images/UI_Icons/Add_Icon.png").resize((35, 35))
-    )
-    removeIcon = ImageTk.PhotoImage(
-        Image.open("app/assets/images/UI_Icons/Remove_Icon.png").resize((35, 35))
-    )
+    addIcon = load_image("app/assets/images/UI_Icons/Add_Icon.png", size=(35, 35))
+    removeIcon = load_image("app/assets/images/UI_Icons/Remove_Icon.png", size=(35, 35))
 
     insert_categories(categories, categoriesList)
 

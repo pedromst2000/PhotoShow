@@ -2,8 +2,6 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 from typing import Optional
 
-from PIL import Image, ImageTk
-
 from app.controllers.album_controller import AlbumController
 from app.controllers.photo_controller import PhotoController
 from app.core.state.session import session
@@ -16,6 +14,7 @@ from app.presentation.widgets.helpers.input import (
     on_focus_in,
     on_focus_out,
 )
+from app.presentation.widgets.helpers.window import load_image
 from app.presentation.widgets.lists import insert_albuns, previewSelectedPhoto
 from app.presentation.widgets.window import create_toplevel
 
@@ -117,8 +116,8 @@ def albunsProfileWindow():
 
     albunsListbox.config(yscrollcommand=albunsScrollbar.set)
 
-    arrowRightIcon = ImageTk.PhotoImage(
-        Image.open("app/assets/images/UI_Icons/arrow_right.png").resize((35, 35))
+    arrowRightIcon = load_image(
+        "app/assets/images/UI_Icons/arrow_right.png", size=(35, 35)
     )
     # ---------------------------------Buttons--------------------------------------
 
@@ -175,9 +174,7 @@ def albunsProfileWindow():
 
     btnNextImage.place(x=950, y=350)
 
-    editIcon = ImageTk.PhotoImage(
-        Image.open("app/assets/images/UI_Icons/Edit_ICON.png").resize((25, 25))
-    )
+    editIcon = load_image("app/assets/images/UI_Icons/Edit_ICON.png", size=(25, 25))
 
     btnEditAlbum: tk.Button = tk.Button(
         width=200,
@@ -197,9 +194,7 @@ def albunsProfileWindow():
     # place under the input
     btnEditAlbum.place(x=25, y=400)
 
-    addIcon = ImageTk.PhotoImage(
-        Image.open("app/assets/images/UI_Icons/Add_Icon.png").resize((35, 35))
-    )
+    addIcon = load_image("app/assets/images/UI_Icons/Add_Icon.png", size=(35, 35))
 
     btnAddAlbum: tk.Button = tk.Button(
         width=200,
@@ -256,10 +251,8 @@ def albunsProfileWindow():
 
     # --------------------------------Photos List-----------------------------------
 
-    placeholderImage = ImageTk.PhotoImage(
-        Image.open("app/assets/images/photos_gallery/placeholder_image.png").resize(
-            (295, 245)
-        )
+    placeholderImage = load_image(
+        "app/assets/images/photos_gallery/placeholder_image.png", size=(295, 245)
     )
 
     listAlbumPhotos: tk.Listbox = tk.Listbox(
@@ -328,11 +321,8 @@ def albunsProfileWindow():
         """
         if 0 <= index < listAlbumPhotos.size():
             photoName = listAlbumPhotos.get(index)
-            currentSelectedImage = ImageTk.PhotoImage(
-                Image.open(f"{photoName}").resize((295, 245))
-            )
-            canvasPreviewImage.create_image(
-                0, 0, image=currentSelectedImage, anchor=tk.NW
+            currentSelectedImage = load_image(
+                f"{photoName}", size=(295, 245), canvas=canvasPreviewImage, x=0, y=0
             )
             canvasPreviewImage.image = currentSelectedImage
 

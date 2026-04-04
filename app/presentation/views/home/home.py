@@ -1,20 +1,16 @@
 import tkinter as tk
 import tkinter.messagebox as messagebox
 
-from PIL import Image, ImageTk
-
 from app.core.state.session import session
 from app.presentation.layout.Menu import menu
 from app.presentation.styles.colors import colors
+from app.presentation.widgets.helpers.window import load_image
 from app.presentation.widgets.window import create_main_window
 
 
 def homeWindow() -> None:
-    """
-    This function is used to create the home window.
-    """
-    # create the main application window using the reusable helper
-    _homeWindow_: tk.Tk = create_main_window(
+    """Create and show the home window."""
+    home_window: tk.Tk = create_main_window(
         title="PhotoShow - Home",
         width=1350,
         height=700,
@@ -22,39 +18,36 @@ def homeWindow() -> None:
         bg_color=colors["primary-50"],
     )
 
-    homeCanvas: tk.Canvas = tk.Canvas(_homeWindow_, width=1350, height=700)
-    homeCanvas.place(x=0, y=0)
+    home_canvas: tk.Canvas = tk.Canvas(home_window, width=1350, height=700)
+    home_canvas.place(x=0, y=0)
 
-    homeImage: Image.Image = Image.open("app/assets/images/main_background.png")
-    homeImage = homeImage.resize((1350, 700))
-
-    homeImageTk: ImageTk.PhotoImage = ImageTk.PhotoImage(homeImage)
-
-    homeCanvas.create_image(0, 0, image=homeImageTk, anchor=tk.NW)
-
-    backgroundMenu: Image.Image = Image.open(
-        "app/assets/images/home/menu/backgroundMenu.png"
+    # main background (fills the canvas)
+    bg_photo = load_image(
+        "app/assets/images/main_background.png",
+        size=(1350, 700),
+        canvas=home_canvas,
+        x=0,
+        y=0,
     )
-    backgroundMenu = backgroundMenu.resize((1145, 396))
 
-    backgroundMenuTk: ImageTk.PhotoImage = ImageTk.PhotoImage(backgroundMenu)
+    # menu background centered on the canvas
+    menu_photo = load_image(
+        "app/assets/images/home/menu/backgroundMenu.png",
+        size=(1145, 396),
+        canvas=home_canvas,
+        center=True,
+    )
 
-    # centering the image on the canvas
-    x: int = (1350 - 1145) // 2
-    y: int = (700 - 396) // 2
-
-    homeCanvas.create_image(x, y, image=backgroundMenuTk, anchor=tk.NW)
-
-    logoImage: Image.Image = Image.open("app/assets/images/Logo.png")
-    logoImage = logoImage.resize((306, 65))
-
-    logoImageTk: ImageTk.PhotoImage = ImageTk.PhotoImage(logoImage)
-    homeCanvas.create_image(522, 180, image=logoImageTk, anchor=tk.NW)
+    # logo
+    logo_photo = load_image(
+        "app/assets/images/Logo.png", size=(306, 65), canvas=home_canvas, x=522, y=180
+    )
 
     # keep references to PhotoImage objects to prevent garbage collection
-    _homeWindow_._images = (homeImageTk, backgroundMenuTk, logoImageTk)
+    home_window._images = (bg_photo, menu_photo, logo_photo)
 
-    _menu_: menu = menu(homeCanvas=homeCanvas, homeWindow=_homeWindow_)
+    # MENU
+    menu_instance: menu = menu(homeCanvas=home_canvas, homeWindow=home_window)
 
     if session.is_new_user:
         messagebox.showinfo(
@@ -68,8 +61,8 @@ def homeWindow() -> None:
         )
 
     if session.is_admin:
-        _menu_.adminMenu()
+        menu_instance.adminMenu()
     elif session.is_authenticated:
-        _menu_.regularMenu()
+        menu_instance.regularMenu()
 
-    _homeWindow_.mainloop()
+    home_window.mainloop()

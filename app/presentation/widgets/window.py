@@ -1,20 +1,28 @@
 import tkinter as tk
 from typing import Optional
 
-from PIL import Image, ImageTk
-
 # Module-level storage for the current main window (for use as parent when creating Toplevels)
 _current_main_window: Optional[tk.Tk] = None
 
 
 def set_main_window(window: tk.Tk) -> None:
-    """Store the main window globally so Toplevels can use it as parent."""
+    """
+    Store the main window globally so Toplevels can use it as parent.
+
+    Args:
+        window: The main Tk window to store.
+    """
     global _current_main_window
     _current_main_window = window
 
 
 def _get_parent_window() -> Optional[tk.Tk]:
-    """Get the current main window to use as parent for Toplevels."""
+    """
+    Get the current main window to use as parent for Toplevels.
+
+    Returns:
+        Optional[tk.Tk]: The current main window if it exists and is valid, otherwise None.
+    """
     global _current_main_window
     if _current_main_window:
         try:
@@ -73,43 +81,6 @@ def create_toplevel(
     if bg_color is not None:
         win.config(bg=bg_color)
     return win
-
-
-def add_logo_canvas(
-    window: tk.Toplevel,
-    logo_path: str,
-    x: int = 120,
-    y: int = 20,
-    width: int = 334,
-    height: int = 120,
-) -> tk.Canvas:
-    """Add a logo canvas to the given window and return the canvas.
-
-    If loading the image fails, an empty canvas is returned so callers
-    can continue without crashing.
-
-        Args:
-            window: The Toplevel window to add the canvas to.
-            logo_path: Path to the logo image file.
-            x: X coordinate for the canvas placement.
-            y: Y coordinate for the canvas placement.
-            width: Width of the canvas.
-            height: Height of the canvas.
-        Returns:
-            :tk.Canvas: The canvas with the logo image, or an empty canvas if loading fails.
-
-    """
-    canvas = tk.Canvas(window, height=height, width=width, highlightthickness=0)
-    canvas.place(x=x, y=y)
-    try:
-        logo_image = Image.open(logo_path)
-        logo_image = logo_image.resize((width, height))
-        canvas.image = ImageTk.PhotoImage(logo_image)
-        canvas.create_image(0, 0, anchor=tk.NW, image=canvas.image)
-    except Exception:
-        # ignore image errors, return canvas without image
-        pass
-    return canvas
 
 
 def create_main_window(

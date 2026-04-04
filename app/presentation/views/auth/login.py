@@ -4,7 +4,11 @@ import tkinter.messagebox as messagebox
 from app.controllers.auth_controller import AuthController
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
-from app.presentation.views.auth.helpers import auth_switch_label, trigger_check_login
+from app.presentation.views.auth.helpers import (
+    attach_password_visibility,
+    auth_switch_label,
+    trigger_check_login,
+)
 from app.presentation.views.auth.register import registerWindow
 from app.presentation.views.home.home import homeWindow
 from app.presentation.views.home.home_banned import homeBannedWindow
@@ -16,10 +20,8 @@ from app.presentation.widgets.helpers.input import (
     on_focus_in,
     on_focus_out,
 )
-from app.presentation.widgets.helpers.password_visibility import (
-    attach_password_visibility,
-)
-from app.presentation.widgets.window import add_logo_canvas, create_toplevel
+from app.presentation.widgets.helpers.window import load_image
+from app.presentation.widgets.window import create_toplevel
 
 
 def loginWindow(event: object, Window: tk.Tk):
@@ -39,14 +41,22 @@ def loginWindow(event: object, Window: tk.Tk):
         bg_color=colors["primary-50"],
     )
 
-    # add logo canvas
-    add_logo_canvas(
+    # Logo — small canvas matching the window bg so the image renders without border
+    _logo_canvas = tk.Canvas(
         _loginWindow_,
-        "app/assets/images/Logo_auth.png",
-        x=120,
-        y=20,
         width=334,
         height=120,
+        highlightthickness=0,
+        bd=0,
+        bg=colors["primary-50"],
+    )
+    _logo_canvas.place(x=120, y=20)
+    _logo_canvas.image = load_image(
+        "app/assets/images/Logo_auth.png",
+        size=(334, 120),
+        canvas=_logo_canvas,
+        x=0,
+        y=0,
     )
 
     # ---------------------------

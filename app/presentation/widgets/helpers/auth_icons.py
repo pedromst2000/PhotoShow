@@ -1,19 +1,12 @@
 import tkinter as tk
-from typing import Any
 
 from app.presentation.styles.fonts import quickSandRegular, quickSandRegularUnderline
+from app.presentation.widgets.helpers.window import load_image
 
 isPasswordVisible: bool = False
 
 
-def hidePasswordIcon(
-    ImageTk: Any,
-    Image: Any,
-    canvasManagePassword: tk.Canvas,
-    NW: str,
-    X: int,
-    Y: int,
-):
+def hidePasswordIcon(canvasManagePassword: tk.Canvas, anchor: str, X: int, Y: int):
     """
     Display the 'hide password' icon on the password field.
 
@@ -25,21 +18,19 @@ def hidePasswordIcon(
         X (int): The X coordinate for placing the icon.
         Y (int): The Y coordinate for placing the icon.
     """
-    eye: Any = Image.open("app/assets/images/UI_Icons/Hide_Eye_Icon.png")
-    eye = eye.resize((60, 40))
-    canvasManagePassword.image = ImageTk.PhotoImage(eye)  # type: ignore[attr-defined]
-    canvasManagePassword.create_image(0, 0, anchor=NW, image=canvasManagePassword.image)  # type: ignore[attr-defined]
+    photo = load_image(
+        "app/assets/images/UI_Icons/Hide_Eye_Icon.png",
+        size=(60, 40),
+        canvas=canvasManagePassword,
+        x=0,
+        y=0,
+        anchor=anchor,
+    )
+    canvasManagePassword.image = photo
     canvasManagePassword.place(x=X, y=Y)
 
 
-def showPasswordIcon(
-    ImageTk: Any,
-    Image: Any,
-    canvasManagePassword: tk.Canvas,
-    NW: str,
-    X: int,
-    Y: int,
-):
+def showPasswordIcon(canvasManagePassword: tk.Canvas, anchor: str, X: int, Y: int):
     """
     Display the 'show password' icon on the password field.
 
@@ -51,19 +42,22 @@ def showPasswordIcon(
         X (int): The X coordinate for placing the icon.
         Y (int): The Y coordinate for placing the icon.
     """
-    eye: Any = Image.open("app/assets/images/UI_Icons/Eye_Icon.png")
-    eye = eye.resize((60, 40))
-    canvasManagePassword.image = ImageTk.PhotoImage(eye)  # type: ignore[attr-defined]
-    canvasManagePassword.create_image(0, 0, anchor=NW, image=canvasManagePassword.image)  # type: ignore[attr-defined]
+    photo = load_image(
+        "app/assets/images/UI_Icons/Eye_Icon.png",
+        size=(60, 40),
+        canvas=canvasManagePassword,
+        x=0,
+        y=0,
+        anchor=anchor,
+    )
+    canvasManagePassword.image = photo
     canvasManagePassword.place(x=X, y=Y)
 
 
 def togglePasswordVisibility(
     event: tk.Event,
-    ImageTk: Any,
-    Image: Any,
     canvasManagePassword: tk.Canvas,
-    NW: str,
+    anchor: str,
     inputPassword: tk.Entry,
     X: int,
     Y: int,
@@ -86,19 +80,17 @@ def togglePasswordVisibility(
     if not isPasswordVisible:
         inputPassword.config(show="")
         isPasswordVisible = True
-        showPasswordIcon(ImageTk, Image, canvasManagePassword, NW, X, Y)
+        showPasswordIcon(canvasManagePassword, anchor, X, Y)
     else:
         inputPassword.config(show="*")
         isPasswordVisible = False
-        hidePasswordIcon(ImageTk, Image, canvasManagePassword, NW, X, Y)
+        hidePasswordIcon(canvasManagePassword, anchor, X, Y)
 
 
 def manageVisibility(
     event: tk.Event,
-    ImageTk: Any,
-    Image: Any,
     canvasManagePassword: tk.Canvas,
-    NW: str,
+    anchor: str,
     inputPassword: tk.Entry,
     X: int,
     Y: int,
@@ -118,9 +110,9 @@ def manageVisibility(
     """
     if inputPassword.get() != "":
         if not isPasswordVisible:
-            hidePasswordIcon(ImageTk, Image, canvasManagePassword, NW, X, Y)
+            hidePasswordIcon(canvasManagePassword, anchor, X, Y)
         if isPasswordVisible:
-            showPasswordIcon(ImageTk, Image, canvasManagePassword, NW, X, Y)
+            showPasswordIcon(canvasManagePassword, anchor, X, Y)
     else:
         canvasManagePassword.place_forget()
 

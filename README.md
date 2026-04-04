@@ -1,27 +1,24 @@
 <a name="top"></a>
 
+ <p align="center">
+    <a href="https://github.com/pedromst2000/PhotoShow/actions/workflows/code-quality.yml">
+      <img src="https://github.com/pedromst2000/PhotoShow/actions/workflows/code-quality.yml/badge.svg" alt="Code Quality" />
+    </a>
+  </p>
+
 <div align="center" id="top">
   <p>
     <img src="docs/images/Logo.png" alt="PhotoShow logo" width="450">
   </p>
 
-  <p>
-    <em>Every Pixel Tells a Tale</em>
-  </p>
+<em>Every Pixel Tells a Tale</em>
 
   <p>
     <a href="https://github.com/pedromst2000/PhotoShow/issues/new?labels=bug">Report Bug</a>
     ·
     <a href="https://github.com/pedromst2000/PhotoShow/issues/new?labels=enhancement">Request Feature</a>
   </p>
-  <p>
-    <a href="https://github.com/pedromst2000/PhotoShow/actions/workflows/code-quality.yml">
-      <img src="https://github.com/pedromst2000/PhotoShow/actions/workflows/code-quality.yml/badge.svg" alt="Code Quality" />
-    </a>
-  </p>
 </div>
-
-<br>
 
 ## :bookmark_tabs: Table of Contents
 

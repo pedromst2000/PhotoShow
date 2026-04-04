@@ -1,7 +1,5 @@
 import tkinter as tk
 
-from PIL import Image, ImageTk
-
 from app.controllers.profile_controller import ProfileController
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
@@ -13,6 +11,7 @@ from app.presentation.views.profile.contacts import contactsWindow
 from app.presentation.views.profile.favorites import favoritesProfileWindow
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.window import load_image
 from app.presentation.widgets.window import create_toplevel
 from app.utils.file_utils import resolve_avatar_path
 
@@ -26,8 +25,6 @@ def profileWindow():
     """
     This function is used to display the profile window.
     """
-
-    global backgroundProfile, followersImageIcon, avatarImage
 
     # prepare data and create the window using the reusable helper
     userID: int = session.user_id
@@ -48,22 +45,8 @@ def profileWindow():
         bg_color=colors["primary-50"],
     )
 
-    backgroundProfile = Image.open("app/assets/images/profile/backgroundProfile.png")
-    backgroundProfile = backgroundProfile.resize((profileWindowWidth, 220))
-
     # Resolve avatar path robustly (stored values may be relative to project root)
     avatar_found = resolve_avatar_path(userPayload.get("avatar"))
-
-    try:
-        avatarImage = Image.open(avatar_found)
-    except Exception:
-        # fallback placeholder
-        avatarImage = Image.new("RGB", (130, 130), color="#cccccc")
-
-    avatarImage = avatarImage.resize((130, 130))
-
-    followersImageIcon = Image.open("app/assets/images/UI_Icons/followersIcon.png")
-    followersImageIcon = followersImageIcon.resize((20, 20))
 
     canvasBackgroundProfile: tk.Canvas = tk.Canvas(
         _profileWindow_,
@@ -75,11 +58,15 @@ def profileWindow():
 
     canvasBackgroundProfile.place(x=0, y=0)
 
-    canvasBackgroundProfile.image = ImageTk.PhotoImage(backgroundProfile)
-
-    canvasBackgroundProfile.create_image(
-        0, 0, image=canvasBackgroundProfile.image, anchor=tk.NW
+    # Background image on the canvas
+    bg_photo = load_image(
+        "app/assets/images/profile/backgroundProfile.png",
+        size=(profileWindowWidth, 220),
+        canvas=canvasBackgroundProfile,
+        x=0,
+        y=0,
     )
+    canvasBackgroundProfile.image = bg_photo
 
     avatarCanvas: tk.Canvas = tk.Canvas(
         _profileWindow_,
@@ -90,8 +77,11 @@ def profileWindow():
     )
     avatarCanvas.place(x=40, y=40)
 
-    avatarCanvas.image = ImageTk.PhotoImage(avatarImage)
-    avatarCanvas.create_image(0, 0, image=avatarCanvas.image, anchor=tk.NW)
+    # Load avatar (returns a PhotoImage). If avatar path is invalid, load_image will provide a fallback.
+    avatar_photo = load_image(
+        avatar_found, size=(130, 130), canvas=avatarCanvas, x=0, y=0
+    )
+    avatarCanvas.image = avatar_photo
 
     canvasBackgroundProfile.create_text(
         200,
@@ -133,10 +123,12 @@ def profileWindow():
         fill=colors["primary-50"],
     )
 
-    followersImageIcon = ImageTk.PhotoImage(followersImageIcon)
-
-    canvasBackgroundProfile.create_image(
-        820, 177, image=followersImageIcon, anchor=tk.NW
+    followersImageIcon = load_image(
+        "app/assets/images/UI_Icons/followersIcon.png",
+        size=(20, 20),
+        canvas=canvasBackgroundProfile,
+        x=820,
+        y=177,
     )
 
     # keep references to PhotoImage objects on the window to avoid GC

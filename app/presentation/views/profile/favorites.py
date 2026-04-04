@@ -1,8 +1,6 @@
 import tkinter as tk
 import tkinter.messagebox as messagebox
 
-from PIL import Image, ImageTk
-
 from app.controllers.album_controller import AlbumController
 from app.controllers.photo_controller import PhotoController
 from app.core.state.session import session
@@ -10,6 +8,7 @@ from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.window import load_image
 from app.presentation.widgets.lists import insert_favorite_albuns, previewSelectedPhoto
 from app.presentation.widgets.window import create_toplevel
 
@@ -72,8 +71,8 @@ def favoritesProfileWindow():
 
     # ---------------------------- Buttons ----------------------------------------------
 
-    arrowRightIcon = ImageTk.PhotoImage(
-        Image.open("app/assets/images/UI_Icons/arrow_right.png").resize((35, 35))
+    arrowRightIcon = load_image(
+        "app/assets/images/UI_Icons/arrow_right.png", size=(35, 35)
     )
 
     btnSelectFavoriteAlbum: tk.Button = tk.Button(
@@ -191,10 +190,8 @@ def favoritesProfileWindow():
 
     # -------------------------------------- Preview Photos --------------------------------------
 
-    placeholderImage = ImageTk.PhotoImage(
-        Image.open("app/assets/images/photos_gallery/placeholder_image.png").resize(
-            (295, 245)
-        )
+    placeholderImage = load_image(
+        "app/assets/images/photos_gallery/placeholder_image.png", size=(295, 245)
     )
 
     containerCanvas: tk.Frame = tk.Frame(
@@ -230,11 +227,8 @@ def favoritesProfileWindow():
         """
         if 0 <= index < photosListbox.size():
             photoName = photosListbox.get(index)
-            currentSelectedImage = ImageTk.PhotoImage(
-                Image.open(f"{photoName}").resize((295, 245))
-            )
-            canvasPreviewImage.create_image(
-                0, 0, image=currentSelectedImage, anchor=tk.NW
+            currentSelectedImage = load_image(
+                f"{photoName}", size=(295, 245), canvas=canvasPreviewImage, x=0, y=0
             )
             canvasPreviewImage.image = currentSelectedImage
 

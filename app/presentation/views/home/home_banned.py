@@ -2,14 +2,13 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 from typing import Optional
 
-from PIL import Image, ImageTk
-
 from app.controllers.profile_controller import ProfileController
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.window import load_image
 from app.presentation.widgets.window import create_main_window, create_toplevel
 
 # fallback image
@@ -38,29 +37,29 @@ def homeBannedWindow():
     homeBannedCanvas: tk.Canvas = tk.Canvas(_homeBannedWindow_, width=1350, height=700)
     homeBannedCanvas.place(x=0, y=0)
 
-    homeBannedImage: Image.Image = Image.open(
-        "app/assets/images/home/mainBlockedBackground.png"
+    homeBannedImage = load_image(
+        "app/assets/images/home/mainBlockedBackground.png",
+        size=(1350, 700),
+        canvas=homeBannedCanvas,
+        x=0,
+        y=0,
     )
-    homeBannedImage = homeBannedImage.resize((1350, 700))
 
-    homeBannedImage: ImageTk.PhotoImage = ImageTk.PhotoImage(homeBannedImage)
-
-    homeBannedCanvas.create_image(0, 0, image=homeBannedImage, anchor=tk.NW)
-
-    backgroundBanned: Image.Image = Image.open(
-        "app/assets/images/home/blockedBackground.png"
+    backgroundBanned = load_image(
+        "app/assets/images/home/blockedBackground.png",
+        size=(1146, 530),
+        canvas=homeBannedCanvas,
+        x=102,
+        y=102,
     )
-    backgroundBanned = backgroundBanned.resize((1146, 530))
 
-    backgroundBanned: ImageTk.PhotoImage = ImageTk.PhotoImage(backgroundBanned)
-
-    homeBannedCanvas.create_image(102, 102, image=backgroundBanned, anchor=tk.NW)
-
-    logoImage: Image.Image = Image.open("app/assets/images/Logo.png")
-    logoImage = logoImage.resize((306, 65))
-
-    logoImage: ImageTk.PhotoImage = ImageTk.PhotoImage(logoImage)
-    homeBannedCanvas.create_image(522, 70, image=logoImage, anchor=tk.NW)
+    logoImage = load_image(
+        "app/assets/images/Logo.png",
+        size=(306, 65),
+        canvas=homeBannedCanvas,
+        x=522,
+        y=70,
+    )
 
     # title
     homeBannedCanvas.create_text(
@@ -132,10 +131,9 @@ def homeBannedWindow():
     contactAdminButton.place(x=560, y=500)
 
     # sign out button
-    signoutBtnImage = Image.open("app/assets/images/home/SignOutOptionBlocked.png")
-    signoutBtnImage = signoutBtnImage.resize((82, 87))
-
-    signoutBtnImage = ImageTk.PhotoImage(signoutBtnImage)
+    signoutBtnImage = load_image(
+        "app/assets/images/home/SignOutOptionBlocked.png", size=(82, 87)
+    )
 
     signoutBtn: tk.Button = tk.Button(
         _homeBannedWindow_,

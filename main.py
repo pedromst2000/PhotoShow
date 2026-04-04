@@ -7,8 +7,8 @@ from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
 from app.presentation.views.auth.login import loginWindow
 from app.presentation.widgets.helpers.button import on_enter, on_leave
+from app.presentation.widgets.helpers.window import load_image
 from app.presentation.widgets.window import create_main_window
-from app.utils.image_utils import load_image
 
 
 class main:
@@ -73,13 +73,21 @@ class main:
 
         # Background
         self._main_image = load_image(
-            "app/assets/images/main_background.png", (1350, 700)
+            "app/assets/images/main_background.png",
+            size=(1350, 700),
+            canvas=self.canvas,
+            x=0,
+            y=0,
         )
-        self.canvas.create_image(0, 0, image=self._main_image, anchor=tk.NW)
 
         # Logo
-        self._logo_image = load_image("app/assets/images/Logo.png", (600, 200))
-        self.canvas.create_image(390, 50, image=self._logo_image, anchor=tk.NW)
+        self._logo_image = load_image(
+            "app/assets/images/Logo.png",
+            size=(600, 200),
+            canvas=self.canvas,
+            x=390,
+            y=50,
+        )
 
         # Slogan
         self.slogan_text = self.canvas.create_text(
@@ -116,7 +124,7 @@ class main:
             "<Leave>", lambda event: on_leave(event, self.signInButton)
         )
 
-        # Keep references to images on the instance to avoid garbage collection (garbage collection can cause images to disappear from the UI if not referenced)
+        # Keep PhotoImage references alive to prevent Tk garbage collection
         self._images = (self._main_image, self._logo_image)
 
         self.window.mainloop()
@@ -132,7 +140,7 @@ if __name__ == "__main__":
 
     if "--resetDB" in sys.argv:
         # ── Reset: wipe database and re-seed from CSV files ──────────────────
-        # WARNING: all existing data (photos, users, albums, etc.) will be lost.
+        # NOTE WARNING: all existing data (photos, users, albums, etc.) will be lost.
         init_db()
         reset_db()
         # Do NOT launch the app after a reset — exit cleanly.

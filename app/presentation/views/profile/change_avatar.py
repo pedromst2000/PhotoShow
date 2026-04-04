@@ -3,14 +3,13 @@ import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
 from typing import Any, Callable
 
-from PIL import Image, ImageTk
-
 from app.controllers.profile_controller import ProfileController
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.window import load_image
 from app.presentation.widgets.window import create_toplevel
 
 image: Any = ""
@@ -54,10 +53,9 @@ def uploadAvatar(
     if filename != "":
         image_path = filename
 
-        image = Image.open(image_path)
-        image = image.resize((200, 200))
-        photo_image = ImageTk.PhotoImage(image)  # Store as an instance variable
-        canvasAvatar.create_image(0, 0, anchor=tk.NW, image=photo_image)
+        photo_image = load_image(
+            image_path, size=(200, 200), canvas=canvasAvatar, x=0, y=0
+        )
         image = image_path  # assigning the global variable image to the image_path
         canvasAvatar.image = photo_image  # type: ignore
         statusBtn = "normal"
@@ -95,8 +93,6 @@ def changeAvatarWindow():
     """
     This function is used to display change avatar window.
     """
-
-    global avatarImage
 
     # create the window using the reusable helper
     userID: int = session.user_id
@@ -182,13 +178,10 @@ def changeAvatarWindow():
 
     canvasPreeviewAvatar.place(x=150, y=135)
 
-    avatarImage = Image.open(session.avatar)
-
-    avatarImage = avatarImage.resize((200, 200))
-
-    avatarImage = ImageTk.PhotoImage(avatarImage)
-
-    canvasPreeviewAvatar.create_image(0, 0, image=avatarImage, anchor=tk.NW)
+    avatar_photo = load_image(
+        session.avatar, size=(200, 200), canvas=canvasPreeviewAvatar, x=0, y=0
+    )
+    canvasPreeviewAvatar.image = avatar_photo
 
     # ----------------------  Events -----------------------------------
     btnChangeAvatar.bind(

@@ -1,10 +1,9 @@
 import tkinter as tk
 from typing import Tuple
 
-from PIL import Image, ImageTk
-
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
+from app.presentation.widgets.helpers.window import load_image
 
 
 def add_icon_canvas(
@@ -28,15 +27,13 @@ def add_icon_canvas(
 
     Returns the created `tk.Canvas` (with `.image` kept alive).
     """
-    icon = Image.open(icon_path)
-    icon = icon.resize(icon_size)
-
     canvas_icon: tk.Canvas = tk.Canvas(
         parent, height=canvas_size[1], width=canvas_size[0], highlightthickness=0
     )
     canvas_icon.place(x=icon_pos[0], y=icon_pos[1])
-    canvas_icon.image = ImageTk.PhotoImage(icon)
-    canvas_icon.create_image(0, 0, anchor=tk.NW, image=canvas_icon.image)
+    photo = load_image(icon_path, size=icon_size, canvas=canvas_icon, x=0, y=0)
+    # keep attribute for compatibility
+    canvas_icon.image = photo
     return canvas_icon
 
 

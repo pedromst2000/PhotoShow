@@ -82,3 +82,59 @@ def auth_switch_label(
     label.bind("<Leave>", lambda event: label_on_leave(event, label))
     label.bind("<Button-1>", lambda event: click_handler(event, *click_args))
     return label
+
+
+def attach_password_visibility(
+    parent: tk.Widget,
+    input_password: tk.Entry,
+    x: int,
+    y: int,
+    bg_color: str | None = None,
+) -> tk.Canvas:
+    """
+    Create a small canvas used to toggle password visibility and attach
+    the necessary bindings to the provided password `Entry`.
+
+    Args:
+        parent: The parent widget to place the canvas on.
+        input_password: The Entry widget for the password input that this canvas will control.
+        x: The x-coordinate for placing the canvas.
+        y: The y-coordinate for placing the canvas.
+        bg_color: Optional background color for the canvas. If not provided, a default from the
+            colors module will be used.
+    Returns:
+        The created `tk.Canvas` widget that serves as the password visibility toggle.
+
+    """
+    # Defer imports to avoid circular references and heavy module loads
+    from app.presentation.styles.colors import colors
+    from app.presentation.widgets.helpers.auth_icons import (
+        manageVisibility,
+        togglePasswordVisibility,
+    )
+
+    if bg_color is None:
+        bg_color = colors["primary-50"]
+
+    canvas_manage = tk.Canvas(
+        parent, height=36, width=50, highlightthickness=0, cursor="hand2"
+    )
+    canvas_manage.config(highlightthickness=0, bd=0, bg=bg_color)
+
+    # Bind key release on the entry to show/hide the icon when text exists
+    input_password.bind(
+        "<KeyRelease>",
+        lambda event: manageVisibility(
+            event, canvas_manage, tk.NW, input_password, x, y
+        ),
+    )
+
+    # Bind click on the canvas to toggle password visibility
+    canvas_manage.bind(
+        "<Button-1>",
+        lambda event: togglePasswordVisibility(
+            event, canvas_manage, tk.NW, input_password, x, y
+        ),
+    )
+
+    return canvas_manage

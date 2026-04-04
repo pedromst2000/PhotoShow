@@ -1,7 +1,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from PIL import Image, ImageTk
+from app.presentation.widgets.helpers.window import load_image
 
 
 def insert_users(users: list[dict], usersTable: ttk.Treeview):
@@ -91,7 +91,7 @@ def previewSelectedPhoto(
     event: tk.Event,
     listAlbumPhotos: tk.Listbox,
     canvasPreviewImage: tk.Canvas,
-    placeholderImage: ImageTk.PhotoImage,
+    placeholderImage: tk.PhotoImage,
 ):
     """
     Preview the selected photo in a Canvas widget.
@@ -100,15 +100,15 @@ def previewSelectedPhoto(
         event (tk.Event): The event object from the Listbox selection.
         listAlbumPhotos (tk.Listbox): The Listbox widget containing photo names.
         canvasPreviewImage (tk.Canvas): The Canvas widget to display the photo preview.
-        placeholderImage (ImageTk.PhotoImage): The placeholder image (no photo selected).
+        placeholderImage (tk.PhotoImage): The placeholder image (no photo selected).
 
     """
     if listAlbumPhotos.curselection():
         photoName: str = listAlbumPhotos.get(listAlbumPhotos.curselection())
-        currentSelectedImage: ImageTk.PhotoImage = ImageTk.PhotoImage(
-            Image.open(f"{photoName}").resize((295, 245))
+        currentSelectedImage = load_image(
+            photoName, size=(295, 245), canvas=canvasPreviewImage, x=0, y=0
         )
-        canvasPreviewImage.create_image(0, 0, image=currentSelectedImage, anchor=tk.NW)
+        # keep attribute for compatibility with callers
         canvasPreviewImage.image = currentSelectedImage
     else:
         canvasPreviewImage.create_image(0, 0, image=placeholderImage, anchor=tk.NW)

@@ -1,8 +1,6 @@
 import tkinter as tk
 from typing import Optional
 
-from PIL import Image, ImageTk
-
 from app.core.state.session import session
 from app.presentation.views.dashboard.dashboard import dashboardWindow
 from app.presentation.views.explore.explore import exploreWindow
@@ -10,6 +8,7 @@ from app.presentation.views.manage.manage import manageWindow
 from app.presentation.views.notifications.notifications import notificationsWindow
 from app.presentation.views.profile.profile import profileWindow
 from app.presentation.views.settings.settings import settingsWindow
+from app.presentation.widgets.helpers.window import load_image
 
 
 class menu:
@@ -38,34 +37,22 @@ class menu:
         self.posMenuY: int = 310
         self.isAdminOpt: bool = False
 
-        self.exploreImg: ImageTk.PhotoImage = ImageTk.PhotoImage(
-            Image.open("app/assets/images/home/menu/explore.png")
+        self.exploreImg = load_image("app/assets/images/home/menu/explore.png")
+        self.profileImg = load_image("app/assets/images/home/menu/profile.png")
+        self.notificationsImg = load_image(
+            "app/assets/images/home/menu/notifications.png"
         )
-        self.profileImg: ImageTk.PhotoImage = ImageTk.PhotoImage(
-            Image.open("app/assets/images/home/menu/profile.png")
-        )
-        self.notificationsImg: ImageTk.PhotoImage = ImageTk.PhotoImage(
-            Image.open("app/assets/images/home/menu/notifications.png")
-        )
-        self.settingsImg: ImageTk.PhotoImage = ImageTk.PhotoImage(
-            Image.open("app/assets/images/home/menu/settings.png")
-        )
-        self.manageImg: ImageTk.PhotoImage = ImageTk.PhotoImage(
-            Image.open("app/assets/images/home/menu/manage.png")
-        )
-        self.dashboardImg: ImageTk.PhotoImage = ImageTk.PhotoImage(
-            Image.open("app/assets/images/home/menu/dashboard.png")
-        )
-        self.signOutImg: ImageTk.PhotoImage = ImageTk.PhotoImage(
-            Image.open("app/assets/images/home/menu/signOut.png")
-        )
+        self.settingsImg = load_image("app/assets/images/home/menu/settings.png")
+        self.manageImg = load_image("app/assets/images/home/menu/manage.png")
+        self.dashboardImg = load_image("app/assets/images/home/menu/dashboard.png")
+        self.signOutImg = load_image("app/assets/images/home/menu/signOut.png")
 
-        def _btn(img: ImageTk.PhotoImage) -> tk.Button:
+        def _btn(img: tk.PhotoImage) -> tk.Button:
             """
             Create a styled Tkinter button for the menu.
 
             Args:
-                img (ImageTk.PhotoImage): The image to display on the button.
+            img (tk.PhotoImage): The image to display on the button.
 
             Returns:
                 tk.Button: A Tkinter Button widget configured with the specified image and styling.
