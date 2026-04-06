@@ -4,6 +4,9 @@ from typing import Optional
 
 from app.controllers.profile_controller import ProfileController
 from app.core.state.session import session
+from app.presentation.layout.menu.helpers.menu_button_state import (
+    MenuButtonStateManager,
+)
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
@@ -11,16 +14,11 @@ from app.presentation.widgets.helpers.button import on_leave as button_on_leave
 from app.presentation.widgets.helpers.window import load_image
 from app.presentation.widgets.window import create_main_window, create_toplevel
 
-# fallback image
-signoutBtnImage: str = ""
-
 
 def homeBannedWindow():
     """
     Display the home window for a banned user.
     """
-
-    global signoutBtnImage
 
     # open the window using the reusable helper (centering, sizing, icon, bg)
     homeBannedWindowWidth: int = 1350  # width of the window
@@ -130,20 +128,28 @@ def homeBannedWindow():
 
     contactAdminButton.place(x=560, y=500)
 
-    # sign out button
-    signoutBtnImage = load_image(
-        "app/assets/images/home/SignOutOptionBlocked.png", size=(82, 87)
+    # sign out button with hover behavior (reusing Menu helpers)
+    signout_state_manager = MenuButtonStateManager()
+    signout_default = load_image(
+        "app/assets/images/home/signOutDefault.png", size=(113, 113)
+    )
+    signout_selected = load_image(
+        "app/assets/images/home/signOutSelect.png", size=(113, 113)
+    )
+    signout_state_manager.register_button_images(
+        "signOut", {"default": signout_default, "selected": signout_selected}
     )
 
     signoutBtn: tk.Button = tk.Button(
         _homeBannedWindow_,
-        image=signoutBtnImage,
+        image=signout_default,
         borderwidth=0,
         background=colors["primary-50"],
         highlightthickness=0,
         activebackground=colors["primary-50"],
         cursor="hand2",
     )
+    signoutBtn.image = signout_default
     signoutBtn.place(x=1130, y=510)
 
     # keep references to PhotoImage objects on the window to avoid garbage collection
@@ -151,7 +157,8 @@ def homeBannedWindow():
         homeBannedImage,
         backgroundBanned,
         logoImage,
-        signoutBtnImage,
+        signout_default,
+        signout_selected,
     )
 
     contactAdminButton.bind(
@@ -159,6 +166,16 @@ def homeBannedWindow():
     )
     contactAdminButton.bind(
         "<Leave>", lambda event: button_on_leave(event, contactAdminButton)
+    )
+
+    # Bind hover behavior for signOut button using state manager
+    signoutBtn.bind(
+        "<Enter>",
+        lambda event: signout_state_manager.on_button_enter(signoutBtn, "signOut"),
+    )
+    signoutBtn.bind(
+        "<Leave>",
+        lambda event: signout_state_manager.on_button_leave(signoutBtn, "signOut"),
     )
 
     def _contact_admin_(event: tk.Event):
