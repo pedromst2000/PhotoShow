@@ -45,6 +45,6 @@ MENU_IMAGES_PATHS = {
 MENU_LAYOUT = {
     "gap": 50,
     "admin_start_x": 130,
-    "regular_start_x": 211,  # Centered: (1350 - (6*113 + 5*50)) / 2
+    "regular_start_x": 293,  # Centered for regular (5 items): (1350 - (5*113 + 4*50)) / 2 ≈ 292.5
     "menu_y": 310,
 }
