@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 
 from app.core.state.session import session
-from app.presentation.layout.Menu import menu
+from app.presentation.layout.menu.Menu import Menu
 from app.presentation.styles.colors import colors
 from app.presentation.widgets.helpers.window import load_image
 from app.presentation.widgets.window import create_main_window
@@ -46,8 +46,8 @@ def homeWindow() -> None:
     # keep references to PhotoImage objects to prevent garbage collection
     home_window._images = (bg_photo, menu_photo, logo_photo)
 
-    # MENU
-    menu_instance: menu = menu(homeCanvas=home_canvas, homeWindow=home_window)
+    # MENU - Render based on user role
+    menu_instance: Menu = Menu(homeCanvas=home_canvas, homeWindow=home_window)
 
     if session.is_new_user:
         messagebox.showinfo(
@@ -60,9 +60,6 @@ def homeWindow() -> None:
             "  - \U0001f4c8 Dashboard: Check your dashboard for statistics",
         )
 
-    if session.is_admin:
-        menu_instance.adminMenu()
-    elif session.is_authenticated:
-        menu_instance.regularMenu()
+    menu_instance.render()
 
     home_window.mainloop()

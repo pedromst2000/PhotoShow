@@ -9,7 +9,6 @@ def quickSandRegular(size: int) -> tkFont:
         size (int): The size of the font.
     Returns:
         tkFont: The font object with QuickSand Regular style.
-
     """
 
     return tkFont.Font(family="QuickSand", size=size, weight="normal")
