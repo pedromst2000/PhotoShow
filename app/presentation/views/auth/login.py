@@ -44,16 +44,16 @@ def loginWindow(event: object, Window: tk.Tk):
     # Logo — small canvas matching the window bg so the image renders without border
     _logo_canvas = tk.Canvas(
         _loginWindow_,
-        width=334,
-        height=120,
+        width=290,
+        height=75,
         highlightthickness=0,
         bd=0,
         bg=colors["primary-50"],
     )
-    _logo_canvas.place(x=120, y=20)
+    _logo_canvas.place(x=142, y=30)
     _logo_canvas.image = load_image(
-        "app/assets/images/Logo_auth.png",
-        size=(334, 120),
+        "app/assets/images/Logo.png",
+        size=(290, 75),
         canvas=_logo_canvas,
         x=0,
         y=0,

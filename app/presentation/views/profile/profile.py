@@ -59,14 +59,14 @@ def profileWindow():
     canvasBackgroundProfile.place(x=0, y=0)
 
     # Background image on the canvas
-    bg_photo = load_image(
-        "app/assets/images/profile/backgroundProfile.png",
+    banner_profile = load_image(
+        "app/assets/images/profile/bannerProfile.png",
         size=(profileWindowWidth, 220),
         canvas=canvasBackgroundProfile,
         x=0,
         y=0,
     )
-    canvasBackgroundProfile.image = bg_photo
+    canvasBackgroundProfile.image = banner_profile
 
     avatarCanvas: tk.Canvas = tk.Canvas(
         _profileWindow_,
