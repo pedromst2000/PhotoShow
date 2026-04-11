@@ -102,18 +102,18 @@ class ContactModel(Base):
     @classmethod
     def title_exists(cls, session: Session, title: str) -> bool:
         """
-        Check whether a contact with this title already exists (case-insensitive).
+        Check whether a contact with this title already exists (case-insensitive, exact match).
+        Expects pre-normalized title from the service layer.
 
         Args:
             session: Active SQLAlchemy session.
-            title (str): The title to check.
+            title (str): The title to check (should be already validated/normalized by service).
 
         Returns:
             bool: True if a matching title exists.
         """
-        normalized = title.strip().lower()
         return session.query(
             session.query(cls)
-            .filter(func.lower(func.trim(cls.title)) == normalized)
+            .filter(func.lower(func.trim(cls.title)) == title.lower())
             .exists()
         ).scalar()

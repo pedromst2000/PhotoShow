@@ -109,7 +109,20 @@ class AuthService:
         Returns:
             bool: True if the email format is valid, False otherwise.
         """
-        if not regex.match(r"[^@]+@[^@]+\.[^@]+", email):
+        # Reject non-string or empty values
+        if not email or not isinstance(email, str):
+            return False
+
+        # Reject any whitespace characters (leading, trailing, or internal)
+        if regex.search(r"\s", email):
+            return False
+
+        # Strict pattern: local part (letters, digits and common email punctuation),
+        # then @, then allowed domains (gmail or hotmail), and ending with .com
+        pattern = r"[A-Za-z0-9._%+-]+@(gmail|hotmail)\.com"
+
+        # Use fullmatch to ensure there are no extra trailing/leading characters
+        if not regex.fullmatch(pattern, email, flags=regex.IGNORECASE):
             return False
         return True
 

@@ -1,3 +1,5 @@
+import re as regex
+
 from app.core.db.engine import SessionLocal
 from app.core.db.models.album import AlbumModel
 from app.core.db.models.avatar import AvatarModel
@@ -311,6 +313,26 @@ class UserService:
             return result
 
     @staticmethod
+    def validate_contact_title_format(title: str) -> bool:
+        """
+        Validate contact message title format.
+
+        Rules enforced:
+        - Title must contain only ASCII letters (A-Z, a-z).
+        - No digits, spaces, or special characters allowed.
+
+        Args:
+            title: The contact title to validate.
+
+        Returns:
+            bool: True if the title format is valid, False otherwise.
+        """
+        if not title or not isinstance(title, str):
+            return False
+        # Use fullmatch to ensure only letters, no spaces or special chars
+        return bool(regex.fullmatch(r"[A-Za-z]+", title))
+
+    @staticmethod
     def create_contact(title: str, message: str, userId: int) -> dict:
         """
         Create a new contact message from a user.
@@ -324,11 +346,23 @@ class UserService:
             dict: The created contact message as a dictionary.
 
         Raises:
-            ValueError: If a message with the same title already exists.
+            ValueError: If a message with the same title already exists (after whitespace normalization).
         """
+
+        # Business rule: normalize whitespace for duplicate detection.
+        # Treats "Apologizes ", "Apologizes", "Apologizes   ", and "Apologizes  A"
+        # as duplicates based on their normalized form.
+        def _normalize(s: str) -> str:
+            return " ".join(s.split()).strip().lower()
+
+        normalized_title = _normalize(title)
+
         with SessionLocal() as session:
-            if ContactModel.title_exists(session, title):
-                raise ValueError("A message with this title already exists")
+            # Fetch all existing titles and check normalized duplicates in service layer
+            rows = session.query(ContactModel.title).all()
+            for (t,) in rows:
+                if _normalize(t) == normalized_title:
+                    raise ValueError("A message with this title already exists")
             result = ContactModel.create(
                 session, title=title, message=message, userId=userId
             )

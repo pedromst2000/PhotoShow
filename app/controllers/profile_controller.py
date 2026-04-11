@@ -154,6 +154,13 @@ class ProfileController:
         if not message_clean:
             return False, "Message is required"
 
+        # Validate title format using the service layer
+        if not UserService.validate_contact_title_format(title_clean):
+            return (
+                False,
+                "Title must contain only letters (A-Z, a-z) with no spaces or special characters",
+            )
+
         # Check length limits (UI prevents this but we validate for safety)
         if len(title_clean) > 75:
             return False, "Title too long (max 75 characters)"
