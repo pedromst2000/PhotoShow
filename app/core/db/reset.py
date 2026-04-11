@@ -22,8 +22,15 @@ def _drop_all_tables_raw() -> None:
         for table in tables:
             cur.execute(f'DROP TABLE IF EXISTS "{table}"')
         con.commit()
+        # Explicitly flush WAL and checkpoint to ensure changes are persisted to disk
+        con.execute("PRAGMA wal_checkpoint(RESTART)")
+        con.close()
     finally:
         con.close()
+
+    # Critical: dispose engine again after dropping tables to clear any cached connections
+    # This ensures the next SessionLocal() gets a fresh connection that reads the new schema
+    engine.dispose()
 
 
 def reset_db() -> None:
@@ -49,6 +56,9 @@ def reset_db() -> None:
 
     log_check("[resetDB] Re-initializing database...")
     init_db()
+    # Critical: dispose engine after init_db() so next SessionLocal() uses fresh connections
+    # This ensures we read the newly created tables, not stale schema from memory
+    engine.dispose()
     log_success("[resetDB] Tables recreated.")
 
     log_check("[resetDB] Seeding from CSV files...")
