@@ -6,4 +6,6 @@ colors = {
     "accent-100": "#CEFFC2",
     "accent-300": "#8BE57E",
     "accent-500": "#2DC936",
+    "danger-500": "#E53935",
+    "required-500": "#FF6B6B",
 }

@@ -6,7 +6,7 @@ from app.presentation.layout.menu.helpers.menu_button_state import (
 )
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
-from app.presentation.views.home.contact_admin_dialog import open_contact_admin
+from app.presentation.views.home.contact_admin.dialog import open_contact_admin
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
 from app.presentation.widgets.helpers.window import load_image

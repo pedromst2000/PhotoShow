@@ -3,9 +3,9 @@ from typing import Optional
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
-from app.presentation.views.home.contact_admin_helpers import (
+from app.presentation.views.home.contact_admin.helpers import (
     submit_contact_admin,
-    update_validation,
+    validate_contact_inputs,
 )
 from app.presentation.widgets.helpers.scrollable_text import ScrollableText
 from app.presentation.widgets.window import create_toplevel
@@ -141,13 +141,13 @@ def open_contact_admin(parent: tk.Tk, event: Optional[tk.Event] = None):
     send_btn.config(state="normal")
     title_entry.bind(
         "<KeyRelease>",
-        lambda e: update_validation(
+        lambda e: validate_contact_inputs(
             title_entry, scrollable, title_count, message_count, e
         ),
     )
     scrollable.text.bind(
         "<KeyRelease>",
-        lambda e: update_validation(
+        lambda e: validate_contact_inputs(
             title_entry, scrollable, title_count, message_count, e
         ),
     )
@@ -155,5 +155,5 @@ def open_contact_admin(parent: tk.Tk, event: Optional[tk.Event] = None):
         "<Return>",
         lambda e: submit_contact_admin(dialog, title_entry, scrollable.text, e),
     )
-    update_validation(title_entry, scrollable, title_count, message_count)
+    validate_contact_inputs(title_entry, scrollable, title_count, message_count)
     dialog.grab_set()

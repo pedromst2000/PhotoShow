@@ -6,7 +6,7 @@ from app.controllers.profile_controller import ProfileController
 from app.presentation.styles.colors import colors
 
 
-def update_validation(
+def validate_contact_inputs(
     title_entry: tk.Entry,
     scrollable,
     title_count: tk.Label,
@@ -25,36 +25,36 @@ def update_validation(
         e: Optional event parameter for binding.
     """
 
-    t = title_entry.get().strip()
-    m = scrollable.text.get("1.0", "end-1c").strip()
-    title_len = len(t)
-    msg_len = len(m)
+    title = title_entry.get().strip()
+    message = scrollable.text.get("1.0", "end-1c").strip()
+    title_len = len(title)
+    message_len = len(message)
 
     # Update counters
     title_count.config(text=f"{title_len}/75")
-    message_count.config(text=f"{msg_len}/255")
+    message_count.config(text=f"{message_len}/255")
 
     # Colors
     default_fg = colors["secondary-500"]
-    danger_fg = colors.get("danger-500", "#E53935")
-    required_fg = colors.get("required-500", "#FF6B6B")  # Red for required
+    danger_fg = colors.get("danger-500")
+    required_fg = colors.get("required-500")
 
     # Title validation: red if empty (required) or near limit (>=75)
     if title_len == 0:
         # Required field is empty - show red outline
         title_count.config(fg=required_fg)
         title_entry.config(highlightthickness=2, highlightbackground=required_fg)
-    elif title_len >= 75:
+    elif title_len > 75:
         # Limit reached - show danger color
         title_count.config(fg=danger_fg)
         title_entry.config(highlightthickness=2, highlightbackground=danger_fg)
     else:
-        # Valid state - reset
+        # Valid state - reset to default colors
         title_count.config(fg=default_fg)
         title_entry.config(highlightthickness=0)
 
-    # Message validation: red if empty (required) or near limit (>=255)
-    if msg_len == 0:
+    # Message validation: red if empty (required) or near limit (> 255)
+    if message_len == 0:
         # Required field is empty - show red outline
         message_count.config(fg=required_fg)
         try:
@@ -63,7 +63,7 @@ def update_validation(
             )
         except Exception:
             pass
-    elif msg_len >= 255:
+    elif message_len > 255:
         # Limit reached - show danger color
         message_count.config(fg=danger_fg)
         try:
@@ -71,7 +71,7 @@ def update_validation(
         except Exception:
             pass
     else:
-        # Valid state - reset
+        # Valid state - reset to default colors
         message_count.config(fg=default_fg)
         try:
             scrollable.text.config(highlightthickness=0)
