@@ -1,9 +1,9 @@
 import tkinter as tk
-from tkinter import messagebox
 from typing import Optional
 
 from app.controllers.profile_controller import ProfileController
 from app.presentation.styles.colors import colors
+from app.presentation.widgets.helpers.ui_dialogs import show_error, show_info
 
 
 def validate_contact_inputs(
@@ -100,7 +100,7 @@ def submit_contact_admin(
     )
 
     if success:
-        messagebox.showinfo("Success", msg, parent=dialog)
+        show_info(dialog, "Success", msg)
         dialog.destroy()
     else:
-        messagebox.showerror("Error", msg, parent=dialog)
+        show_error(dialog, "Error", msg)

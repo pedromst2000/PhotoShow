@@ -15,23 +15,18 @@ def load_image(
     center: bool = False,
 ) -> ImageTk.PhotoImage:
     """
-    Load an image and optionally render it on a Tk `canvas`.
-
-    If `canvas` is provided, the image will be created on the canvas at
-    coordinates `(x, y)` (or centered if `center=True`). The function
-    always returns the `ImageTk.PhotoImage` instance so callers can keep a
-    reference.
+    Load an image from the specified path, optionally resizing it and placing it on a canvas.
 
     Args:
         path (str): The file path to the image.
-        size (Optional[Tuple[int, int]]): Optional (width, height) to resize the image to.
-        canvas (Optional[tk.Canvas]): Optional Tkinter Canvas to render the image on.
-        x (Optional[int]): The x-coordinate for the image on the canvas (ignored if `center=True`).
-        y (Optional[int]): The y-coordinate for the image on the canvas (ignored if `center=True`).
-        anchor (str): The anchor position for the image on the canvas (default: tk.NW).
-        center (bool): Whether to center the image on the canvas (overrides x and y if True).
+        size (Optional[Tuple[int, int]]): The desired size (width, height) to resize the image to. If None, original size is used.
+        canvas (Optional[tk.Canvas]): A Tkinter Canvas to place the image on. If None, the image is not placed on a canvas.
+        x (Optional[int]): The X coordinate for placing the image on the canvas. Ignored if `center` is True.
+        y (Optional[int]): The Y coordinate for placing the image on the canvas. Ignored if `center` is True.
+        anchor (str): The anchor position for placing the image on the canvas (e.g., tk.NW, tk.CENTER). Defaults to tk.NW.
+        center (bool): If True, the image will be centered on the canvas regardless of x and y values. Defaults to False.
     Returns:
-        ImageTk.PhotoImage: The loaded (and possibly resized) image.
+        ImageTk.PhotoImage: The loaded (and possibly resized) image as a PhotoImage object.
     """
     try:
         pil_img = Image.open(path).convert("RGBA")

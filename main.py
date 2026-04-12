@@ -7,7 +7,7 @@ from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
 from app.presentation.views.auth.login import loginWindow
 from app.presentation.widgets.helpers.button import on_enter, on_leave
-from app.presentation.widgets.helpers.window import load_image
+from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.window import create_main_window
 
 

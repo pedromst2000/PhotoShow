@@ -8,7 +8,7 @@ from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
-from app.presentation.widgets.helpers.window import load_image
+from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.lists import insert_favorite_albuns, previewSelectedPhoto
 from app.presentation.widgets.window import create_toplevel
 

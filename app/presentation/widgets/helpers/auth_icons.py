@@ -1,7 +1,7 @@
 import tkinter as tk
 
 from app.presentation.styles.fonts import quickSandRegular, quickSandRegularUnderline
-from app.presentation.widgets.helpers.window import load_image
+from app.presentation.widgets.helpers.images import load_image
 
 isPasswordVisible: bool = False
 
