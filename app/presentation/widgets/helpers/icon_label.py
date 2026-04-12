@@ -3,7 +3,7 @@ from typing import Tuple
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
-from app.presentation.widgets.helpers.window import load_image
+from app.presentation.widgets.helpers.images import load_image
 
 
 def add_icon_canvas(

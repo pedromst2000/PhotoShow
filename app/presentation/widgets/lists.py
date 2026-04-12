@@ -1,7 +1,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from app.presentation.widgets.helpers.window import load_image
+from app.presentation.widgets.helpers.images import load_image
 
 
 def insert_users(users: list[dict], usersTable: ttk.Treeview):

@@ -2,7 +2,7 @@ from typing import Dict
 
 from PIL import ImageTk
 
-from app.presentation.widgets.helpers.window import load_image
+from app.presentation.widgets.helpers.images import load_image
 
 
 def load_menu_images(

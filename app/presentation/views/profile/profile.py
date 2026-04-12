@@ -11,7 +11,7 @@ from app.presentation.views.profile.contacts import contactsWindow
 from app.presentation.views.profile.favorites import favoritesProfileWindow
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
-from app.presentation.widgets.helpers.window import load_image
+from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.window import create_toplevel
 from app.utils.file_utils import resolve_avatar_path
 

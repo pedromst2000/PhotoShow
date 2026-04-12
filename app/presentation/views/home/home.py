@@ -1,10 +1,10 @@
 import tkinter as tk
-import tkinter.messagebox as messagebox
 
 from app.core.state.session import session
 from app.presentation.layout.menu.Menu import Menu
 from app.presentation.styles.colors import colors
-from app.presentation.widgets.helpers.window import load_image
+from app.presentation.widgets.helpers.images import load_image
+from app.presentation.widgets.helpers.ui_dialogs import show_onboarding
 from app.presentation.widgets.window import create_main_window
 
 
@@ -50,15 +50,7 @@ def homeWindow() -> None:
     menu_instance: Menu = Menu(homeCanvas=home_canvas, homeWindow=home_window)
 
     if session.is_new_user:
-        messagebox.showinfo(
-            "Welcome to PhotoShow!",
-            "Where every pixel tells a tale, you can now enjoy your time with us.\n\n"
-            "Let's take a look at our features:\n\n"
-            "  - \U0001f310 Explore: Explore the world of photos with other users\n\n"
-            "  - \U0001f464 Profile: Edit your profile and view your photos and albums\n\n"
-            "  - \U0001f514 Notifications: Stay updated with news through notifications\n\n"
-            "  - \U0001f4c8 Dashboard: Check your dashboard for statistics",
-        )
+        show_onboarding(home_window)
 
     menu_instance.render()
 
