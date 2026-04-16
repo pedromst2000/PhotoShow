@@ -9,8 +9,8 @@ from app.presentation.views.auth.helpers import (
     trigger_check_login,
 )
 from app.presentation.views.auth.register import registerWindow
-from app.presentation.views.home.home import homeWindow
 from app.presentation.views.home.home_banned import homeBannedWindow
+from app.presentation.views.home.main import homeWindow
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
 from app.presentation.widgets.helpers.icon_label import add_icon_canvas, add_label

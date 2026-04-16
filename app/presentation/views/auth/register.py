@@ -7,7 +7,7 @@ from app.presentation.views.auth.helpers import (
     attach_password_visibility,
     auth_switch_label,
 )
-from app.presentation.views.home.home import homeWindow
+from app.presentation.views.home.main import homeWindow
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
 from app.presentation.widgets.helpers.icon_label import add_icon_canvas, add_label
