@@ -123,6 +123,8 @@ class PhotoController:
 
         if not image_path:
             return False, "Image path is required"
+        if album_id is None:
+            return False, "Album ID is required"
         try:
             PhotoService.create_photo(
                 image_path=image_path,
@@ -149,9 +151,8 @@ class PhotoController:
         assert session.user_id is not None
 
         # Delegate ownership check and deletion to service (business logic)
-        if PhotoService.delete_photo_for_user(session.user_id, photo_id):
-            return True, "Photo deleted successfully"
-        return False, "Failed to delete photo or insufficient permissions"
+        success, message = PhotoService.delete_photo(photo_id)
+        return success, message
 
     @staticmethod
     def update_photo(photo_id: int, updates: dict) -> Tuple[bool, str]:

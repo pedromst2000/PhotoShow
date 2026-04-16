@@ -230,7 +230,9 @@ class PhotoService:
             # Fetch like rows first, then batch fetch photos by id to avoid N+1
             like_rows = LikeModel.get_liked_photos(session, user_id)
             photo_ids = [r["photoId"] for r in like_rows]
-            if not photo_ids:
+            if (
+                not photo_ids
+            ):  # User has not liked any photos, return empty list early to avoid unnecessary query
                 return []
             photos = (
                 session.query(PhotoModel)
