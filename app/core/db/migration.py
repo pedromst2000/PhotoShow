@@ -447,11 +447,15 @@ def _read_comments(valid_photo_ids: set) -> list:
                 photo_id = int(parts[3])
                 if photo_id not in valid_photo_ids:
                     continue
+                # Remove artifact quotes from CSV format if present
+                comment_text = parts[2]
+                if comment_text.startswith('"') and comment_text.endswith('"'):
+                    comment_text = comment_text[1:-1]
                 data.append(
                     CommentModel(
                         id=int(parts[0]),
                         authorId=int(parts[1]),
-                        comment=parts[2],
+                        comment=comment_text,
                         photoId=photo_id,
                     )
                 )
