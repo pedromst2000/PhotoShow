@@ -65,6 +65,12 @@ def create_toplevel(
     # If no parent provided, use the stored main window; otherwise create without parent
     effective_parent = parent if parent else _get_parent_window()
     win = tk.Toplevel(effective_parent) if effective_parent else tk.Toplevel()
+
+    # Make window transient to parent (stays on top) and modal
+    if effective_parent:
+        win.transient(effective_parent)
+        win.grab_set()  # Make window modal - user must close it before accessing parent
+
     screen_width = win.winfo_screenwidth()
     screen_height = win.winfo_screenheight()
     x = int((screen_width / 2) - (width / 2))
