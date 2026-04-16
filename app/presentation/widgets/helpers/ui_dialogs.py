@@ -8,9 +8,6 @@ def show_limited_access(
     """
     Show a standard 'Limited Access' info dialog for unsigned users.
 
-    The dialog message is assembled as:
-        "Your account is pending approval by the administrator.\n\n"
-        "{feature_message} until your account is approved."
     Args:
         parent (tk.Tk): The parent window for the messagebox.
         feature_message (str, optional): A custom message about the limited feature. Defaults to "".
@@ -77,3 +74,20 @@ def show_onboarding(parent: tk.Tk):
         "  - \U0001f4c8 Dashboard: Check your dashboard for statistics"
     )
     messagebox.showinfo(title, message, parent=parent)
+
+
+def show_confirmation(parent: tk.Tk, title: str, message: str) -> bool:
+    """
+    Show a confirmation dialog with Yes/No buttons.
+
+    Reusable confirmation dialog for all yes/no actions across the project.
+
+    Args:
+        parent (tk.Tk): The parent window for the messagebox.
+        title (str): The title of the messagebox.
+        message (str): The confirmation message to display.
+
+    Returns:
+        bool: True if user clicked Yes, False if clicked No.
+    """
+    return messagebox.askyesno(title, message, parent=parent)
