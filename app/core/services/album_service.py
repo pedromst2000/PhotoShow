@@ -49,7 +49,9 @@ class AlbumService:
         trimmed = name.strip() if name is not None else ""
         if not trimmed:
             raise ValueError("Album name is required")
-        if len(trimmed) > 50:
+        if (
+            len(trimmed) > 50
+        ):  # enforce max length at service level to prevent DB errors and provide user-friendly messages
             raise ValueError("Album name too long (max 50 characters)")
 
         # ensure user doesn't already have an album with the same name (case-insensitive)
