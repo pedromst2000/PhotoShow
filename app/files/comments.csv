@@ -1,16 +1,75 @@
 ﻿id,authorId,comment,photoId
-1,2,Absolutely stunning sunset at the Grand Canyon!,1
-2,4,Tokyo cherry blossoms enchanting!,2
-3,1,Bali beach vibes total serenity.,3
-4,3,Inca Trail magic to Machu Picchu!,4
-5,5,Wildflower meadow joy vibrant and alive.,6
-6,3,Waterfall beauty captured perfectly!,14
-7,2,Intense focus in that soccer kick love it!,3
-8,2,Marathon finish line triumph incredible!,7
-9,4,Snowboarding through powder so cool!,11
-10,5,Sunset surfing pure bliss captured!,15
-11,3,Street mural magic love the urban vibe!,4
-12,4,Art in nature a creative dialogue.,12
-13,2,Gallery reflections on contemporary art inspiring!,16
-14,4,Grand Canyon beauty in a frame simply breathtaking!,1
-15,5,Tokyos cherry blossoms transport me. Gorgeous shot!,2
+1,2,Absolutely stunning — those colors are unreal!,1
+2,4,"The composition draws me in, great work.",1
+3,1,"That sunset glow is perfect, amazing capture.",1
+4,3,"I could stare at this all day, beautiful framing.",1
+5,5,"Incredible perspective and tones, love it.",1
+6,6,The cherry blossoms look magical in this light.,2
+7,7,Love the depth of field here.,2
+8,8,Such soft colors and great mood.,2
+9,9,This shot makes me want to visit in spring.,2
+10,10,Perfect timing and color balance!,2
+11,11,Wonderful framing and detail.,18
+12,12,The mood in this image is fantastic.,18
+13,13,Stunning composition — great eye!,18
+14,14,This place is on my travel list now!,18
+15,15,"That light is gorgeous, very atmospheric.",18
+16,16,"Powerful photo, full of energy!",25
+17,1,"What an action shot, love the movement.",25
+18,2,Excellent timing and clarity.,25
+19,3,This image really captures the excitement.,25
+20,4,"Amazing moment, great capture!",25
+21,5,"Bali beach vibes, I can almost hear the waves.",3
+22,6,That sky and water combo is dreamy.,3
+23,7,Beautiful colors and composition.,3
+24,8,Fantastic jump and motion freeze.,11
+25,9,"Love the action, crisp and exciting.",11
+26,10,Great jump timing — awesome capture!,11
+27,11,This gallery shot has such a calming mood.,16
+28,12,Amazing composition and color here.,16
+29,13,"Color grading is wonderful, great mood.",16
+30,14,"Great action shot, crisp and exciting.",20
+31,15,"Perfect timing, clarity is excellent.",20
+32,16,The energy in this frame is fantastic.,20
+33,1,"This scene made me smile, amazing capture.",22
+34,2,Lovely tones and composition.,22
+35,3,"Wonderful moment, beautifully shot.",22
+36,4,Love the brush strokes and colors in this painting.,28
+37,5,This piece would be perfect on a gallery wall.,28
+38,6,"Great detail and texture, nicely captured.",28
+39,7,"Such vibrant wildflowers, brings me joy.",5
+40,8,Beautiful colors and natural framing.,5
+41,9,Alpine meadow looks peaceful and fresh.,6
+42,10,"Love the wide view, feels expansive.",6
+43,11,"Tropical vibes are strong here, stunning.",7
+44,12,"Looks so relaxing, great capture.",7
+45,13,Misty lake dock sets a serene mood.,8
+46,14,This composition is so calming.,8
+47,15,"Interesting sculpture, great shot.",9
+48,16,The reflections and shapes are beautiful.,9
+49,1,Downhill ski action looks intense and fun!,10
+50,2,Great action and exposure control.,10
+51,3,Beautiful interplay of art and nature.,12
+52,4,Lovely arrangement and lighting.,12
+53,5,Golden wave surf — pure bliss!,13
+54,6,The motion and light here are superb.,13
+55,7,Modern art gallery shot has great lines.,14
+56,8,Nice composition and perspective.,14
+57,9,Portrait on canvas looks very expressive.,15
+58,10,Lovely work and framing.,15
+59,11,"I feel like I'm there, gorgeous scene.",19
+60,12,"Beautiful texture, great eye for detail.",21
+61,13,Fantastic framing and natural light.,23
+62,14,"Stunning scenery, the light is perfect.",24
+63,15,"Such a calm and peaceful image, nicely done.",26
+64,16,The waterfall looks majestic here.,27
+65,1,Beautiful portrait with lovely expression.,29
+66,2,This road trip capture makes me want to pack my bags.,30
+67,3,"Incredible expression on the runner, feels real!",31
+68,4,This piece would be perfect on a gallery wall.,32
+69,5,I love the perspective in this landscape.,34
+70,6,Perfect getaway vibes in this shot.,35
+71,7,This scene has a tranquil charm.,36
+72,8,Fantastic subject and clarity.,37
+73,9,Great composition and color.,38
+74,10,Lovely detail and atmosphere.,39
