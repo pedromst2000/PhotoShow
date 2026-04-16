@@ -1,6 +1,7 @@
 from app.controllers.admin_controller import AdminController
 from app.controllers.album_controller import AlbumController
 from app.controllers.auth_controller import AuthController
+from app.controllers.explore_controller import ExploreController
 from app.controllers.notification_controller import NotificationController
 from app.controllers.photo_controller import PhotoController
 from app.controllers.profile_controller import ProfileController
@@ -16,4 +17,5 @@ __all__ = [
     "PhotoController",
     "NotificationController",
     "ReportController",
+    "ExploreController",
 ]
