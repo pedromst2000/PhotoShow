@@ -8,7 +8,7 @@ from app.core.db.engine import Base
 
 class CategoryModel(Base):
     """
-    CategoryModel represents a category in the database, with methods to create, retrieve, and delete categories.
+    CategoryModel represents a category in the database.
     """
 
     __tablename__: str = "categories"
@@ -81,12 +81,25 @@ class CategoryModel(Base):
         return obj.to_dict()
 
     @classmethod
-    def delete(cls, session: Session, category: str) -> None:
+    def update(cls, session: Session, category_id: int, new_name: str) -> dict:
         """
-        Delete a category from the database by name.
+        Update an existing category's name.
 
         Args:
             session: Active SQLAlchemy session.
-            category (str): The name of the category to delete.
+            category_id (int): The ID of the category to update.
+            new_name (str): The new name for the category (pre-validated).
+
+        Returns:
+            dict: A dictionary representation of the updated category.
+
+        Raises:
+            ValueError: If the category with the given ID does not exist.
         """
-        session.query(cls).filter_by(category=category).delete()
+        obj: CategoryModel = session.query(cls).filter_by(id=category_id).first()
+        if not obj:
+            raise ValueError("Category not found")
+
+        obj.category = new_name
+        session.flush()
+        return obj.to_dict()

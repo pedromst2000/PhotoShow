@@ -1,6 +1,7 @@
-from app.controllers.tree_view_controller import TreeViewController
+from app.controllers.ui.tree_view_controller import TreeViewController
 from app.presentation.views.explore.helpers.data.pagination import PaginationManager
 from app.presentation.views.explore.helpers.data.state import ExploreState
+from app.utils.log_utils import log_issue
 
 
 class PaginationUIController:
@@ -53,10 +54,7 @@ class PaginationUIController:
             total_pages = PaginationManager.get_total_pages(self.state)
             self._update_button_states(total_pages)
         except Exception as e:
-            print(f"[ERROR] PaginationUIController.refresh_ui: {e}")
-            import traceback
-
-            traceback.print_exc()
+            log_issue("PaginationUIController.refresh_ui failed", exc=e)
 
     def _update_button_states(self, total_pages: int) -> None:
         """

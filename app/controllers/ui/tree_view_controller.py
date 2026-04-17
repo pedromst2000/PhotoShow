@@ -2,6 +2,7 @@ from typing import Optional
 
 from app.presentation.views.explore.helpers.data.pagination import PaginationManager
 from app.presentation.views.explore.helpers.data.state import ExploreState
+from app.utils.log_utils import log_issue
 
 
 class TreeViewController:
@@ -53,11 +54,7 @@ class TreeViewController:
             # Force Tkinter to render changes immediately
             self._force_update()
         except Exception as e:
-            print(f"[ERROR] tree_view_controller.refresh_treeview: {e}")
-            print(f"[ERROR] tree_view_controller.refresh_treeview: {e}")
-            import traceback
-
-            traceback.print_exc()
+            log_issue("TreeViewController.refresh_treeview failed", exc=e)
 
     def _clear_tree(self) -> None:
         """Clear all items from tree."""
@@ -105,7 +102,10 @@ class TreeViewController:
                     "", "end", iid=str(local_idx), values=(album, author, category)
                 )
             except Exception as e:
-                print(f"[ERROR] _populate_tree item {local_idx}: {e}")
+                log_issue(
+                    f"TreeViewController._populate_tree failed at item {local_idx}",
+                    exc=e,
+                )
 
     def _force_update(self) -> None:
         """Force Tkinter to render tree changes immediately."""
@@ -140,5 +140,8 @@ class TreeViewController:
         try:
             self.state.tree.selection_set(str(local_idx))
             self.state.tree.see(str(local_idx))
-        except Exception:
-            pass  # Item not found, silently ignore
+        except Exception as e:
+            log_issue(
+                f"TreeViewController.update_selection failed for global_idx {global_idx}",
+                exc=e,
+            )

@@ -198,8 +198,10 @@ def checkLogin(
     loginWindow.destroy()
     Window.destroy()
 
-    # Navigate to appropriate home based on controller decision
-    destination = AuthController.get_post_login_destination()
+    # Navigate to appropriate home based on user blocked status
+    from app.controllers.helpers.auth_helpers import get_post_login_destination
+
+    destination = get_post_login_destination()
     if destination == "home_banned":
         homeBannedWindow()
     else:

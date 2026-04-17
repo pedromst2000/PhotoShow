@@ -1,9 +1,8 @@
 from typing import List, Optional, Tuple
 
-from app.core.db.engine import SessionLocal
-from app.core.db.models.album import AlbumModel
 from app.core.services.album_service import AlbumService
 from app.core.state.session import session
+from app.utils.log_utils import log_exception, log_operation
 
 
 class AlbumController:
@@ -26,13 +25,12 @@ class AlbumController:
             user_id: The user's ID. If None, uses current user.
 
         Returns:
-            list: List of album dictionaries.
+            List[dict]: List of album dictionaries.
         """
         target_user_id = user_id if user_id is not None else session.user_id
         if target_user_id is None:
             return []
-        with SessionLocal() as db:
-            return AlbumModel.get_by_creator(db, target_user_id)
+        return AlbumService.get_user_albums(target_user_id)
 
     @staticmethod
     def get_all_albums() -> List[dict]:
@@ -40,10 +38,9 @@ class AlbumController:
         Get all albums in the system.
 
         Returns:
-            list: List of all album dictionaries.
+            List[dict]: List of all album dictionaries.
         """
-        with SessionLocal() as db:
-            return AlbumModel.get_all(db)
+        return AlbumService.get_all_albums()
 
     @staticmethod
     def get_album(album_id: int) -> Optional[dict]:
@@ -54,10 +51,9 @@ class AlbumController:
             album_id: The album's ID.
 
         Returns:
-            dict or None: The album data if found.
+            Optional[dict]: The album data if found.
         """
-        with SessionLocal() as db:
-            return AlbumModel.get_by_id(db, album_id)
+        return AlbumService.get_album(album_id)
 
     @staticmethod
     def create_album(name: str) -> Tuple[bool, str]:
@@ -68,18 +64,39 @@ class AlbumController:
             name: The name for the new album.
 
         Returns:
-            Tuple of (success, message)
+            Tuple[bool, str]: Tuple of (success, message)
+
+        Raises:
+            Exception: Any unexpected error during album creation is caught and logged.
         """
         assert session.user_id is not None
 
         if not name or not name.strip():
+            log_operation(
+                "album.create_album",
+                "validation_error",
+                "Album name is required",
+                user_id=session.user_id,
+            )
             return False, "Album name is required"
 
         try:
             AlbumService.create_album(name.strip(), session.user_id)
+            log_operation(
+                "album.create_album",
+                "success",
+                f"Album '{name}' created",
+                user_id=session.user_id,
+            )
             return True, f"Album '{name}' created successfully"
         except Exception as e:
-            return False, f"Failed to create album: {str(e)}"
+            log_exception(
+                "album.create_album",
+                e,
+                user_id=session.user_id,
+                context={"album_name": name},
+            )
+            return False, "Something went wrong. Please try again later."
 
     @staticmethod
     def rename_album(album_id: int, new_name: str) -> Tuple[bool, str]:
@@ -91,20 +108,50 @@ class AlbumController:
             new_name: The new name for the album.
 
         Returns:
-            Tuple of (success, message)
+            Tuple[bool, str]: Tuple of (success, message)
+
+        Raises:
+            ValueError: If the new name is invalid or album is not found.
+            Exception: Any other unexpected error during renaming is caught and logged.
         """
         assert session.user_id is not None
 
         if not new_name or not new_name.strip():
+            log_operation(
+                "album.rename_album",
+                "validation_error",
+                "New album name is required",
+                user_id=session.user_id,
+            )
             return False, "New album name is required"
 
         try:
             AlbumService.rename_album_for_user(
                 session.user_id, album_id, new_name, session.is_admin
             )
+            log_operation(
+                "album.rename_album",
+                "success",
+                f"Album {album_id} renamed to '{new_name.strip()}'",
+                user_id=session.user_id,
+            )
             return True, f"Album renamed to '{new_name.strip()}'"
         except ValueError as e:
+            log_operation(
+                "album.rename_album",
+                "validation_error",
+                str(e),
+                user_id=session.user_id,
+            )
             return False, str(e)
+        except Exception as e:
+            log_exception(
+                "album.rename_album",
+                e,
+                user_id=session.user_id,
+                context={"album_id": album_id, "new_name": new_name},
+            )
+            return False, "Something went wrong. Please try again later."
 
     @staticmethod
     def delete_album(album_id: int) -> Tuple[bool, str]:
@@ -115,7 +162,11 @@ class AlbumController:
             album_id: The ID of the album to delete.
 
         Returns:
-            Tuple of (success, message)
+            Tuple[bool, str]: Tuple of (success, message)
+
+        Raises:
+            ValueError: If the album is not found or user lacks permissions.
+            Exception: Any other unexpected error during deletion is caught and logged.
         """
         assert session.user_id is not None
 
@@ -123,10 +174,36 @@ class AlbumController:
             if AlbumService.delete_album_for_user(
                 session.user_id, album_id, session.is_admin
             ):
+                log_operation(
+                    "album.delete_album",
+                    "success",
+                    f"Album {album_id} deleted",
+                    user_id=session.user_id,
+                )
                 return True, "Album deleted successfully"
+            log_operation(
+                "album.delete_album",
+                "failed",
+                f"Failed to delete album {album_id}",
+                user_id=session.user_id,
+            )
             return False, "Failed to delete album"
         except ValueError as e:
+            log_operation(
+                "album.delete_album",
+                "validation_error",
+                str(e),
+                user_id=session.user_id,
+            )
             return False, str(e)
+        except Exception as e:
+            log_exception(
+                "album.delete_album",
+                e,
+                user_id=session.user_id,
+                context={"album_id": album_id},
+            )
+            return False, "Something went wrong. Please try again later."
 
     @staticmethod
     def get_album_id_by_name(
@@ -156,7 +233,7 @@ class AlbumController:
             user_id: The user's ID. If None, uses current user.
 
         Returns:
-            list: List of dicts with albumID and name.
+            List[dict]: List of dicts with albumID and name.
         """
         target_user_id = user_id if user_id is not None else session.user_id
         if target_user_id is None:

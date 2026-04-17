@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from app.controllers.admin_controller import AdminController
+from app.controllers.user_controller import UserController
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.widgets.lists import insert_contacts
@@ -41,7 +41,7 @@ def contactsWindow():
 
     listContactsLabel.place(x=40, y=60)
     # ----------------------Contacts List ----------------------
-    contacts: list = AdminController.get_contacts()
+    contacts: list = UserController.get_contacts()
 
     listUsers: tk.Listbox = tk.Listbox(
         _contactsWindow_,

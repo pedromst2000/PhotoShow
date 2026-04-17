@@ -1,10 +1,9 @@
 from typing import List, Optional, Tuple
 
-from app.core.db.engine import SessionLocal
-from app.core.db.models.category import CategoryModel
-from app.core.db.models.like import LikeModel
+from app.core.services.catalog_service import CatalogService
 from app.core.services.photo_service import PhotoService
 from app.core.state.session import session
+from app.utils.log_utils import log_exception, log_operation
 
 
 class ExploreController:
@@ -15,7 +14,6 @@ class ExploreController:
     - Loading the photo catalog with filters and sorting
     - Toggling likes on photos
     - Rating photos
-    - Retrieving category options for the filter dropdown
     """
 
     @staticmethod
@@ -33,9 +31,9 @@ class ExploreController:
             username: Author username to filter by, or None.
 
         Returns:
-            list: Enriched photo dicts with image, stats, and user flags.
+            List[dict]: Enriched photo dicts with image, stats, and user flags.
         """
-        return PhotoService.get_explore_catalog(
+        return CatalogService.get_explore_catalog(
             sort_by=sort_by,
             category=category,
             username=username,
@@ -52,21 +50,53 @@ class ExploreController:
 
         Returns:
             Tuple[bool, str, bool]: (success, message, is_liked_now)
+
+        Raises:
+            Exception: Any unexpected error during toggle operation is caught and logged.
         """
         user_id = session.user_id
 
         if user_id is None:
+            log_operation(
+                "explore.toggle_like", "validation_error", "Authentication required"
+            )
             return False, "Authentication required", False
 
-        with SessionLocal() as db:
-            already_liked = LikeModel.has_liked(db, user_id, photo_id)
+        try:
+            already_liked = PhotoService.check_if_liked(user_id, photo_id)
 
-        if already_liked:
-            success = PhotoService.unlike_photo(user_id, photo_id)
-            return success, "Photo unliked" if success else "Failed to unlike", False
-        else:
-            success = PhotoService.like_photo(user_id, photo_id)
-            return success, "Photo liked" if success else "Failed to like", True
+            if already_liked:
+                success = PhotoService.unlike_photo(user_id, photo_id)
+                if success:
+                    log_operation(
+                        "explore.toggle_like",
+                        "success",
+                        f"Photo {photo_id} unliked",
+                        user_id=user_id,
+                    )
+                return (
+                    success,
+                    "Photo unliked" if success else "Failed to unlike",
+                    False,
+                )
+            else:
+                success = PhotoService.like_photo(user_id, photo_id)
+                if success:
+                    log_operation(
+                        "explore.toggle_like",
+                        "success",
+                        f"Photo {photo_id} liked",
+                        user_id=user_id,
+                    )
+                return success, "Photo liked" if success else "Failed to like", True
+        except Exception as e:
+            log_exception(
+                "explore.toggle_like",
+                e,
+                user_id=user_id,
+                context={"photo_id": photo_id},
+            )
+            return False, "Something went wrong. Please try again later.", False
 
     @staticmethod
     def rate_photo(photo_id: int, rating_value: int) -> Tuple[bool, str]:
@@ -79,15 +109,33 @@ class ExploreController:
 
         Returns:
             Tuple[bool, str]: (success, message)
+
+        Raises:
+            Exception: Any unexpected error during rating operation is caught and logged.
         """
         user_id = session.user_id
         if user_id is None:
+            log_operation(
+                "explore.rate_photo", "validation_error", "Authentication required"
+            )
             return False, "Authentication required"
         try:
             PhotoService.rate_photo(user_id, photo_id, rating_value)
+            log_operation(
+                "explore.rate_photo",
+                "success",
+                f"Photo {photo_id} rated {rating_value}/5",
+                user_id=user_id,
+            )
             return True, "Rating submitted"
         except Exception as exc:
-            return False, str(exc)
+            log_exception(
+                "explore.rate_photo",
+                exc,
+                user_id=user_id,
+                context={"photo_id": photo_id, "rating_value": rating_value},
+            )
+            return False, "Something went wrong. Please try again later."
 
     @staticmethod
     def get_photo_by_id(photo_id: int) -> Optional[dict]:
@@ -98,24 +146,6 @@ class ExploreController:
             photo_id: The ID of the photo.
 
         Returns:
-            dict: Keys avg_rating, rating_count, weighted_rating.
+            Optional[dict]: Keys avg_rating, rating_count, weighted_rating.
         """
         return PhotoService.get_photo_rating_stats(photo_id)
-
-    @staticmethod
-    def get_categories() -> List[str]:
-        """
-        Return all available category names for the filter dropdown.
-
-        Returns a list with "All" as the first option, followed by actual categories
-        (deduped case-insensitively). This ensures consistent dropdown behavior across
-        the UI without redundant logic in widgets.
-
-        Returns:
-            list[str]: ["All"] followed by sorted category names (no duplicates).
-        """
-        with SessionLocal() as db:
-            categories = sorted(c["category"] for c in CategoryModel.get_all(db))
-            # Ensure "All" is first and remove case-insensitive duplicates
-            categories = ["All"] + [c for c in categories if c.lower() != "all"]
-            return categories

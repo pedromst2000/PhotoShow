@@ -3,7 +3,7 @@ import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
 from typing import Any, Callable
 
-from app.controllers.profile_controller import ProfileController
+from app.controllers.user_controller import UserController
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
@@ -80,10 +80,10 @@ def _saveAvatar_(event: Callable[..., Any], avatar: str):
     # slicing the path to get only the image name
     avatar_filename: str = avatar.split("/")[-1]
 
-    success, message = ProfileController.update_avatar(avatar_filename)
+    success, message = UserController.update_avatar(avatar_filename)
 
     if success:
-        ProfileController.refresh_session_data()
+        UserController.refresh_session_data()
         messagebox.showinfo("Success", message)
     else:
         messagebox.showerror("Error", message)

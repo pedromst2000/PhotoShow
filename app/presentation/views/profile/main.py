@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from app.controllers.profile_controller import ProfileController
+from app.controllers.user_controller import UserController
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
@@ -30,7 +30,7 @@ def profileWindow():
     userID: int = session.user_id
     userPayload: dict = session.user_data
 
-    stats: dict = ProfileController.get_profile_stats(userID)
+    stats: dict = UserController.get_profile_stats(userID)
     follower_count: int = stats["follower_count"]
     photo_count: int = stats["photo_count"]
 
