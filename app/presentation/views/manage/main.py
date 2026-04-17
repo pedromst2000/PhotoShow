@@ -2,7 +2,8 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 import tkinter.ttk as ttk
 
-from app.controllers.admin_controller import AdminController
+from app.controllers.category_controller import CategoryController
+from app.controllers.user_controller import UserController
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
@@ -42,8 +43,8 @@ def manageWindow():
     # global variables
     roles: list = ["select role", "unsigned", "regular"]
     status: list = ["select status", "blocked", "unblocked"]
-    users: list = AdminController.get_manageable_users()
-    categories: list = AdminController.get_categories()
+    users: list = UserController.get_manageable_users()
+    categories: list = CategoryController.get_categories()
 
     initialRoleVal: tk.StringVar = tk.StringVar()
     initialStatusVal: tk.StringVar = tk.StringVar()
@@ -429,15 +430,22 @@ def manageWindow():
     # -------------------------------------------------------------------------
     # trigger events OnClick
 
+    def _is_valid_email_(email: str) -> bool:
+        """Basic email format validation."""
+        import re
+
+        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        return re.match(pattern, email) is not None
+
     def _filter_users_(event: tk.Event):
         username: str = filterUsernameInput.get()
         email: str = filterEmailInput.get()
-        if email and not AdminController.is_valid_email_format(email):
+        if email and not _is_valid_email_(email):
             messagebox.showerror(
                 "Error", "Please enter a valid email.", parent=_manageWindow_
             )
             return
-        filtered: list = AdminController.filter_users(username, email)
+        filtered: list = UserController.filter_users(username, email)
         usersTable.delete(*usersTable.get_children())
         for user in filtered:
             usersTable.insert(
@@ -471,10 +479,10 @@ def manageWindow():
                 "Error", f'"{username}" is already {new_role}.', parent=_manageWindow_
             )
             return
-        success, msg = AdminController.change_user_role(username, new_role)
+        success, msg = UserController.change_user_role(username, new_role)
         if success:
             messagebox.showinfo("Success", msg, parent=_manageWindow_)
-            updated: list = AdminController.get_manageable_users()
+            updated: list = UserController.get_manageable_users()
             usersTable.delete(*usersTable.get_children())
             for user in updated:
                 usersTable.insert(
@@ -515,12 +523,12 @@ def manageWindow():
             )
             return
         if new_status == "blocked":
-            success, msg = AdminController.block_user(username)
+            success, msg = UserController.block_user(username)
         else:
-            success, msg = AdminController.unblock_user(username)
+            success, msg = UserController.unblock_user(username)
         if success:
             messagebox.showinfo("Success", msg, parent=_manageWindow_)
-            updated: list = AdminController.get_manageable_users()
+            updated: list = UserController.get_manageable_users()
             usersTable.delete(*usersTable.get_children())
             for user in updated:
                 usersTable.insert(
@@ -537,7 +545,7 @@ def manageWindow():
             messagebox.showerror("Error", msg, parent=_manageWindow_)
 
     def _add_category_(event: tk.Event):
-        success, msg = AdminController.add_category(categoryInput.get())
+        success, msg = CategoryController.add_category(categoryInput.get())
         if success:
             messagebox.showinfo("Success", msg, parent=_manageWindow_)
             categoriesList.insert("end", categoryInput.get())
@@ -558,12 +566,11 @@ def manageWindow():
             parent=_manageWindow_,
         ):
             return
-        success, msg = AdminController.delete_category(selected)
-        if success:
-            messagebox.showinfo("Success", msg, parent=_manageWindow_)
-            categoriesList.delete(categoriesList.curselection())
-        else:
-            messagebox.showerror("Error", msg, parent=_manageWindow_)
+        messagebox.showinfo(
+            "Info",
+            "Delete category feature not implemented yet.",
+            parent=_manageWindow_,
+        )
 
     btnAddCategory.bind("<Button-1>", _add_category_)
 

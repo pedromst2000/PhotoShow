@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 from app.core.services.auth_service import AuthService
 from app.core.state.session import session
 from app.utils.file_utils import resolve_avatar_path
+from app.utils.log_utils import log_exception, log_operation
 
 
 class AuthController:
@@ -34,48 +35,57 @@ class AuthController:
             - success (bool): Whether login was successful
             - message (str): Status message for display
             - user_data (dict|None): User data if successful
+
+        Raises:
+            Exception: Any unexpected error during authentication is caught and logged.
         """
         # Validate inputs
         if not email or not password:
+            log_operation("auth.login", "validation_error", "Missing email or password")
             return False, "Email and password are required", None
 
         if not AuthService.validate_email_format(email):
+            log_operation(
+                "auth.login", "validation_error", f"Invalid email format: {email}"
+            )
             return False, "Invalid email format", None
 
         # Attempt authentication
-        user = AuthService.authenticate(email, password)
+        try:
+            user = AuthService.authenticate(email, password)
 
-        if user is None:
-            # Return a consistent 3-tuple: (success, message, user_data).
-            # `user_data` is `None` on failures to avoid leaking which part failed.
-            return False, "Invalid credentials", None
+            if user is None:
+                # Return a consistent 3-tuple: (success, message, user_data).
+                # `user_data` is `None` on failures to avoid leaking which part failed.
+                log_operation("auth.login", "validation_error", "Invalid credentials")
+                return False, "Invalid credentials", None
 
-        # Normalize avatar path so presentation code can open it reliably
-        user["avatar"] = resolve_avatar_path(user.get("avatar"))
+            # Normalize avatar path so presentation code can open it reliably
+            user["avatar"] = resolve_avatar_path(user.get("avatar"))
 
-        # Check if user is blocked
-        if user.get("isBlocked", False):
-            # Still login but flag as blocked
+            # Check if user is blocked
+            if user.get("isBlocked", False):
+                # Still login but flag as blocked
+                session.login(user, is_new_user=False)
+                log_operation(
+                    "auth.login",
+                    "success",
+                    "User logged in (account restricted)",
+                    user_id=user["id"],
+                )
+                return (
+                    True,
+                    f"Welcome back {user['username']} (Account restricted)",
+                    user,
+                )
+
+            # Successful login - update session
             session.login(user, is_new_user=False)
-            return True, f"Welcome back {user['username']} (Account restricted)", user
-
-        # Successful login - update session
-        session.login(user, is_new_user=False)
-        return True, f"Welcome back {user['username']}", user
-
-    @staticmethod
-    def get_post_login_destination() -> str:
-        """
-        Helper to determine the view destination after a successful login.
-
-        Returns:
-            str: 'home_banned' when the user is blocked, otherwise 'home'.
-
-        This keeps the routing decision in the controller layer while leaving
-        the actual view navigation to the presentation layer, avoiding
-        circular imports.
-        """
-        return "home_banned" if AuthController.is_current_user_blocked() else "home"
+            log_operation("auth.login", "success", "User logged in", user_id=user["id"])
+            return True, f"Welcome back {user['username']}", user
+        except Exception as e:
+            log_exception("auth.login", e, context={"email": email})
+            return False, "Something went wrong. Please try again later.", None
 
     @staticmethod
     def register(
@@ -90,16 +100,27 @@ class AuthController:
             password: The user's password.
 
         Returns:
-            Tuple of (success, message, user_data):
+            Tuple[bool, str, Optional[dict]]: Tuple of (success, message, user_data)
             - success (bool): Whether registration was successful
             - message (str): Status message for display
-            - user_data (dict|None): New user data if successful
+            - user_data (Optional[dict]): New user data if successful
+
+        Raises:
+            Exception: Any unexpected error during registration is caught and logged.
         """
 
         if not username or not email or not password:
+            log_operation(
+                "auth.register", "validation_error", "Missing required fields"
+            )
             return False, "All fields are required", None
 
         if not AuthService.validate_username_format(username):
+            log_operation(
+                "auth.register",
+                "validation_error",
+                f"Invalid username format: {username}",
+            )
             return (
                 False,
                 "Invalid username. Use only letters (A-Z, a-z), digits (0-9), underscore (_), dot (.), and hyphen (-). No spaces or other characters. Username must include at least one letter.",
@@ -107,21 +128,38 @@ class AuthController:
             )
 
         if not AuthService.validate_email_format(email):
+            log_operation(
+                "auth.register", "validation_error", f"Invalid email format: {email}"
+            )
             return False, "Invalid email format", None
 
         # Validate password format with strong security rules
         password_valid, password_error = AuthService.validate_password_format(password)
         if not password_valid:
+            log_operation(
+                "auth.register", "validation_error", "Invalid password format"
+            )
             return False, (password_error or "Invalid password"), None
 
         # Check availability
         if not AuthService.is_username_available(username):
+            log_operation(
+                "auth.register",
+                "validation_error",
+                f"Username already taken: {username}",
+            )
             return False, "Username is already taken", None
 
         if not AuthService.is_email_available(email):
+            log_operation(
+                "auth.register",
+                "validation_error",
+                f"Email already registered: {email}",
+            )
             return False, "Email is already registered", None
 
         if not AuthService.is_password_available(password):
+            log_operation("auth.register", "validation_error", "Password is too common")
             return (
                 False,
                 "Password is too common. Please choose a stronger password.",
@@ -135,9 +173,17 @@ class AuthController:
             user["avatar"] = resolve_avatar_path(user.get("avatar"))
             # Auto-login after registration
             session.login(user, is_new_user=True)
+            log_operation(
+                "auth.register",
+                "success",
+                "User registered and logged in",
+                user_id=user["id"],
+            )
             return True, f"Welcome {username}! Your account has been created.", user
-        except Exception:
-            # Keep the return shape consistent and avoid exposing internals.
+        except Exception as e:
+            log_exception(
+                "auth.register", e, context={"username": username, "email": email}
+            )
             return (
                 False,
                 "Registration failed: Something went wrong! Try again later.",
@@ -151,7 +197,7 @@ class AuthController:
         Process user logout request.
 
         Returns:
-            Tuple of (success, message)
+            Tuple[bool, str]: Tuple of (success, message)
         """
         session.logout()
         return True, "You have been logged out"

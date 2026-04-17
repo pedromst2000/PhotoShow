@@ -2,12 +2,12 @@ import tkinter as tk
 from typing import Callable, Optional
 
 from app.core.state.session import session
-from app.presentation.views.dashboard.dashboard import dashboardWindow
-from app.presentation.views.explore.explore import exploreWindow
-from app.presentation.views.manage.manage import manageWindow
-from app.presentation.views.notifications.notifications import notificationsWindow
-from app.presentation.views.profile.profile import profileWindow
-from app.presentation.views.settings.settings import settingsWindow
+from app.presentation.views.dashboard.main import dashboardWindow
+from app.presentation.views.explore.main import exploreWindow
+from app.presentation.views.manage.main import manageWindow
+from app.presentation.views.notifications.main import notificationsWindow
+from app.presentation.views.profile.main import profileWindow
+from app.presentation.views.settings.main import settingsWindow
 from app.presentation.widgets.menu_button import create_menu_button
 
 from .helpers.menu_button_state import MenuButtonStateManager

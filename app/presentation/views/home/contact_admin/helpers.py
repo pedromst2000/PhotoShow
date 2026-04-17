@@ -1,7 +1,7 @@
 import tkinter as tk
 from typing import Optional
 
-from app.controllers.profile_controller import ProfileController
+from app.controllers.user_controller import UserController
 from app.presentation.styles.colors import colors
 from app.presentation.widgets.helpers.ui_dialogs import show_error, show_info
 
@@ -95,7 +95,7 @@ def submit_contact_admin(
         message_text: The ScrollableText widget containing the message.
         e: Optional event parameter for key binding.
     """
-    success, msg = ProfileController.contact_admin(
+    success, msg = UserController.contact_admin(
         title_entry.get(), message_text.get("1.0", "end-1c")
     )
 

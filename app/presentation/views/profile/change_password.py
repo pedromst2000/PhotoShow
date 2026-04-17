@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 from typing import Optional
 
-from app.controllers.profile_controller import ProfileController
+from app.controllers.user_controller import UserController
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
@@ -154,7 +154,7 @@ def changePasswordWindow():
     # ---------------------- Events -----------------------------------
 
     def _submit_(event: Optional[tk.Event] = None):
-        success, message = ProfileController.change_password(
+        success, message = UserController.change_password(
             inputCurrentPassword.get(),
             inputNewPassword.get(),
             inputConfirmPassword.get(),

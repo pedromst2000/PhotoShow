@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Optional
 
-from app.controllers.pagination_controller import PaginationUIController
+from app.controllers.ui.pagination_controller import PaginationUIController
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.views.explore.helpers.ui.treeview import on_treeview_select

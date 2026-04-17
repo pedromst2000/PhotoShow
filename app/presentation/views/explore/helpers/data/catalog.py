@@ -1,5 +1,5 @@
 from app.controllers.explore_controller import ExploreController
-from app.core.services.photo_service import PhotoService
+from app.core.services.catalog_service import CatalogService
 from app.presentation.views.explore.helpers.data.pagination import PaginationManager
 from app.presentation.views.explore.helpers.data.state import ExploreState
 from app.presentation.views.explore.helpers.ui.preview import reset_preview
@@ -68,7 +68,7 @@ def _get_filtered_photos(
     # Load catalog from cache OR fetch it once and cache
     if _cache_key != current_key or current_key not in _catalog_cache:
         # Cache miss: fetch and sort the full catalog ONCE (expensive operation)
-        all_filtered = PhotoService.get_explore_catalog(
+        all_filtered = CatalogService.get_explore_catalog(
             sort_by=sort_key,
             category=category,
             username=author,
@@ -171,7 +171,7 @@ def load_catalog(state: ExploreState):
         total_count = len(all_filtered)
     else:
         # For regular/admin users, use the full count
-        total_count = PhotoService.count_filtered_photos(
+        total_count = CatalogService.count_filtered_photos(
             category=category,
             username=author,
         )

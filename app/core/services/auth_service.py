@@ -7,6 +7,7 @@ from app.core.db.engine import SessionLocal
 from app.core.db.models.avatar import AvatarModel
 from app.core.db.models.role import RoleModel
 from app.core.db.models.user import UserModel
+from app.utils.log_utils import log_exception, log_operation
 
 _DEFAULT_AVATAR = "assets/images/profile_avatars/default_avatar.png"
 
@@ -40,18 +41,42 @@ class AuthService:
 
         Returns:
             dict: The user data if authentication is successful, None otherwise.
-        """
-        with SessionLocal() as session:
-            user = UserModel.get_by_email(session, email)
-            if user is None:
-                return None
 
-            # Verify password using bcrypt
-            if bcrypt.checkpw(
-                password.encode("utf-8"), user["password"].encode("utf-8")
-            ):
-                return user
-            return None  # Authentication failed
+        Raises:
+            Exception: Any unexpected error during authentication is caught and logged; None returned.
+        """
+        try:
+            with SessionLocal() as session:
+                user = UserModel.get_by_email(session, email)
+                if user is None:
+                    log_operation(
+                        "auth.authenticate",
+                        "validation_error",
+                        f"Authentication failed for email: {email}",
+                    )
+                    return None
+
+                # Verify password using bcrypt
+                if bcrypt.checkpw(
+                    password.encode("utf-8"), user["password"].encode("utf-8")
+                ):
+                    log_operation(
+                        "auth.authenticate",
+                        "success",
+                        f"User authenticated: {email}",
+                        user_id=user["id"],
+                    )
+                    return user
+                else:
+                    log_operation(
+                        "auth.authenticate",
+                        "validation_error",
+                        f"Wrong password for email: {email}",
+                    )
+                    return None  # Authentication failed
+        except Exception as e:
+            log_exception("auth.authenticate", e, context={"email": email})
+            return None
 
     @staticmethod
     def register_user(username: str, email: str, password: str) -> dict:
@@ -68,28 +93,51 @@ class AuthService:
 
         Raises:
             ValueError: If username or email already exists.
+            Exception: Any unexpected database error is caught and logged, then re-raised.
         """
-        # Hash the password
-        hashed_password: str = bcrypt.hashpw(
-            password.encode("utf-8"), bcrypt.gensalt()
-        ).decode("utf-8")
+        try:
+            # Hash the password
+            hashed_password: str = bcrypt.hashpw(
+                password.encode("utf-8"), bcrypt.gensalt()
+            ).decode("utf-8")
 
-        with SessionLocal() as session:
-            unsigned_role = RoleModel.get_by_name(session, "unsigned")
-            # Create user in database
-            user = UserModel.create(
-                session,
-                username=username,
-                email=email,
-                password=hashed_password,
-                roleId=unsigned_role["id"] if unsigned_role else None,
-                isBlocked=False,
+            with SessionLocal() as session:
+                unsigned_role = RoleModel.get_by_name(session, "unsigned")
+                # Create user in database
+                user = UserModel.create(
+                    session,
+                    username=username,
+                    email=email,
+                    password=hashed_password,
+                    roleId=unsigned_role["id"] if unsigned_role else None,
+                    isBlocked=False,
+                )
+                # Create default avatar (was previously inside UserModel.create)
+                AvatarModel.create(session, user["id"], _DEFAULT_AVATAR)
+                session.commit()
+                # Re-fetch after commit so the returned dict includes the avatar
+                result = UserModel.get_by_id(session, user["id"])  # type: ignore[return-value]
+            if result is None:
+                raise ValueError("Failed to retrieve created user")
+            log_operation(
+                "auth.register_user",
+                "success",
+                f"User registered: {username}",
+                user_id=result["id"],
             )
-            # Create default avatar (was previously inside UserModel.create)
-            AvatarModel.create(session, user["id"], _DEFAULT_AVATAR)
-            session.commit()
-            # Re-fetch after commit so the returned dict includes the avatar
-            return UserModel.get_by_id(session, user["id"])  # type: ignore[return-value]
+            return result
+        except ValueError as e:
+            log_operation(
+                "auth.register_user",
+                "validation_error",
+                f"Registration validation failed: {str(e)}",
+            )
+            raise
+        except Exception as e:
+            log_exception(
+                "auth.register_user", e, context={"username": username, "email": email}
+            )
+            raise
 
     @staticmethod
     def validate_email_format(email: str) -> bool:
@@ -191,6 +239,9 @@ class AuthService:
             password: The plaintext password to check.
         Returns:
             bool: True if password is available (not taken), False if already taken.
+
+        Raises:
+            Exception: Any database error is caught; True (password available) is returned safely.
         """
         try:
             with SessionLocal() as session:

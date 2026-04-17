@@ -1,4 +1,5 @@
 import re as regex
+from typing import Optional
 
 from app.core.db.engine import SessionLocal
 from app.core.db.models.album import AlbumModel
@@ -8,6 +9,7 @@ from app.core.db.models.follow import FollowModel
 from app.core.db.models.photo import PhotoModel
 from app.core.db.models.role import RoleModel
 from app.core.db.models.user import UserModel
+from app.utils.log_utils import log_exception, log_operation
 
 
 class UserService:
@@ -33,21 +35,78 @@ class UserService:
 
         Combines FollowModel, AlbumModel, and PhotoModel in one session —
         a real use-case representing the data needed for the profile page.
+
+        Raises:
+            Exception: Any database error is caught and logged; defaults returned.
         """
-        with SessionLocal() as session:
-            follower_count = FollowModel.count_followers(session, user_id)
-            albums = AlbumModel.get_by_creator(session, user_id)
-            photo_count = sum(
-                len(PhotoModel.get_by_album(session, a["id"])) for a in albums
+        try:
+            with SessionLocal() as session:
+                follower_count = FollowModel.count_followers(session, user_id)
+                albums = AlbumModel.get_by_creator(session, user_id)
+                photo_count = sum(
+                    len(PhotoModel.get_by_album(session, a["id"])) for a in albums
+                )
+            log_operation(
+                "user.get_profile_stats",
+                "success",
+                f"Retrieved stats for user {user_id}",
+                user_id=user_id,
             )
-        return {"follower_count": follower_count, "photo_count": photo_count}
+            return {"follower_count": follower_count, "photo_count": photo_count}
+        except Exception as e:
+            log_exception("user.get_profile_stats", e, user_id=user_id)
+            return {"follower_count": 0, "photo_count": 0}
+
+    @staticmethod
+    def get_all_users() -> list:
+        """
+        Get all users in the system.
+
+        Returns:
+            list: List of all user dictionaries.
+
+        Raises:
+            Exception: Any database error is caught and logged; empty list returned.
+        """
+        try:
+            with SessionLocal() as session:
+                users = UserModel.get_all(session)
+            log_operation(
+                "user.get_all_users", "success", f"Retrieved {len(users)} users"
+            )
+            return users
+        except Exception as e:
+            log_exception("user.get_all_users", e)
+            return []
 
     @staticmethod
     def delete_user(user_id: int) -> bool:
-        with SessionLocal() as session:
-            result = UserModel.delete(session, user_id)
-            session.commit()
+        """
+        Delete a user by ID.
+
+        Args:
+            user_id: The ID of the user to delete.
+
+        Returns:
+            bool: True if deleted successfully, False otherwise.
+
+        Raises:
+            Exception: Any database error is caught and logged; False returned.
+        """
+        try:
+            with SessionLocal() as session:
+                result = UserModel.delete(session, user_id)
+                session.commit()
+            if result:
+                log_operation("user.delete_user", "success", f"Deleted user {user_id}")
+            else:
+                log_operation(
+                    "user.delete_user", "validation_error", f"User {user_id} not found"
+                )
             return result
+        except Exception as e:
+            log_exception("user.delete_user", e, context={"user_id": user_id})
+            return False
 
     @staticmethod
     def get_user_list_for_admin() -> list:
@@ -57,20 +116,33 @@ class UserService:
 
         Returns:
             list: List of user dicts with userID, username, email, role, avatar, isBlocked.
+
+        Raises:
+            Exception: Any database error is caught and logged; empty list returned.
         """
-        with SessionLocal() as session:
-            return [
-                {
-                    "id": user["id"],
-                    "username": user["username"],
-                    "email": user["email"],
-                    "role": user["role"],
-                    "avatar": user["avatar"],
-                    "isBlocked": user["isBlocked"],
-                }
-                for user in UserModel.get_all(session)
-                if user["role"] != "admin"
-            ]
+        try:
+            with SessionLocal() as session:
+                users = [
+                    {
+                        "id": user["id"],
+                        "username": user["username"],
+                        "email": user["email"],
+                        "role": user["role"],
+                        "avatar": user["avatar"],
+                        "isBlocked": user["isBlocked"],
+                    }
+                    for user in UserModel.get_all(session)
+                    if user["role"] != "admin"
+                ]
+            log_operation(
+                "user.get_user_list_for_admin",
+                "success",
+                f"Retrieved {len(users)} users for admin",
+            )
+            return users
+        except Exception as e:
+            log_exception("user.get_user_list_for_admin", e)
+            return []
 
     @staticmethod
     def update_avatar(user_id: int, avatar_filename: str) -> bool:
@@ -83,12 +155,38 @@ class UserService:
 
         Returns:
             bool: True if updated successfully, False otherwise.
+
+        Raises:
+            Exception: Any database error is caught and logged; False returned.
         """
-        avatar_path = f"assets/images/profile_avatars/{avatar_filename}"
-        with SessionLocal() as session:
-            result = AvatarModel.create(session, user_id, avatar_path)
-            session.commit()
-        return result is not None
+        try:
+            avatar_path = f"assets/images/profile_avatars/{avatar_filename}"
+            with SessionLocal() as session:
+                result = AvatarModel.create(session, user_id, avatar_path)
+                session.commit()
+            if result:
+                log_operation(
+                    "user.update_avatar",
+                    "success",
+                    f"Updated avatar for user {user_id}",
+                    user_id=user_id,
+                )
+            else:
+                log_operation(
+                    "user.update_avatar",
+                    "validation_error",
+                    f"Failed to update avatar for user {user_id}",
+                    user_id=user_id,
+                )
+            return result is not None
+        except Exception as e:
+            log_exception(
+                "user.update_avatar",
+                e,
+                user_id=user_id,
+                context={"filename": avatar_filename},
+            )
+            return False
 
     @staticmethod
     def change_role(username: str, new_role: str) -> bool:
@@ -104,21 +202,53 @@ class UserService:
 
         Raises:
             ValueError: If new_role is not a valid assignable role.
+            Exception: Any database error is caught and logged; False returned.
         """
-        VALID_ROLES = ["regular", "unsigned"]
-        if new_role not in VALID_ROLES:
-            raise ValueError(f"Invalid role. Must be one of: {', '.join(VALID_ROLES)}")
+        try:
+            VALID_ROLES = ["regular", "unsigned"]
+            if new_role not in VALID_ROLES:
+                log_operation(
+                    "user.change_role", "validation_error", f"Invalid role: {new_role}"
+                )
+                raise ValueError(
+                    f"Invalid role. Must be one of: {', '.join(VALID_ROLES)}"
+                )
 
-        with SessionLocal() as session:
-            user = UserModel.get_by_username(session, username)
-            if not user:
-                return False
-            role = RoleModel.get_by_name(session, new_role)
-            if not role:
-                return False
-            UserModel.update(session, {**user, "roleId": role["id"]})
-            session.commit()
-        return True
+            with SessionLocal() as session:
+                user = UserModel.get_by_username(session, username)
+                if not user:
+                    log_operation(
+                        "user.change_role",
+                        "validation_error",
+                        f"User '{username}' not found",
+                    )
+                    return False
+                role = RoleModel.get_by_name(session, new_role)
+                if not role:
+                    log_operation(
+                        "user.change_role",
+                        "validation_error",
+                        f"Role '{new_role}' not found",
+                    )
+                    return False
+                UserModel.update(session, {**user, "roleId": role["id"]})
+                session.commit()
+            log_operation(
+                "user.change_role",
+                "success",
+                f"Changed role for user '{username}' to '{new_role}'",
+                user_id=user["id"],
+            )
+            return True
+        except ValueError:
+            raise
+        except Exception as e:
+            log_exception(
+                "user.change_role",
+                e,
+                context={"username": username, "new_role": new_role},
+            )
+            return False
 
     @staticmethod
     def block_user(username: str) -> bool:
@@ -130,16 +260,43 @@ class UserService:
 
         Returns:
             bool: True if blocked successfully, False otherwise.
+
+        Raises:
+            ValueError: If user is already blocked.
+            Exception: Any database error is caught and logged; False returned.
         """
-        with SessionLocal() as session:
-            user = UserModel.get_by_username(session, username)
-            if not user:
-                return False
-            if user["isBlocked"]:
-                raise ValueError(f'"{username}" is already blocked.')
-            result = UserModel.set_blocked(session, user["id"], True)
-            session.commit()
+        try:
+            with SessionLocal() as session:
+                user = UserModel.get_by_username(session, username)
+                if not user:
+                    log_operation(
+                        "user.block_user",
+                        "validation_error",
+                        f"User '{username}' not found",
+                    )
+                    return False
+                if user["isBlocked"]:
+                    log_operation(
+                        "user.block_user",
+                        "validation_error",
+                        f"User '{username}' is already blocked",
+                        user_id=user["id"],
+                    )
+                    raise ValueError(f'"{username}" is already blocked.')
+                result = UserModel.set_blocked(session, user["id"], True)
+                session.commit()
+            log_operation(
+                "user.block_user",
+                "success",
+                f"Blocked user '{username}'",
+                user_id=user["id"],
+            )
             return result
+        except ValueError:
+            raise
+        except Exception as e:
+            log_exception("user.block_user", e, context={"username": username})
+            return False
 
     @staticmethod
     def unblock_user(username: str) -> bool:
@@ -151,16 +308,43 @@ class UserService:
 
         Returns:
             bool: True if unblocked successfully, False otherwise.
+
+        Raises:
+            ValueError: If user is already unblocked.
+            Exception: Any database error is caught and logged; False returned.
         """
-        with SessionLocal() as session:
-            user = UserModel.get_by_username(session, username)
-            if not user:
-                return False
-            if not user["isBlocked"]:
-                raise ValueError(f'"{username}" is already unblocked.')
-            result = UserModel.set_blocked(session, user["id"], False)
-            session.commit()
+        try:
+            with SessionLocal() as session:
+                user = UserModel.get_by_username(session, username)
+                if not user:
+                    log_operation(
+                        "user.unblock_user",
+                        "validation_error",
+                        f"User '{username}' not found",
+                    )
+                    return False
+                if not user["isBlocked"]:
+                    log_operation(
+                        "user.unblock_user",
+                        "validation_error",
+                        f"User '{username}' is already unblocked",
+                        user_id=user["id"],
+                    )
+                    raise ValueError(f'"{username}" is already unblocked.')
+                result = UserModel.set_blocked(session, user["id"], False)
+                session.commit()
+            log_operation(
+                "user.unblock_user",
+                "success",
+                f"Unblocked user '{username}'",
+                user_id=user["id"],
+            )
             return result
+        except ValueError:
+            raise
+        except Exception as e:
+            log_exception("user.unblock_user", e, context={"username": username})
+            return False
 
     @staticmethod
     def is_user_blocked(user_id: int) -> bool:
@@ -368,3 +552,31 @@ class UserService:
             )
             session.commit()
             return result
+
+    @staticmethod
+    def get_profile(user_id: int) -> Optional[dict]:
+        """
+        Retrieve a user's profile information by ID.
+
+        Args:
+            user_id: The ID of the user whose profile to retrieve.
+
+        Returns:
+            dict or None: The user's profile data as a dictionary, or None if not found.
+        """
+        with SessionLocal() as session:
+            return UserModel.get_by_id(session, user_id)
+
+    @staticmethod
+    def refresh_user_session(user_id: int) -> Optional[dict]:
+        """
+        Refresh and retrieve the latest user data from the database.
+
+        Args:
+            user_id: The ID of the user to refresh.
+
+        Returns:
+            dict or None: The updated user's data, or None if user not found.
+        """
+        with SessionLocal() as session:
+            return UserModel.get_by_id(session, user_id)

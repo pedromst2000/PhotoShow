@@ -1,10 +1,8 @@
 from typing import List, Tuple
 
-from app.core.db.engine import SessionLocal
-from app.core.db.models.notification import NotificationModel
-from app.core.db.models.notification_types import NotificationTypeModel
 from app.core.services.notification_service import NotificationService
 from app.core.state.session import session
+from app.utils.log_utils import log_exception, log_operation
 
 
 class NotificationController:
@@ -23,47 +21,84 @@ class NotificationController:
     def get_my_notifications() -> List[dict]:
         """
         Retrieve notifications for the currently logged-in user.
+
         Returns:
-            List of notification dictionaries, or empty list if not authenticated.
+            List[dict]: List of notification dictionaries, or empty list if not authenticated.
         """
         if session.user_id is None:
             return []
-        with SessionLocal() as db:
-            return NotificationModel.get_by_user(db, session.user_id)
+        return NotificationService.get_my_notifications(session.user_id)
 
     @staticmethod
     def get_unread_count() -> int:
         """
         Get the count of unread notifications for the currently logged-in user.
+
         Returns:
             int: Number of unread notifications, or 0 if not authenticated.
         """
         if session.user_id is None:
             return 0
-        with SessionLocal() as db:
-            return NotificationModel.get_unread_count(db, session.user_id)
+        return NotificationService.get_unread_count(session.user_id)
 
     @staticmethod
-    def mark_read(not_id: int) -> bool:
+    def mark_read(not_id: int) -> Tuple[bool, str]:
         """
         Mark a specific notification as read.
+
         Args:
             not_id (int): The ID of the notification to mark as read.
+
         Returns:
-            bool: True if marked successfully, False otherwise.
+            Tuple[bool, str]: (success, message)
+
+        Raises:
+            Exception: Any unexpected error during marking is caught and logged.
         """
-        return NotificationService.mark_read(not_id)
+        try:
+            if NotificationService.mark_read(not_id):
+                log_operation(
+                    "notification.mark_read",
+                    "success",
+                    f"Notification {not_id} marked as read",
+                )
+                return True, "Notification marked as read"
+            log_operation(
+                "notification.mark_read",
+                "validation_error",
+                f"Notification {not_id} not found",
+            )
+            return False, "Notification not found"
+        except Exception as e:
+            log_exception(
+                "notification.mark_read", e, context={"notification_id": not_id}
+            )
+            return False, "Something went wrong. Please try again later."
 
     @staticmethod
     def mark_all_read() -> Tuple[bool, str]:
         """
         Mark all notifications as read for the currently logged-in user.
+
         Returns:
-            Tuple of (success, message).
+            Tuple[bool, str]: (success, message)
+
+        Raises:
+            Exception: Any unexpected error during marking is caught and logged.
         """
         assert session.user_id is not None
-        NotificationService.mark_all_read(session.user_id)
-        return True, "All notifications marked as read"
+        try:
+            NotificationService.mark_all_read(session.user_id)
+            log_operation(
+                "notification.mark_all_read",
+                "success",
+                "All notifications marked as read",
+                user_id=session.user_id,
+            )
+            return True, "All notifications marked as read"
+        except Exception as e:
+            log_exception("notification.mark_all_read", e, user_id=session.user_id)
+            return False, "Something went wrong. Please try again later."
 
     # ── Admin: notification settings ──────────────────────────────────────────
 
@@ -71,25 +106,53 @@ class NotificationController:
     def get_types() -> List[dict]:
         """
         Retrieve all notification types (admin only).
+
         Returns:
-            List of notification type dictionaries, or empty list if not admin.
+            List[dict]: List of notification type dictionaries, or empty list if not admin.
         """
-        with SessionLocal() as db:
-            return NotificationTypeModel.get_all(db)
+        return NotificationService.get_notification_types()
 
     @staticmethod
     def toggle_notification_type(type_key: str, enabled: bool) -> Tuple[bool, str]:
         """
         Toggle a specific notification type on or off (admin only).
+
         Args:
             type_key (str): The key of the notification type to toggle.
             enabled (bool): True to enable, False to disable.
+
         Returns:
-            Tuple of (success, message).
+            Tuple[bool, str]: (success, message)
+
+        Raises:
+            Exception: Any unexpected error during toggle operation is caught and logged.
         """
         if not type_key:
+            log_operation(
+                "notification.toggle_notification_type",
+                "validation_error",
+                "Notification type is required",
+            )
             return False, "Notification type is required"
-        if NotificationService.toggle_type(type_key, enabled):
-            state = "enabled" if enabled else "disabled"
-            return True, f"Notifications for '{type_key}' are now {state}"
-        return False, f"Notification type '{type_key}' not found"
+        try:
+            if NotificationService.toggle_type(type_key, enabled):
+                state = "enabled" if enabled else "disabled"
+                log_operation(
+                    "notification.toggle_notification_type",
+                    "success",
+                    f"Notification type '{type_key}' {state}",
+                )
+                return True, f"Notifications for '{type_key}' are now {state}"
+            log_operation(
+                "notification.toggle_notification_type",
+                "validation_error",
+                f"Notification type '{type_key}' not found",
+            )
+            return False, f"Notification type '{type_key}' not found"
+        except Exception as e:
+            log_exception(
+                "notification.toggle_notification_type",
+                e,
+                context={"type_key": type_key, "enabled": enabled},
+            )
+            return False, "Something went wrong. Please try again later."
