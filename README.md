@@ -391,5 +391,5 @@ Thanks for contributing! :tada:
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 <p align="center">
-  <a href="#top">Back to top</a>
+  <a href="#top">⬆️ Back to top</a>
 </p>
