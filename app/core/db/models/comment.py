@@ -70,6 +70,21 @@ class CommentModel(Base):
         }
 
     @classmethod
+    def get_by_id(cls, session: Session, comment_id: int) -> dict | None:
+        """
+        Retrieve a comment by its ID.
+
+        Args:
+            session: Active SQLAlchemy session.
+            comment_id (int): The ID of the comment to retrieve.
+
+        Returns:
+            dict | None: A dictionary representation of the comment if found, otherwise None.
+        """
+        obj = session.query(cls).filter_by(id=comment_id).first()
+        return obj.to_dict() if obj else None
+
+    @classmethod
     def get_all(cls, session: Session) -> list:
         """
         Retrieve all comments from the database.
@@ -130,3 +145,20 @@ class CommentModel(Base):
         session.add(obj)
         session.flush()
         return obj.to_dict()
+
+    @classmethod
+    def delete(cls, session: Session, comment_id: int) -> bool:
+        """
+        Delete a comment from the database.
+
+        Args:
+            session: Active SQLAlchemy session.
+            comment_id (int): The ID of the comment to delete.
+        Returns:
+            bool: True if the comment was deleted, False if it was not found.
+        """
+        obj: CommentModel | None = session.query(cls).filter_by(id=comment_id).first()
+        if obj is None:
+            return False
+        session.delete(obj)
+        return True
