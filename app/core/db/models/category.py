@@ -51,6 +51,21 @@ class CategoryModel(Base):
         }
 
     @classmethod
+    def get_by_id(cls, session: Session, category_id: int) -> dict | None:
+        """
+        Retrieve a category by its ID.
+
+        Args:
+            session: Active SQLAlchemy session.
+            category_id (int): The ID of the category to retrieve.
+
+        Returns:
+            dict | None: A dictionary representation of the category if found, otherwise None.
+        """
+        obj = session.query(cls).filter_by(id=category_id).first()
+        return obj.to_dict() if obj else None
+
+    @classmethod
     def get_all(cls, session: Session) -> list:
         """
         Retrieve all categories from the database.
