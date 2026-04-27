@@ -482,8 +482,16 @@ class PhotoService:
         }
 
     @staticmethod
-    def rate_photo(user_id: int, photo_id: int, rating_value: int) -> None:
-        """Submit a rating (1-5) for a photo."""
+    def rate_photo(user_id: int, photo_id: int, rating_value: int):
+        """
+        Submit a rating (1-5) for a photo.
+        If the user has already rated the photo, their rating is updated.
+
+        Args:
+            user_id: The ID of the user submitting the rating.
+            photo_id: The ID of the photo being rated.
+            rating_value: The rating value (1-5).
+        """
         with SessionLocal() as session:
             RatingModel.create(
                 session,
