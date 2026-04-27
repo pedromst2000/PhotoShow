@@ -158,6 +158,21 @@ class UserModel(Base):
         return u.to_dict() if u else None
 
     @classmethod
+    def get_by_ids(cls, session: Session, user_ids: list[int]) -> dict[int, dict]:
+        """
+        Retrieve multiple users by a list of IDs in a single query.
+
+        Args:
+            session: Active SQLAlchemy session.
+            user_ids (list[int]): The list of user IDs to retrieve.
+
+        Returns:
+            dict[int, dict]: A mapping of user ID -> user dict for all found users.
+        """
+        rows = session.query(cls).filter(cls.id.in_(user_ids)).all()
+        return {u.id: u.to_dict() for u in rows}
+
+    @classmethod
     def create(
         cls,
         session: Session,
