@@ -66,7 +66,12 @@ class ExploreState:
 
     @property
     def selected_photo(self) -> Optional[dict]:
-        """Get the currently selected photo data, or None if no valid selection."""
+        """
+        Get the currently selected photo data, or None if no valid selection.
+
+        Returns:
+            Optional[dict]: The selected photo dict or None if no selection or invalid index.
+        """
         if self.selected_index is not None and 0 <= self.selected_index < len(
             self.photos
         ):

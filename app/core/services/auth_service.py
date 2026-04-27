@@ -362,8 +362,8 @@ class AuthService:
             ValueError: If new_password does not meet policy requirements.
         """
         # business-rule: password policy
-        if len(new_password) < 6:
-            raise ValueError("Password must be at least 6 characters")
+        if len(new_password) < 7:
+            raise ValueError("Password must be at least 7 characters")
 
         # verify current password
         if not AuthService.verify_password(user_id, current_password):

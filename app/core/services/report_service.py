@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 from app.core.db.engine import SessionLocal
 from app.core.db.models.report import ReportModel
 from app.core.db.models.report_reason import ReportReasonModel
+from app.core.db.models.user import UserModel
 from app.utils.log_utils import log_exception, log_operation
 
 
@@ -195,8 +196,6 @@ class ReportService:
 
         try:
             with SessionLocal() as session:
-                from app.core.db.models.user import UserModel
-
                 reporter = UserModel.get_by_id(session, reporter_id)
                 if reporter and reporter.get("roleId") == 1:
                     log_operation(

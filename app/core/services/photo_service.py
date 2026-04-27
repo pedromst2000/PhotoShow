@@ -241,7 +241,7 @@ class PhotoService:
             log_operation(
                 "photo.create_photo", "success", f"Created photo in album {album_id}"
             )
-            return PhotoModel.get_by_id(session, photo["id"])
+            return photo
         except Exception as e:
             log_exception(
                 "photo.create_photo",
