@@ -162,9 +162,7 @@ class CategoryService:
 
         try:
             with SessionLocal() as session:
-                category = (
-                    session.query(CategoryModel).filter_by(id=category_id).first()
-                )
+                category = CategoryModel.get_by_id(session, category_id)
                 if not category:
                     log_operation(
                         "category.update_category",
@@ -173,9 +171,10 @@ class CategoryService:
                     )
                     return False, "Category not found"
 
-                if (
-                    category.category.lower() != new_name_stripped.lower()
-                    and CategoryService.category_exists(new_name_stripped)
+                if category[
+                    "category"
+                ].lower() != new_name_stripped.lower() and CategoryService.category_exists(
+                    new_name_stripped
                 ):
                     log_operation(
                         "category.update_category",
