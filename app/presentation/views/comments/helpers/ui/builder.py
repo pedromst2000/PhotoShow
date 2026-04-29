@@ -286,7 +286,7 @@ def build_comment_card(
     )
     card_img_refs.append(av_photo)
 
-    # -- Header: username + timestamp inline (matching the reference image)
+    # -- Header (username and published date)
     header = tk.Frame(card, bg=_BG)
     header.grid(row=0, column=1, sticky="ew", padx=(0, 8), pady=(10, 2))
 
@@ -299,10 +299,10 @@ def build_comment_card(
         anchor="w",
     ).pack(side=tk.LEFT)
 
-    ts = format_timestamp(comment.get("createdAt"))
+    published_date = format_timestamp(comment.get("publishedDate"))
     tk.Label(
         header,
-        text=f"  {ts}",
+        text=f"  {published_date}",
         font=quickSandRegular(9),
         bg=_BG,
         fg=_TEXT_FG,
@@ -319,6 +319,7 @@ def build_comment_card(
     actions = tk.Frame(card, bg=_BG)
     actions.grid(row=0, column=2, rowspan=2, padx=(4, 10), pady=10, sticky="ne")
 
+    # Only allow reporting if user is not admin and not the author of the comment
     can_report = not is_admin and author_id != current_uid and author_role != "admin"
     if can_report:
         make_action_button(
@@ -329,6 +330,7 @@ def build_comment_card(
             command=lambda cid=comment_id: open_report_dialog(win, comment_id=cid),
         ).pack(side=tk.TOP, pady=(0, 4))
 
+    # Only allow delete if user is admin or the author of the comment
     can_delete = is_admin or author_id == current_uid
     if can_delete:
         make_action_button(

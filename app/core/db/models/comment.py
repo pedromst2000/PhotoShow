@@ -41,6 +41,11 @@ class CommentModel(Base):
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     comment: str = Column(String(255), nullable=False)
+    publishedDate: DateTime = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
     photoId: int = Column(
         Integer, ForeignKey("photos.id", ondelete="CASCADE"), nullable=False
     )
@@ -64,6 +69,7 @@ class CommentModel(Base):
             "id": self.id,
             "authorId": self.authorId,
             "comment": self.comment,
+            "publishedDate": self.publishedDate,
             "photoId": self.photoId,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
@@ -141,6 +147,7 @@ class CommentModel(Base):
             authorId=authorId,
             comment=comment,
             photoId=photoId,
+            publishedDate=datetime.now(timezone.utc),
         )
         session.add(obj)
         session.flush()

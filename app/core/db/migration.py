@@ -439,23 +439,27 @@ def _read_comments(valid_photo_ids: set) -> list:
     log_check(f"Reading comments from {path}...")
     try:
         with open(path, "r", encoding="utf-8-sig", newline="") as f:
-            for parts in csv.reader(f):  # expected: id,authorID,comment,photoID
+            for parts in csv.reader(
+                f
+            ):  # expected: id,authorID,comment,publishedDate,photoID
                 if parts[0] == "id":
                     continue
-                if len(parts) < 4:
+                if len(parts) < 5:
                     continue
-                photo_id = int(parts[3])
+                photo_id = int(parts[4])
                 if photo_id not in valid_photo_ids:
                     continue
                 # Remove artifact quotes from CSV format if present
                 comment_text = parts[2]
                 if comment_text.startswith('"') and comment_text.endswith('"'):
                     comment_text = comment_text[1:-1]
+                published_date = datetime.fromisoformat(parts[3])
                 data.append(
                     CommentModel(
                         id=int(parts[0]),
                         authorId=int(parts[1]),
                         comment=comment_text,
+                        publishedDate=published_date,
                         photoId=photo_id,
                     )
                 )
