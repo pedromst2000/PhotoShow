@@ -55,6 +55,7 @@ User Stories - Requirements - Features
  - [ ] **Empty state — selected album has no photos**: When a favorite album is selected but contains no photos, display an empty state informing the user that there are no photos in this album.
  - [ ] **Empty state — selected album removed by owner**: If a selected favorite album is no longer available because the owner removed it, show an empty state explaining the album was removed and offer an option to remove it from favorites.
  - [ ] **Remove favorite album**: Allow the user to remove a single album from their favorites list.
+ - [ ] **Add favorite album**: Allow the user to add an album to their favorites list from the album view!
   
 
 ## ALL USERS (NOT UNSIGNED USERS) - Photo Content & Albums (Catalog - Explore)
@@ -106,7 +107,18 @@ User Stories - Requirements - Features
 - [X] **Admin Delete comment**: Allow admins to delete any comment from the photo detail view. (Visible to admins on all comments)
 - [X] **Empty state No Comments**: Show empty state when no comments on the photo.
 - [X] **Comment details**: Show comment details (author(avatar, username), content, timestamp) on the photo detail view and comments view.
-- [ ] **Timestamp format**: Display comment timestamps in a human-readable format (e.g., "2 hours ago", "Yesterday", "3 days ago") instead of raw date-time values. It can´t be the created_at timestamp because when the comment is edited, the created_at timestamp is updated to the edit time. So we need to have a separate field for the original creation time of the comment that does not change when the comment is edited. This way, we can display the correct "time ago" format based on the original creation time of the comment, even if it has been edited.
+- [X] **Timestamp format**: Display comment timestamps in a human-readable format (e.g., "2 hours ago", "Yesterday", "3 days ago") instead of raw date-time values. It can´t be the created_at timestamp because when the comment is edited, the created_at timestamp is updated to the edit time. So we need to have a separate field for the original creation time of the comment that does not change when the comment is edited. This way, we can display the correct "time ago" format based on the original creation time of the comment, even if it has been edited.
+
+## ALL USERS - See Album Details
+
+- [ ] **List album photos** : Display the photos of the album in a listbox widget with the name of the photo only!
+- [ ] **Name of the Photo**: Should be displayed with the generic following format: "Photo {photo_id} - {first 20 characters of the description}".
+- [ ] **Empty state No Photos**: Show empty state when no photos in the album!
+- [ ] **Default State of the Listbox**: By default it shows the selected photo in the catalog!
+- [ ] **Select photo from the listbox**: When a user selects a photo from the listbox, the selected photo should be displayed in the photo preview card with its details ( nlikes, nComments, rating) and interactions (like, view details, view comments, delete photo or report photo buttons).
+- [ ] **Album Header**: Display the album name, author (avatar and username) and category.
+   Note: Each photo of the album haves a category, but the album itself does not have a category. So you should get the average category of the photos in the album and display it as the album category.
+- [ ] **Header State**: If the album has no photos, the header should only display the album name and the author (avatar and username).
 
 ## ALL USERS - Notifications
 
