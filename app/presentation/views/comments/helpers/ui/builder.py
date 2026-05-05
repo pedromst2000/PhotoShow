@@ -3,7 +3,7 @@ import tkinter as tk
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.views.helpers.ui.modals import open_report_dialog
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
@@ -27,7 +27,7 @@ _AVATAR_SIZE = 28
 
 def build_photo_canvas(
     parent: tk.Frame,
-    state: ExploreState,
+    state: BasePhotoState,
     img_refs: list,
 ):
     """
@@ -35,7 +35,7 @@ def build_photo_canvas(
 
     Args:
         parent: The parent frame to attach the canvas to.
-        state: ExploreState containing selected photo info.
+        state: BasePhotoState containing selected photo info.
         img_refs: List to hold image references for the window lifetime (e.g. photo image, add icon).
     """
     photo = state.selected_photo
@@ -117,7 +117,7 @@ def build_comment_list(parent: tk.Frame) -> tuple[tk.Canvas, tk.Frame, tk.Frame]
 def build_input_area(
     parent: tk.Frame,
     win: tk.Toplevel,
-    state: ExploreState,
+    state: BasePhotoState,
     list_canvas: tk.Canvas,
     list_frame: tk.Frame,
     img_refs: list,
@@ -129,7 +129,7 @@ def build_input_area(
     Args:
         parent: The parent frame to attach the input area to.
         win: The top-level window containing the input area.
-        state: ExploreState containing selected photo info.
+        state: BasePhotoState containing selected photo info.
         list_canvas: The canvas containing the comment list.
         list_frame: The frame inside the canvas where comment cards are rendered.
         img_refs: List to hold image references for the window lifetime (e.g. photo image, add icon).
@@ -233,7 +233,7 @@ def build_comment_card(
     parent: tk.Frame,
     comment: dict,
     win: tk.Toplevel,
-    state: ExploreState,
+    state: BasePhotoState,
     list_canvas: tk.Canvas,
     img_refs: list,
     card_img_refs: list,
@@ -245,7 +245,7 @@ def build_comment_card(
         parent: The parent frame to attach the comment card to.
         comment: The comment data dictionary.
         win: The top-level window containing the comment card (for context in logging).
-        state: ExploreState containing selected photo info (for context in logging).
+        state: BasePhotoState containing selected photo info (for context in logging).
         list_canvas: The canvas containing the comment list (for scrollregion update on delete).
         img_refs: List to hold image references for the window lifetime (e.g. photo image, add icon).
         card_img_refs: List to hold image references for the comment cards (e.g. avatars, action icons); cleared and repopulated on each render.

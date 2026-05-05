@@ -2,16 +2,16 @@ import tkinter as tk
 from tkinter import messagebox
 
 from app.controllers.explore_controller import ExploreController
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.views.helpers.ui.preview import update_preview
 
 
-def handle_like(state: ExploreState, parent: tk.Widget):
+def handle_like(state: BasePhotoState, parent: tk.Widget):
     """
     Toggle like on selected photo.
 
     Args:
-        state (ExploreState): The current state of the explore view.
+        state (BasePhotoState): The current state of the explore view.
         parent (tk.Widget): The parent widget for displaying error messages.
     """
     photo = state.selected_photo
@@ -28,12 +28,12 @@ def handle_like(state: ExploreState, parent: tk.Widget):
     update_preview(state)  # Update the preview to reflect the new like status and count
 
 
-def handle_rate(state: ExploreState, rating_value: int, parent: tk.Widget):
+def handle_rate(state: BasePhotoState, rating_value: int, parent: tk.Widget):
     """
     Rate selected photo and update preview with the new average rating.
 
     Args:
-        state (ExploreState): The current state of the explore view.
+        state (BasePhotoState): The current state of the explore view.
         rating_value (int): The rating value to be applied (1-5).
         parent (tk.Widget): The parent widget for displaying error messages.
     """

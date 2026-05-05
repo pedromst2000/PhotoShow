@@ -252,3 +252,31 @@ class AlbumController:
             bool: True if the name exists, False otherwise.
         """
         return AlbumService.album_name_exists(album_name)
+
+    @staticmethod
+    def get_album_details(album_id: int) -> Optional[dict]:
+        """
+        Get enriched album details including photos, creator, avg category, and favorite status.
+
+        Args:
+            album_id: The ID of the album to retrieve.
+
+        Returns:
+            Optional[dict]: Enriched album data, or None on failure.
+        """
+        user_id = session.user_id
+        return AlbumService.get_album_details(album_id, user_id)
+
+    @staticmethod
+    def toggle_favorite(album_id: int) -> Tuple[bool, str, bool]:
+        """
+        Add or remove an album from the current user's favorites.
+
+        Args:
+            album_id: The ID of the album to toggle.
+
+        Returns:
+            Tuple[bool, str, bool]: (success, message, is_now_favorite).
+        """
+        assert session.user_id is not None
+        return AlbumService.toggle_favorite(album_id, session.user_id)

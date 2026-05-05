@@ -9,7 +9,7 @@ from app.presentation.views.comments.helpers.ui.builder import (
     _BTN_FG,
     _ICON_DIR,
 )
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
 from app.presentation.widgets.helpers.images import load_image
@@ -49,7 +49,7 @@ def make_action_button(
 
 def submit_comment(
     win: tk.Toplevel,
-    state: ExploreState,
+    state: BasePhotoState,
     scrollable: ScrollableText,
     list_canvas: tk.Canvas,
     list_frame: tk.Frame,
@@ -80,7 +80,7 @@ def submit_comment(
 def on_delete(
     comment_id: int,
     win: tk.Toplevel,
-    state: ExploreState,
+    state: BasePhotoState,
     list_canvas: tk.Canvas,
     list_frame: tk.Frame,
     img_refs: list,

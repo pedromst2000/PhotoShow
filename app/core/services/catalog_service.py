@@ -35,6 +35,7 @@ class CatalogService:
         category: str = "all",
         username: Optional[str] = None,
         user_id: Optional[int] = None,
+        album_id: Optional[int] = None,
     ) -> list:
         """
         Return a fully enriched photo list for the Explore view.
@@ -48,6 +49,7 @@ class CatalogService:
             category: Category name to filter by, or "all" for no filter.
             username: Author username to filter by, or None for no filter.
             user_id: The current user's ID for personalised flags (optional).
+            album_id: Album ID to restrict results to, or None for all albums.
 
         Returns:
             list: Sorted and filtered list of enriched photo dicts.
@@ -150,7 +152,8 @@ class CatalogService:
                     continue
                 if username and uname.lower() != username.lower():
                     continue
-
+                if album_id is not None and photo.get("albumId") != album_id:
+                    continue
                 # Use rating helper for consistent weighted-rating calculation
                 avg_rating = avg_ratings.get(pid, 1.0)
                 vote_count = rating_counts.get(pid, 0)

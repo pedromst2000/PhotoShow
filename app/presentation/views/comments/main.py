@@ -9,11 +9,11 @@ from app.presentation.views.comments.helpers.ui.builder import (
     build_input_area,
     build_photo_canvas,
 )
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.widgets.window import create_toplevel
 
 
-def open_comments(state: ExploreState):
+def open_comments(state: BasePhotoState):
     """
     Open the photo comments window.
 

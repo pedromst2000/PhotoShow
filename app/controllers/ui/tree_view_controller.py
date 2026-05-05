@@ -1,7 +1,7 @@
 from typing import Optional
 
 from app.presentation.views.helpers.data.pagination import PaginationManager
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 from app.utils.log_utils import log_issue
 
 
@@ -19,12 +19,12 @@ class TreeViewController:
     - No accumulation of items across pages in UI or memory
     """
 
-    def __init__(self, state: ExploreState):
+    def __init__(self, state: BasePhotoState):
         """
         Initialize controller.
 
         Args:
-            state: ExploreState object containing tree reference
+            state: BasePhotoState object containing tree reference
         """
         self.state = state
 
