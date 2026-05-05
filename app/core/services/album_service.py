@@ -1,8 +1,10 @@
-from typing import Optional
+from collections import Counter
+from typing import Optional, Tuple
 
 from app.core.db.engine import SessionLocal
 from app.core.db.models.album import AlbumModel
 from app.core.db.models.favorite import FavoriteModel
+from app.core.db.models.user import UserModel
 from app.utils.log_utils import log_exception, log_operation
 
 
@@ -390,3 +392,107 @@ class AlbumService:
                 if album:
                     result.append({"albumId": fav["albumId"], "name": album["name"]})
             return result
+
+    @staticmethod
+    def get_album_details(
+        album_id: int, user_id: Optional[int] = None
+    ) -> Optional[dict]:
+        """
+        Return enriched album details including photos with stats and creator info.
+
+        Args:
+            album_id: The ID of the album.
+            user_id: Optional user ID for personalised data (liked/rated, is_favorite).
+
+        Returns:
+            Optional[dict]: Album info, enriched photos, creator, avg_category, is_favorite.
+        """
+        # Late import to avoid circular dependency
+        from app.core.services.catalog_service import CatalogService
+
+        try:
+            with SessionLocal() as session:
+                album = AlbumModel.get_by_id(session, album_id)
+                if not album:
+                    return None
+
+                creator = UserModel.get_by_id(session, album["creatorId"])
+
+                is_favorite = False
+                if user_id is not None:
+                    favs = FavoriteModel.get_by_user(session, user_id)
+                    is_favorite = any(f["albumId"] == album_id for f in favs)
+
+            # Reuse CatalogService enrichment — filters by album_id so only this
+            # album's photos are returned, with all interaction counts already set.
+            enriched_photos = CatalogService.get_explore_catalog(
+                album_id=album_id, user_id=user_id
+            )
+
+            cat_names = [p.get("category") for p in enriched_photos]
+            most_common = Counter(cat_names).most_common(
+                1
+            )  # get the most common category among the photos for avg_category
+            avg_category = (
+                most_common[0][0] if most_common else None
+            )  # if there are no photos, avg_category will be None
+
+            log_operation(
+                "album.get_album_details",
+                "success",
+                f"Retrieved details for album {album_id}",
+            )
+            return {
+                "album": album,
+                "creator": creator or {},
+                "photos": enriched_photos,
+                "avg_category": avg_category,
+                "is_favorite": is_favorite,
+            }
+        except Exception as e:
+            log_exception("album.get_album_details", e, context={"album_id": album_id})
+            return None
+
+    @staticmethod
+    def toggle_favorite(album_id: int, user_id: int) -> Tuple[bool, str, bool]:
+        """
+        Add or remove an album from the user's favorites.
+
+        Args:
+            album_id: The ID of the album.
+            user_id: The ID of the user.
+
+        Returns:
+            Tuple[bool, str, bool]: (success, message, is_now_favorite).
+        """
+        try:
+            with SessionLocal() as session:
+                favs = FavoriteModel.get_by_user(session, user_id)
+                is_currently_favorite = any(f["albumId"] == album_id for f in favs)
+                if is_currently_favorite:
+                    FavoriteModel.delete_for_user(session, album_id, user_id)
+                    session.commit()
+                    log_operation(
+                        "album.toggle_favorite",
+                        "success",
+                        f"Removed album {album_id} from favorites",
+                        user_id=user_id,
+                    )
+                    return True, "Album removed from favorites.", False
+                else:
+                    FavoriteModel.create(session, albumId=album_id, userId=user_id)
+                    session.commit()
+                    log_operation(
+                        "album.toggle_favorite",
+                        "success",
+                        f"Added album {album_id} to favorites",
+                        user_id=user_id,
+                    )
+                    return True, "Album added to favorites.", True
+        except Exception as e:
+            log_exception(
+                "album.toggle_favorite",
+                e,
+                context={"album_id": album_id},
+            )
+            return False, "Something went wrong. Please try again later.", False

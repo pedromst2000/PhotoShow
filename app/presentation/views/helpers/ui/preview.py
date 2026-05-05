@@ -5,12 +5,12 @@ from typing import (  # For type hinting tk.Button without importing the entire 
 )
 
 from app.core.state.session import session
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.widgets.helpers.images import load_image
 from app.utils.file_utils import resolve_image_path
 
 
-def _display_carousel_image(state: ExploreState, img_path: Optional[str]) -> None:
+def _display_carousel_image(state: BasePhotoState, img_path: Optional[str]) -> None:
     """
     Display image on carousel or show empty state.
 
@@ -37,12 +37,12 @@ def _display_carousel_image(state: ExploreState, img_path: Optional[str]) -> Non
     state.carousel.set_nav_enabled(prev=total > 1, next_=total > 1)
 
 
-def reset_preview(state: ExploreState, carousel_message: str = "No photo selected"):
+def reset_preview(state: BasePhotoState, carousel_message: str = "No photo selected"):
     """
     Reset preview panel to empty/default state.
 
     Args:
-        state (ExploreState): The current state of the explore view.
+        state (BasePhotoState): The current state of the explore view.
         carousel_message (str): Message to display in the carousel. Defaults to "No photo selected".
     """
     if state.carousel:
@@ -66,12 +66,12 @@ def reset_preview(state: ExploreState, carousel_message: str = "No photo selecte
     _set_action_buttons_state(state, enabled=False)
 
 
-def update_preview(state: ExploreState):
+def update_preview(state: BasePhotoState):
     """
     Update preview panel to display selected photo.
 
     Args:
-        state (ExploreState): The current state of the explore view.
+        state (BasePhotoState): The current state of the explore view.
     """
     photo = state.selected_photo
     if photo is None:
@@ -168,7 +168,7 @@ def update_preview(state: ExploreState):
     _set_action_buttons_state(state, enabled=not state.is_unsigned)
 
 
-def _update_delete_report_button(state: ExploreState):
+def _update_delete_report_button(state: BasePhotoState):
     """
     Update delete/report button visibility based on user ownership and admin status.
 
@@ -179,7 +179,7 @@ def _update_delete_report_button(state: ExploreState):
     - Never show report button for admin-owned photos or own photos
 
     Args:
-        state (ExploreState): The current state of the explore view.
+        state (BasePhotoState): The current state of the explore view.
     """
     if state.selected_photo is None:
         return
@@ -216,12 +216,12 @@ def _update_delete_report_button(state: ExploreState):
                 report_btn.grid()
 
 
-def _show_metadata(state: ExploreState):
+def _show_metadata(state: BasePhotoState):
     """
     Show metadata frame above action buttons.
 
     Args:
-        state (ExploreState): The current state of the explore view.
+        state (BasePhotoState): The current state of the explore view.
     """
     if state.metadata_frame:
         # Ensure metadata is packed before the action buttons frame so
@@ -238,12 +238,12 @@ def _show_metadata(state: ExploreState):
             state.metadata_frame.pack(fill="x", padx=10, pady=5)
 
 
-def _hide_metadata(state: ExploreState):
+def _hide_metadata(state: BasePhotoState):
     """
     Hide metadata frame and reset values.
 
     Args:
-        state (ExploreState): The current state of the explore view.
+        state (BasePhotoState): The current state of the explore view.
     """
     if state.metadata_frame:
         state.metadata_frame.pack_forget()
@@ -261,7 +261,7 @@ def _hide_metadata(state: ExploreState):
         state.star_widget.set_value(0.0)
 
 
-def _set_action_buttons_state(state: ExploreState, enabled: bool):
+def _set_action_buttons_state(state: BasePhotoState, enabled: bool):
     """
     Enable or disable all action buttons.
 
@@ -270,7 +270,7 @@ def _set_action_buttons_state(state: ExploreState, enabled: bool):
     - All other buttons: Follow the enabled parameter
 
     Args:
-        state (ExploreState): The current state of the explore view.
+        state (BasePhotoState): The current state of the explore view.
         enabled (bool): Whether to enable or disable the buttons.
     """
     s = tk.NORMAL if enabled else tk.DISABLED

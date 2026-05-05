@@ -1,6 +1,6 @@
 from typing import Callable, List
 
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 
 
 class PaginationManager:
@@ -8,7 +8,7 @@ class PaginationManager:
     Manages pagination UI state for the explore view using LAZY-LOADING ONLY.
 
     This class is responsible for:
-    - Initializing pagination state in ExploreState
+    - Initializing pagination state in BasePhotoState
     - Fetching paginated items for the current page via data_provider
     - Navigating between pages (next/prev)
     """
@@ -17,7 +17,7 @@ class PaginationManager:
 
     @staticmethod
     def initialize_pagination(
-        state: ExploreState,
+        state: BasePhotoState,
         items_per_page: int = DEFAULT_ITEMS_PER_PAGE,
         data_provider: Callable[[int], List[dict]] = None,
         total_items: int = 0,
@@ -26,7 +26,7 @@ class PaginationManager:
         Initialize pagination state with lazy-loading.
 
         Args:
-            state: ExploreState object
+            state: BasePhotoState object
             items_per_page: Number of items per page (default: 10)
             data_provider: REQUIRED function(page_number) -> list of items for that page
                           Pages are fetched on-demand to avoid loading entire list in memory
@@ -45,12 +45,12 @@ class PaginationManager:
         state.photos = []  # Current page items only (populated on-demand)
 
     @staticmethod
-    def get_paginated_items(state: ExploreState) -> list:
+    def get_paginated_items(state: BasePhotoState) -> list:
         """
         Get items for current page by calling data_provider.
 
         Args:
-            state: ExploreState object
+            state: BasePhotoState object
 
         Returns:
             list: Items for the current page fetched from data_provider
@@ -64,12 +64,12 @@ class PaginationManager:
         return items
 
     @staticmethod
-    def get_total_pages(state: ExploreState) -> int:
+    def get_total_pages(state: BasePhotoState) -> int:
         """
         Get total number of pages.
 
         Args:
-            state: ExploreState object
+            state: BasePhotoState object
 
         Returns:
             int: Total number of pages based on total_items and items_per_page
@@ -79,11 +79,11 @@ class PaginationManager:
         return (state.total_items + state.items_per_page - 1) // state.items_per_page
 
     @staticmethod
-    def can_go_next(state: ExploreState) -> bool:
+    def can_go_next(state: BasePhotoState) -> bool:
         """Check if next page exists.
 
         Args:
-            state: ExploreState object
+            state: BasePhotoState object
 
         Returns:
             bool: True if next page exists, False otherwise
@@ -91,11 +91,11 @@ class PaginationManager:
         return state.current_page < PaginationManager.get_total_pages(state)
 
     @staticmethod
-    def can_go_prev(state: ExploreState) -> bool:
+    def can_go_prev(state: BasePhotoState) -> bool:
         """Check if previous page exists.
 
         Args:
-            state: ExploreState object
+            state: BasePhotoState object
 
         Returns:
             bool: True if previous page exists, False otherwise
@@ -103,12 +103,12 @@ class PaginationManager:
         return state.current_page > 1
 
     @staticmethod
-    def go_to_next_page(state: ExploreState) -> bool:
+    def go_to_next_page(state: BasePhotoState) -> bool:
         """
         Navigate to next page.
 
         Args:
-            state: ExploreState object
+            state: BasePhotoState object
 
         Returns:
             bool: True if navigation succeeded, False otherwise
@@ -120,12 +120,12 @@ class PaginationManager:
         return True
 
     @staticmethod
-    def go_to_prev_page(state: ExploreState) -> bool:
+    def go_to_prev_page(state: BasePhotoState) -> bool:
         """
         Navigate to previous page.
 
         Args:
-            state: ExploreState object
+            state: BasePhotoState object
 
         Returns:
             bool: True if navigation succeeded, False otherwise
@@ -137,11 +137,11 @@ class PaginationManager:
         return True
 
     @staticmethod
-    def get_page_info(state: ExploreState) -> str:
+    def get_page_info(state: BasePhotoState) -> str:
         """Get human-readable page info (e.g., 'Page 1/10').
 
         Args:
-            state: ExploreState object
+            state: BasePhotoState object
 
         Returns:
             str: Human-readable page info

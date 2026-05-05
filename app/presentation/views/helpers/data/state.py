@@ -6,20 +6,21 @@ from app.presentation.widgets.photo_carousel import PhotoCarouselWidget
 from app.presentation.widgets.star_rating import StarRatingWidget
 
 
-class ExploreState:
-    """Holds runtime state for the Explore window."""
+class BasePhotoState:
+    """
+    Shared runtime state for any view that shows the photo preview panel.
+
+    Subclassed by ExploreState (explore view), AlbumState (album details),
+    and any future view (e.g. ProfileState) that reuses the preview panel,
+    carousel navigation, and pagination logic.
+    """
 
     def __init__(self) -> None:
-        """Initialize the ExploreState with default values."""
+        """Initialize BasePhotoState with default values."""
         self.photos: list = []
         self.selected_index: Optional[int] = None
         self.is_unsigned: bool = False
         self.win: Optional[tk.Toplevel] = None
-
-        # tkinter vars
-        self.sort_var: Optional[tk.StringVar] = None
-        self.author_var: Optional[tk.StringVar] = None
-        self.category_var: Optional[tk.StringVar] = None
 
         # Widget references
         self.tree: Optional[ttk.Treeview] = None

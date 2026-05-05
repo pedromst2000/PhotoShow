@@ -3,7 +3,7 @@ from tkinter import messagebox
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # Avoid circular imports for type hints
-    from app.presentation.views.helpers.data.state import ExploreState
+    from app.presentation.views.helpers.data.state import BasePhotoState
 
 
 def show_limited_access(
@@ -97,7 +97,7 @@ def show_confirmation(parent: tk.Tk, title: str, message: str) -> bool:
     return messagebox.askyesno(title, message, parent=parent)
 
 
-def handle_delete_photo(state: "ExploreState") -> None:
+def handle_delete_photo(state: "BasePhotoState") -> None:
     """
     Handle photo deletion with confirmation and feedback dialogs.
 
@@ -131,7 +131,7 @@ def handle_delete_photo(state: "ExploreState") -> None:
         if success:
             show_info(state.win, "Success", message)
 
-            from app.presentation.views.helpers.data.catalog import (
+            from app.presentation.views.explore.helpers.data.catalog import (
                 invalidate_catalog_cache,
             )
 
@@ -142,7 +142,7 @@ def handle_delete_photo(state: "ExploreState") -> None:
 
             reset_preview(state)
 
-            from app.presentation.views.helpers.data.catalog import load_catalog
+            from app.presentation.views.explore.helpers.data.catalog import load_catalog
 
             load_catalog(state)
 

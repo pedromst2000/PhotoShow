@@ -2,11 +2,11 @@ import tkinter as tk
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.widgets.window import create_toplevel
 
 
-def open_photo_details(state: ExploreState) -> None:
+def open_photo_details(state: BasePhotoState) -> None:
     """
     Open the photo details window.
 

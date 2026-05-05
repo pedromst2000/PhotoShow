@@ -1,19 +1,19 @@
 import tkinter as tk
 
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.views.helpers.ui.preview import (
     reset_preview,
     update_preview,
 )
 
 
-def on_treeview_select(event: tk.Event, state: ExploreState) -> None:
+def on_treeview_select(event: tk.Event, state: BasePhotoState) -> None:
     """
     Handle treeview selection change. Navigate to correct page if needed, then update preview.
 
     Args:
         event: Tkinter event object from treeview selection
-        state: ExploreState containing tree reference and pagination info
+        state: BasePhotoState containing tree reference and pagination info
     """
     tree = state.tree
     if tree is None:

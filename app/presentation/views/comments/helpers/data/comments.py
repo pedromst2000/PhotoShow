@@ -8,11 +8,11 @@ from app.presentation.views.comments.helpers.ui.builder import (
     _WIN_W,
     build_comment_card,
 )
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 
 
 def load_and_render(
-    state: ExploreState,
+    state: BasePhotoState,
     list_canvas: tk.Canvas,
     list_frame: tk.Frame,
     win: tk.Toplevel,
@@ -23,7 +23,7 @@ def load_and_render(
     Fetch fresh comments from the controller and re-render the list.
 
     Args:
-        state: ExploreState containing selected photo info.
+        state: BasePhotoState containing selected photo info.
         list_canvas: The canvas containing the comment list (for scrollregion update).
         list_frame: The frame inside the canvas where comment cards are rendered.
         win: The comments window (for context in logging).
@@ -44,7 +44,7 @@ def render_comments(
     list_frame: tk.Frame,
     comments: list,
     win: tk.Toplevel,
-    state: ExploreState,
+    state: BasePhotoState,
     img_refs: list,
     card_img_refs: list,
 ):
@@ -56,7 +56,7 @@ def render_comments(
         list_frame: The frame inside the canvas where comment cards are rendered.
         comments: List of comments to render.
         win: The comments window (for context in logging).
-        state: ExploreState containing selected photo info.
+        state: BasePhotoState containing selected photo info.
         img_refs: List to hold image references for the window lifetime (e.g. photo image, add icon).
         card_img_refs: List to hold image references for the comment cards (e.g. avatars, action icons); cleared and repopulated on each render.
     """

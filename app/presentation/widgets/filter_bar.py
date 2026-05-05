@@ -3,7 +3,7 @@ from typing import Optional
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
-from app.presentation.views.helpers.data.catalog import (
+from app.presentation.views.explore.helpers.data.catalog import (
     SORT_OPTIONS,
     apply_filters,
     get_category_options,

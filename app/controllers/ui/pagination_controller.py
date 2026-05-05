@@ -1,6 +1,6 @@
 from app.controllers.ui.tree_view_controller import TreeViewController
 from app.presentation.views.helpers.data.pagination import PaginationManager
-from app.presentation.views.helpers.data.state import ExploreState
+from app.presentation.views.helpers.data.state import BasePhotoState
 from app.utils.log_utils import log_issue
 
 
@@ -10,12 +10,12 @@ class PaginationUIController:
     Pagination is initialized by load_catalog() with lazy-loading.
     """
 
-    def __init__(self, state: ExploreState, on_page_changed=None):
+    def __init__(self, state: BasePhotoState, on_page_changed=None):
         """
         Initialize controller.
 
         Args:
-            state: ExploreState object with tree reference
+            state: BasePhotoState object with tree reference
             on_page_changed: Optional callback when page changes
         """
         self.state = state

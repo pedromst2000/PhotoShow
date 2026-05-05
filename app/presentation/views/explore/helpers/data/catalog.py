@@ -1,7 +1,7 @@
 from app.controllers.category_controller import CategoryController
 from app.core.services.catalog_service import CatalogService
+from app.presentation.views.explore.helpers.data.state import ExploreState
 from app.presentation.views.helpers.data.pagination import PaginationManager
-from app.presentation.views.helpers.data.state import ExploreState
 from app.presentation.views.helpers.ui.preview import reset_preview
 
 # Mapping from OptionMenu display label → sort_by key understood by the controller
@@ -49,7 +49,7 @@ def _get_filtered_photos(
 ) -> list:
     """
     Fetch and filter photos once, with caching.
-    For unsigned users, applies engagement filter (3+ likes AND 3+ comments).
+    For unsigned users, applies engagement filter (likes + comments) and caps results.
 
     Args:
         sort_key: Sort criterion
@@ -181,8 +181,6 @@ def load_catalog(state: ExploreState):
     def page_provider(page_num: int) -> list:
         return _get_page_data(state, page_num)
 
-    # For unsigned users, total_count includes all photos but only top 5 will display
-    # This is acceptable since count is just for page calculation
     PaginationManager.initialize_pagination(
         state,
         items_per_page=effective_items_per_page,

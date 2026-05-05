@@ -1,4 +1,4 @@
-"""Data helpers for state management and pagination.
+"""Data helpers for shared state and pagination.
 
-Provides state objects, pagination management, and catalog utilities.
+Provides BasePhotoState (shared base for all photo preview views) and PaginationManager.
 """
