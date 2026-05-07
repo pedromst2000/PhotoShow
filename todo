@@ -117,9 +117,7 @@ User Stories - Requirements - Features
 - [X] **Empty state No Photos**: Show empty state when no photos in the album!
 - [X] **Default State of the Listbox**: By default it shows the selected photo in the catalog!
 - [X] **Select photo from the listbox**: When a user selects a photo from the listbox, the selected photo should be displayed in the photo preview card with its details ( nlikes, nComments, rating) and interactions (like, view details, view comments, delete photo or report photo buttons).
-- [X] **Album Header**: Display the album name, author (avatar and username) and category.
-   Note: Each photo of the album haves a category, but the album itself does not have a category. So you should get the average category of the photos in the album and display it as the album category.
-- [X] **Header State**: If the album has no photos, the header should only display the album name and the author (avatar and username).
+- [X] **Album Header**: Display only the album name. Author info is already shown in the photo preview panel metadata, making it redundant in the header.
 
 ## ALL USERS - Notifications
 

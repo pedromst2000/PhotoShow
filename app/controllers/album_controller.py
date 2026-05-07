@@ -33,29 +33,6 @@ class AlbumController:
         return AlbumService.get_user_albums(target_user_id)
 
     @staticmethod
-    def get_all_albums() -> List[dict]:
-        """
-        Get all albums in the system.
-
-        Returns:
-            List[dict]: List of all album dictionaries.
-        """
-        return AlbumService.get_all_albums()
-
-    @staticmethod
-    def get_album(album_id: int) -> Optional[dict]:
-        """
-        Get a specific album by ID.
-
-        Args:
-            album_id: The album's ID.
-
-        Returns:
-            Optional[dict]: The album data if found.
-        """
-        return AlbumService.get_album(album_id)
-
-    @staticmethod
     def create_album(name: str) -> Tuple[bool, str]:
         """
         Create a new album for the current user.
@@ -126,7 +103,7 @@ class AlbumController:
             return False, "New album name is required"
 
         try:
-            AlbumService.rename_album_for_user(
+            AlbumService.rename_album(
                 session.user_id, album_id, new_name, session.is_admin
             )
             log_operation(

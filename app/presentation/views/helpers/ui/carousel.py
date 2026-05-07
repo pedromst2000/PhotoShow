@@ -21,7 +21,7 @@ def navigate_prev(state: BasePhotoState):
             PaginationManager.go_to_prev_page(state)
             if state._pagination_ui_controller:
                 state._pagination_ui_controller.refresh_ui()
-            state.selected_index = total - 1  # Go to last item of new page
+            state.selected_index = len(state.photos) - 1  # Go to last item of new page
         else:
             state.selected_index = total - 1  # Wrap to end of current page
     elif state.selected_index <= 0:
@@ -30,7 +30,7 @@ def navigate_prev(state: BasePhotoState):
             PaginationManager.go_to_prev_page(state)
             if state._pagination_ui_controller:
                 state._pagination_ui_controller.refresh_ui()
-            state.selected_index = total - 1  # Go to last item of new page
+            state.selected_index = len(state.photos) - 1  # Go to last item of new page
         else:
             state.selected_index = total - 1  # Wrap to end of current page
     else:

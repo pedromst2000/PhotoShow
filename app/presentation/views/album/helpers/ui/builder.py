@@ -2,7 +2,7 @@ import tkinter as tk
 from typing import Optional
 
 from app.presentation.styles.colors import colors
-from app.presentation.styles.fonts import quickSandBold, quickSandRegularUnderline
+from app.presentation.styles.fonts import quickSandBold
 from app.presentation.views.album.helpers.data.state import AlbumState
 from app.presentation.views.album.helpers.ui.interactions import (
     album_navigate_next,
@@ -37,20 +37,18 @@ _ICON_DIR = "app/assets/images/UI_Icons/"
 
 
 def build_header(win: tk.Toplevel, state: AlbumState) -> None:
-    """Build the album header row: album name, author link, and category badge.
+    """Build the album header row: album name only.
 
     Args:
         win: The album toplevel window.
-        state: Album view state containing album, creator, and avg_category.
+        state: Album view state containing album data.
     """
     album = state.album or {}
-    creator = state.creator or {}
 
     header = tk.Frame(win, bg=_LIST_BG, height=_HEADER_H)
     header.pack(fill="x")
     header.pack_propagate(False)
 
-    # Album name
     album_name = album.get("name", "Album")
     tk.Label(
         header,
@@ -60,64 +58,6 @@ def build_header(win: tk.Toplevel, state: AlbumState) -> None:
         fg=_HEADER_FG,
         anchor="w",
     ).pack(side="left", padx=(18, 10), pady=10)
-
-    # Divider
-    tk.Label(
-        header,
-        text="|",
-        font=quickSandBold(14),
-        bg=_LIST_BG,
-        fg=_PANEL_BG,
-    ).pack(side="left", pady=10)
-
-    # Author person-icon
-    try:
-        icon_canvas = tk.Canvas(
-            header,
-            width=24,
-            height=24,
-            bg=_LIST_BG,
-            highlightthickness=0,
-        )
-        icon_canvas.pack(side="left", padx=(10, 4), pady=10)
-        img = load_image(
-            f"{_ICON_DIR}Username_Icon.png",
-            size=(24, 24),
-            canvas=icon_canvas,
-            x=0,
-            y=0,
-        )
-        icon_canvas.image = img  # type: ignore[attr-defined]
-    except Exception:
-        pass
-
-    # Clickable username label
-    username = creator.get("username", "Unknown")
-    username_lbl = tk.Label(
-        header,
-        text=username,
-        font=quickSandRegularUnderline(11),
-        bg=_LIST_BG,
-        fg=_HEADER_FG,
-        cursor="hand2",
-    )
-    username_lbl.pack(side="left", padx=(0, 14), pady=10)
-    username_lbl.bind(  # type: ignore[misc]
-        "<Button-1>", lambda _e: open_author_profile(state)
-    )
-
-    # Category badge (only when an avg category is available)
-    if state.avg_category:
-        cat_frame = tk.Frame(header, bg=_BTN_BG, padx=8, pady=4)
-        cat_frame.pack(side="left", pady=10)
-        state.header_category_lbl = tk.Label(
-            cat_frame,
-            text=state.avg_category,
-            font=quickSandBold(10),
-            bg=_BTN_BG,
-            fg=_BTN_FG,
-        )
-        state.header_category_lbl.pack()
 
 
 def build_body(

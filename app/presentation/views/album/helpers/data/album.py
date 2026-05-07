@@ -33,8 +33,6 @@ def load_album_data(
             return False
 
         state.album = details["album"]
-        state.creator = details["creator"]
-        state.avg_category = details["avg_category"]
         state.is_favorite = details["is_favorite"]
 
         # Capture photos in a closure — never written back to state directly.
