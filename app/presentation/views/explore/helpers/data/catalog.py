@@ -1,3 +1,5 @@
+from typing import Any
+
 from app.controllers.category_controller import CategoryController
 from app.core.services.catalog_service import CatalogService
 from app.presentation.views.explore.helpers.data.state import ExploreState
@@ -26,8 +28,10 @@ _current_filters = {
 
 # Cache sorted catalog to avoid reloading on every page navigation
 # Key: (sort_by, category, username) tuple; Value: sorted list of all photos
-_catalog_cache = {}
-_cache_key = None  # Track current cache key for invalidation
+_catalog_cache: dict[tuple[str, str, str | None], list[dict[str, Any]]] = {}
+_cache_key: tuple[str, str, str | None] | None = (
+    None  # Track current cache key for invalidation
+)
 
 
 def _get_catalog_cache_key(sort_by: str, category: str, username: str = None) -> tuple:
