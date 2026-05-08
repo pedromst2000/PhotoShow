@@ -54,7 +54,7 @@ User Stories - Requirements - Features
  - [ ] **Empty state — no favorite albuns**: Display an empty state when the user has no favorite albuns.
  - [ ] **Empty state — selected album has no photos**: When a favorite album is selected but contains no photos, display an empty state informing the user that there are no photos in this album.
  - [ ] **Empty state — selected album removed by owner**: If a selected favorite album is no longer available because the owner removed it, show an empty state explaining the album was removed and offer an option to remove it from favorites.
- - [ ] **Remove favorite album**: Allow the user to remove a single album from their favorites list.
+ - [X] **Remove favorite album**: Allow the user to remove a single album from their favorites list.
  - [X] **Add favorite album**: Allow the user to add an album to their favorites list from the album view!
   
 
@@ -108,7 +108,7 @@ User Stories - Requirements - Features
 - [X] **Empty state No Comments**: Show empty state when no comments on the photo.
 - [X] **Comment details**: Show comment details (author(avatar, username), content, timestamp) on the photo detail view and comments view.
 - [X] **Timestamp format**: Display comment timestamps in a human-readable format (e.g., "2 hours ago", "Yesterday", "3 days ago") instead of raw date-time values. It can´t be the created_at timestamp because when the comment is edited, the created_at timestamp is updated to the edit time. So we need to have a separate field for the original creation time of the comment that does not change when the comment is edited. This way, we can display the correct "time ago" format based on the original creation time of the comment, even if it has been edited.
-- [ ] **Pagination for comments**: Implement pagination for comments view to improve load times and user experience. Should render 5 comments per page with navigation controls to move between pages.
+- [X] **Pagination for comments**: Implement pagination for comments view to improve load times and user experience. Should render 5 comments per page with navigation controls to move between pages.
 
 ## ALL USERS - See Album Details
 
