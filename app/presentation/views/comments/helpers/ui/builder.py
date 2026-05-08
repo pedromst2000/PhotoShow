@@ -7,11 +7,10 @@ from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.views.helpers.ui.modals import open_report_dialog
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
-from app.presentation.widgets.helpers.char_limit import validate_text_char_limit
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.helpers.scrollable_text import ScrollableText
 from app.utils.date_utils import format_timestamp
-from app.utils.file_utils import resolve_avatar_path, resolve_image_path
+from app.utils.file_utils import resolve_avatar_path
 
 _WIN_W = 600
 _WIN_H = 630
@@ -23,52 +22,6 @@ _TEXT_FG = colors["secondary-500"]
 _COMMENT_MAX_LEN = 255
 _ICON_DIR = "app/assets/images/UI_Icons/"
 _AVATAR_SIZE = 28
-
-
-def build_photo_canvas(
-    parent: tk.Frame,
-    state: BasePhotoState,
-    img_refs: list,
-):
-    """
-    Render the selected photo image at the top of the window.
-
-    Args:
-        parent: The parent frame to attach the canvas to.
-        state: BasePhotoState containing selected photo info.
-        img_refs: List to hold image references for the window lifetime (e.g. photo image, add icon).
-    """
-    photo = state.selected_photo
-    photo_canvas = tk.Canvas(
-        parent,
-        width=_WIN_W - 32,
-        height=180,
-        bg=colors["secondary-400"],
-        highlightthickness=0,
-        bd=0,
-    )
-    photo_canvas.pack(side=tk.TOP, fill=tk.X, pady=(0, 16))
-
-    img_path = resolve_image_path(photo.get("image")) if photo else None
-    img_ref = None
-    if img_path:
-        img_ref = load_image(
-            img_path,
-            size=(_WIN_W - 32, 180),
-            canvas=photo_canvas,
-            x=0,
-            y=0,
-        )
-        img_refs.append(img_ref)
-
-    if img_ref is None:
-        photo_canvas.create_text(
-            (_WIN_W - 32) // 2,
-            90,
-            text="No image available",
-            font=quickSandBold(14),
-            fill=colors["primary-50"],
-        )
 
 
 def build_comment_list(parent: tk.Frame) -> tuple[tk.Canvas, tk.Frame, tk.Frame]:
@@ -196,24 +149,19 @@ def build_input_area(
     add_btn.bind("<Enter>", lambda e: button_on_enter(e, add_btn))
     add_btn.bind("<Leave>", lambda e: button_on_leave(e, add_btn))
 
-    # Closures capture all widget references — no class needed
+    # Late import to avoid circular dependency: interactions.py imports constants from this module.
+    from app.presentation.views.comments.helpers.ui.interactions import (
+        on_add_comment,
+        on_input_change,
+    )
+
     def _on_input_change(event=None):
-        """Validate input and enable/disable the Add Comment button."""
-        validate_text_char_limit(
-            scrollable.text, char_count, _COMMENT_MAX_LEN, required=True
-        )
-        # Button disabled only when text is empty; char-limit is backend-validated
-        text = scrollable.text.get("1.0", "end-1c").strip()
-        add_btn.config(state=tk.NORMAL if text else tk.DISABLED)
+        """Validate comment input and toggle Add button."""
+        on_input_change(scrollable, char_count, add_btn, event)
 
     def _on_add():
-        """Handle the Add Comment button action."""
-        # Late import to avoid circular dependency with interactions.py
-        from app.presentation.views.comments.helpers.ui.interactions import (
-            submit_comment,
-        )
-
-        submit_comment(
+        """Handle Add Comment button click."""
+        on_add_comment(
             win,
             state,
             scrollable,
@@ -221,12 +169,16 @@ def build_input_area(
             list_frame,
             img_refs,
             card_img_refs,
-            _on_input_change,
+            char_count,
+            add_btn,
         )
 
     add_btn.config(command=_on_add)
     scrollable.text.bind("<KeyRelease>", _on_input_change)
-    win.bind("<Return>", lambda e: _on_add() if add_btn["state"] == tk.NORMAL else None)
+    win.bind(
+        "<Return>",
+        lambda e: _on_add() if add_btn["state"] == tk.NORMAL else None,
+    )
 
 
 def build_comment_card(
