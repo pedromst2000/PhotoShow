@@ -3,7 +3,6 @@ import tkinter as tk
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
-from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.views.helpers.ui.modals import open_report_dialog
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
@@ -70,9 +69,7 @@ def build_comment_list(parent: tk.Frame) -> tuple[tk.Canvas, tk.Frame, tk.Frame]
 def build_input_area(
     parent: tk.Frame,
     win: tk.Toplevel,
-    state: BasePhotoState,
-    list_canvas: tk.Canvas,
-    list_frame: tk.Frame,
+    cstate,
     img_refs: list,
     card_img_refs: list,
 ):
@@ -82,9 +79,7 @@ def build_input_area(
     Args:
         parent: The parent frame to attach the input area to.
         win: The top-level window containing the input area.
-        state: BasePhotoState containing selected photo info.
-        list_canvas: The canvas containing the comment list.
-        list_frame: The frame inside the canvas where comment cards are rendered.
+        cstate: CommentsWindowState (owns list_canvas, list_frame and photo delegation).
         img_refs: List to hold image references for the window lifetime (e.g. photo image, add icon).
         card_img_refs: List to hold image references for comment cards.
     """
@@ -162,15 +157,7 @@ def build_input_area(
     def _on_add():
         """Handle Add Comment button click."""
         on_add_comment(
-            win,
-            state,
-            scrollable,
-            list_canvas,
-            list_frame,
-            img_refs,
-            card_img_refs,
-            char_count,
-            add_btn,
+            win, cstate, scrollable, img_refs, card_img_refs, char_count, add_btn
         )
 
     add_btn.config(command=_on_add)
@@ -185,8 +172,7 @@ def build_comment_card(
     parent: tk.Frame,
     comment: dict,
     win: tk.Toplevel,
-    state: BasePhotoState,
-    list_canvas: tk.Canvas,
+    cstate,
     img_refs: list,
     card_img_refs: list,
 ):
@@ -196,11 +182,10 @@ def build_comment_card(
     Args:
         parent: The parent frame to attach the comment card to.
         comment: The comment data dictionary.
-        win: The top-level window containing the comment card (for context in logging).
-        state: BasePhotoState containing selected photo info (for context in logging).
-        list_canvas: The canvas containing the comment list (for scrollregion update on delete).
-        img_refs: List to hold image references for the window lifetime (e.g. photo image, add icon).
-        card_img_refs: List to hold image references for the comment cards (e.g. avatars, action icons); cleared and repopulated on each render.
+        win: The top-level window containing the comment card.
+        cstate: CommentsWindowState (for photo delegation and delete callback).
+        img_refs: List to hold image references for the window lifetime.
+        card_img_refs: Per-render image refs; cleared and repopulated on each render.
     """
     # Late imports to avoid circular dependency with interactions.py
     from app.presentation.views.comments.helpers.ui.interactions import (
@@ -291,7 +276,7 @@ def build_comment_card(
             "Remove_Icon.png",
             card_img_refs,
             command=lambda cid=comment_id: on_delete(
-                cid, win, state, list_canvas, parent, img_refs, card_img_refs
+                cid, win, cstate, img_refs, card_img_refs
             ),
         ).pack(side=tk.TOP)
 
@@ -306,3 +291,51 @@ def build_comment_card(
         justify="left",
         wraplength=_WIN_W - 150,
     ).grid(row=1, column=1, sticky="ew", padx=(0, 8), pady=(0, 10))
+
+
+def build_comments_pagination(parent: tk.Frame, cstate) -> None:
+    """Build the pagination row for the comments list.
+
+    Delegates to the global ``build_listbox_pagination`` with comments-specific
+    colours and a page-changed callback that re-renders the current page of
+    comment cards.
+
+    Args:
+        parent: Frame into which the pagination row is packed (directly below
+                the comment list container).
+        cstate: CommentsWindowState whose pagination was initialised by
+                ``initialize_comments_pagination``.
+    """
+    from app.presentation.views.helpers.ui.builder import build_listbox_pagination
+
+    build_listbox_pagination(
+        parent,
+        cstate,
+        on_page_changed=lambda: _on_comments_page_changed(cstate),
+        bg=_BG,
+        btn_bg=_BTN_BG,
+        btn_fg=_BTN_FG,
+        text_fg=_TEXT_FG,
+    )
+
+
+def _on_comments_page_changed(cstate) -> None:
+    """Re-render the current page of comments after navigation.
+
+    Called by the PaginationUIController's on_page_changed hook. At the point
+    this runs, ``cstate.photos`` has already been updated by
+    ``_make_page_changed_handler`` in the global listbox_pagination builder.
+
+    Args:
+        cstate: CommentsWindowState with updated ``photos`` for the current page.
+    """
+    from app.presentation.views.comments.helpers.data.comments import render_comments
+
+    render_comments(
+        cstate.list_frame,
+        cstate.photos,
+        cstate.win,
+        cstate,
+        cstate.img_refs,
+        cstate.card_img_refs,
+    )

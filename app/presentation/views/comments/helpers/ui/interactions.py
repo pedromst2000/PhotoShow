@@ -10,7 +10,6 @@ from app.presentation.views.comments.helpers.ui.builder import (
     _COMMENT_MAX_LEN,
     _ICON_DIR,
 )
-from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
 from app.presentation.widgets.helpers.char_limit import validate_text_char_limit
@@ -62,28 +61,23 @@ def make_action_button(
 
 def submit_comment(
     win: tk.Toplevel,
-    state: BasePhotoState,
+    cstate,
     scrollable: ScrollableText,
-    list_canvas: tk.Canvas,
-    list_frame: tk.Frame,
     img_refs: list,
     card_img_refs: list,
     on_input_change,
 ):
-    """
-    Handle the Add Comment button action.
+    """Handle the Add Comment button action.
 
     Args:
         win: The top-level comments window.
-        state: Current view state.
+        cstate: CommentsWindowState (owns selected_photo delegation and UI refs).
         scrollable: The comment text input widget.
-        list_canvas: Canvas containing the comment list (for scroll region update).
-        list_frame: Inner frame where comment cards are rendered.
         img_refs: Window-lifetime image references.
         card_img_refs: Per-render image references for comment cards.
         on_input_change: Callback to re-validate the input after submission.
     """
-    photo = state.selected_photo
+    photo = cstate.selected_photo
     if photo is None:
         return
 
@@ -93,11 +87,11 @@ def submit_comment(
     if success:
         scrollable.text.delete("1.0", tk.END)
         on_input_change()
-        load_and_render(state, list_canvas, list_frame, win, img_refs, card_img_refs)
-        # Keep explore preview panel count in sync
+        load_and_render(cstate, win, img_refs, card_img_refs)
+        # Keep parent panel comment counter in sync.
         photo["comments"] = photo.get("comments", 0) + 1
-        if state.comments_label:
-            state.comments_label.config(text=str(photo["comments"]))
+        if cstate.comments_label:
+            cstate.comments_label.config(text=str(photo["comments"]))
     else:
         show_error(win, "Error", message)
 
@@ -105,21 +99,16 @@ def submit_comment(
 def on_delete(
     comment_id: int,
     win: tk.Toplevel,
-    state: BasePhotoState,
-    list_canvas: tk.Canvas,
-    list_frame: tk.Frame,
+    cstate,
     img_refs: list,
     card_img_refs: list,
 ):
-    """
-    Confirm and delete a comment, then refresh the list and explore counters.
+    """Confirm and delete a comment, then refresh the list and parent counters.
 
     Args:
         comment_id: ID of the comment to delete.
         win: The top-level comments window.
-        state: Current view state.
-        list_canvas: Canvas containing the comment list (for scroll region update).
-        list_frame: Inner frame where comment cards are rendered.
+        cstate: CommentsWindowState (owns selected_photo delegation and UI refs).
         img_refs: Window-lifetime image references.
         card_img_refs: Per-render image references for comment cards.
     """
@@ -133,12 +122,12 @@ def on_delete(
 
     success, message = CommentController.delete_comment(comment_id)
     if success:
-        load_and_render(state, list_canvas, list_frame, win, img_refs, card_img_refs)
-        photo = state.selected_photo
+        load_and_render(cstate, win, img_refs, card_img_refs)
+        photo = cstate.selected_photo
         if photo is not None:
             photo["comments"] = max(0, photo.get("comments", 1) - 1)
-            if state.comments_label:
-                state.comments_label.config(text=str(photo["comments"]))
+            if cstate.comments_label:
+                cstate.comments_label.config(text=str(photo["comments"]))
     else:
         show_error(win, "Error", message)
 
@@ -167,10 +156,8 @@ def on_input_change(
 
 def on_add_comment(
     win: tk.Toplevel,
-    state: BasePhotoState,
+    cstate,
     scrollable: ScrollableText,
-    list_canvas: tk.Canvas,
-    list_frame: tk.Frame,
     img_refs: list,
     card_img_refs: list,
     char_count: tk.Label,
@@ -180,10 +167,8 @@ def on_add_comment(
 
     Args:
         win: The top-level comments window.
-        state: Current view state.
+        cstate: CommentsWindowState (owns selected_photo delegation and UI refs).
         scrollable: The comment text input widget.
-        list_canvas: Canvas containing the comment list (for scroll region update).
-        list_frame: Inner frame where comment cards are rendered.
         img_refs: Window-lifetime image references.
         card_img_refs: Per-render image references for comment cards.
         char_count: Character-count label to reset after submission.
@@ -191,10 +176,8 @@ def on_add_comment(
     """
     submit_comment(
         win,
-        state,
+        cstate,
         scrollable,
-        list_canvas,
-        list_frame,
         img_refs,
         card_img_refs,
         lambda: on_input_change(scrollable, char_count, add_btn),
