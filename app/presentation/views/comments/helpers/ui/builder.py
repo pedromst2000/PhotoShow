@@ -3,6 +3,7 @@ import tkinter as tk
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
+from app.presentation.styles.theme import BTN_BG, BTN_FG, PAGE_BG, TEXT_FG
 from app.presentation.views.helpers.ui.modals import open_report_dialog
 from app.presentation.widgets.helpers.button import on_enter as button_on_enter
 from app.presentation.widgets.helpers.button import on_leave as button_on_leave
@@ -13,11 +14,11 @@ from app.utils.file_utils import resolve_avatar_path
 
 _WIN_W = 600
 _WIN_H = 630
-_BG = colors["primary-50"]
+_BG = PAGE_BG
 _BORDER_CLR = colors["secondary-300"]
-_BTN_BG = colors["accent-300"]
-_BTN_FG = colors["secondary-500"]
-_TEXT_FG = colors["secondary-500"]
+_BTN_BG = BTN_BG
+_BTN_FG = BTN_FG
+_TEXT_FG = TEXT_FG
 _COMMENT_MAX_LEN = 255
 _ICON_DIR = "app/assets/images/UI_Icons/"
 _AVATAR_SIZE = 28

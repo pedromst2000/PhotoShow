@@ -3,6 +3,14 @@ from typing import Optional
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
+from app.presentation.styles.theme import (
+    BTN_BG,
+    BTN_FG,
+    HEADER_FG,
+    LIST_BG,
+    PAGE_BG,
+    PANEL_BG,
+)
 from app.presentation.views.album.helpers.data.state import AlbumState
 from app.presentation.views.album.helpers.ui.interactions import (
     album_navigate_next,
@@ -27,12 +35,12 @@ _WIN_W = 1100
 _WIN_H = 620
 _HEADER_H = 70
 _LEFT_W = 280
-_BG = colors["primary-50"]
-_PANEL_BG = colors["secondary-300"]
-_LIST_BG = colors["secondary-500"]
-_BTN_BG = colors["accent-300"]
-_BTN_FG = colors["secondary-500"]
-_HEADER_FG = colors["primary-50"]
+_BG = PAGE_BG
+_PANEL_BG = PANEL_BG
+_LIST_BG = LIST_BG
+_BTN_BG = BTN_BG
+_BTN_FG = BTN_FG
+_HEADER_FG = HEADER_FG
 _ICON_DIR = "app/assets/images/UI_Icons/"
 
 
@@ -169,6 +177,7 @@ def _build_preview_panel(body: tk.Frame, state: AlbumState) -> None:
             "Select a photo on the left"
             "  \u2022  Click the username to view the author's profile \u2022  Hover over the stars to rate the photo"
         ),
+        show_buttons=False,
         on_prev=lambda: album_navigate_prev(state),
         on_next=lambda: album_navigate_next(state),
         on_username_click=lambda: open_author_profile(state),
