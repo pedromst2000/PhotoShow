@@ -167,7 +167,7 @@ def _build_preview_panel(body: tk.Frame, state: AlbumState) -> None:
         title="Album Preview",
         subtitle=(
             "Select a photo on the left"
-            "  \u2022  Click the username to view the author's profile"
+            "  \u2022  Click the username to view the author's profile \u2022  Hover over the stars to rate the photo"
         ),
         on_prev=lambda: album_navigate_prev(state),
         on_next=lambda: album_navigate_next(state),
