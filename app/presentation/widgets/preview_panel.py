@@ -1,11 +1,9 @@
 import tkinter as tk
-from typing import Any, Callable, List, Optional
+from typing import Callable, List, Optional
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandBoldUnderline
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
-from app.presentation.widgets.helpers.icon_label import add_icon_canvas
+from app.presentation.widgets.helpers.icon_button import load_btn_icon, make_icon_button
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.photo_carousel import PhotoCarouselWidget
 from app.presentation.widgets.star_rating import StarRatingWidget
@@ -284,17 +282,21 @@ class PreviewPanelWidget(tk.Frame):
                 command = btn_cfg["command"]
                 unlike_file = btn_cfg.get("unlike_icon")
 
-                icon = self._get_icon_via_canvas(self._icon_dir + icon_file)
+                icon = load_btn_icon(
+                    self.parent, self.state, self._icon_dir + icon_file
+                )
                 unlike_icon = (
-                    self._get_icon_via_canvas(self._icon_dir + unlike_file)
+                    load_btn_icon(self.parent, self.state, self._icon_dir + unlike_file)
                     if unlike_file
                     else None
                 )
 
-                btn = self._make_icon_btn(
+                btn = make_icon_button(
                     btns_frame,
                     label=label,
                     command=command,
+                    btn_bg=self._btn_bg,
+                    btn_fg=self._btn_fg,
                     icon=icon,
                     like_icon=icon if unlike_icon else None,
                     unlike_icon=unlike_icon,
@@ -326,85 +328,3 @@ class PreviewPanelWidget(tk.Frame):
                 if btn:
                     btn.grid_remove()
                     btn.config(state=tk.DISABLED)
-
-    def _make_icon_btn(
-        self,
-        parent: tk.Frame,
-        label: str,
-        command,
-        icon=None,
-        like_icon=None,
-        unlike_icon=None,
-    ) -> tk.Button:
-        """
-        Create a flat button with a pre-loaded icon.
-
-        Args:
-            parent: Parent frame.
-            label: Button text.
-            command: Function called on click.
-            icon: Pre-loaded PhotoImage for default state.
-            like_icon: Pre-loaded like icon (for toggleable like button).
-            unlike_icon: Pre-loaded unlike icon (for toggleable like button).
-
-        Returns:
-            tk.Button: Configured disabled button ready to be gridded.
-        """
-        btn = tk.Button(
-            parent,
-            text=label,
-            image=icon,
-            compound=tk.LEFT,
-            font=quickSandBold(10),
-            bg=self._btn_bg,
-            fg=self._btn_fg,
-            activebackground=self._btn_bg,
-            activeforeground=self._btn_fg,
-            borderwidth=0,
-            highlightthickness=0,
-            cursor="hand2",
-            relief="flat",
-            padx=8,
-            pady=5,
-            state=tk.DISABLED,
-            command=command,
-        )
-        btn.image = icon
-
-        if like_icon and unlike_icon:
-            btn._like_icon = like_icon
-            btn._unlike_icon = unlike_icon
-
-        btn.bind("<Enter>", lambda e: button_on_enter(e, btn))
-        btn.bind("<Leave>", lambda e: button_on_leave(e, btn))
-
-        return btn
-
-    def _get_icon_via_canvas(self, icon_path: str) -> Any:
-        """
-        Load a button icon and keep its reference alive via state.
-
-        Args:
-            icon_path: Full path to the icon image.
-
-        Returns:
-            PhotoImage object ready to be passed to a tk.Button ``image`` option.
-        """
-        icon_holder = tk.Frame(self.parent)  # Hidden — never packed
-
-        icon_canvas = add_icon_canvas(
-            f"btn_icon_{id(icon_path)}",
-            icon_holder,
-            icon_path,
-            icon_pos=(0, 0),
-            icon_size=(16, 16),
-            canvas_size=(16, 16),
-            visible=False,
-        )
-
-        icon = icon_canvas.image
-        if not hasattr(self.state, "_btn_icon_refs"):
-            self.state._btn_icon_refs = []
-        self.state._btn_icon_refs.append(icon)
-
-        return icon

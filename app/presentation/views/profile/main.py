@@ -1,4 +1,5 @@
 import tkinter as tk
+from typing import Optional
 
 from app.controllers.user_controller import UserController
 from app.core.state.session import session
@@ -15,20 +16,48 @@ from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.window import create_toplevel
 from app.utils.file_utils import resolve_avatar_path
 
-# # fallback images
-backgroundProfile: str = ""
-followersImageIcon: str = ""
-avatarImage: str = ""
 
-
-def profileWindow():
+def profileWindow(user_id: Optional[int] = None):
     """
-    This function is used to display the profile window.
-    """
+    Display the profile window.
 
-    # prepare data and create the window using the reusable helper
-    userID: int = session.user_id
-    userPayload: dict = session.user_data
+    When called without arguments (or ``user_id=None``) it shows the
+    authenticated user's own profile with all management buttons.
+
+    When called with a *different* ``user_id`` it shows that user's public
+    profile with only the Albums and Favorites navigation buttons visible
+    (visitor / author view).
+
+    Args:
+        user_id: ID of the user whose profile to display.  Pass ``None`` (default)
+                 to display the currently logged-in user's profile.
+    """
+    own_profile = user_id is None or user_id == session.user_id
+
+    if own_profile:
+        userID: int = session.user_id
+        userPayload: dict = session.user_data
+    else:
+        userID = user_id
+        userPayload = UserController.get_profile(user_id) or {}
+        if not userPayload:
+            # Author not found — show a minimal empty window.
+            win = create_toplevel(
+                title="👤 Profile",
+                width=1000,
+                height=450,
+                icon_path="app/assets/PhotoShowIcon.ico",
+                bg_color=colors["primary-50"],
+            )
+            tk.Label(
+                win,
+                text="Profile not available",
+                font=quickSandBold(16),
+                bg=colors["primary-50"],
+                fg=colors["secondary-500"],
+            ).pack(expand=True)
+            win.grab_set()
+            return
 
     stats: dict = UserController.get_profile_stats(userID)
     follower_count: int = stats["follower_count"]
@@ -225,19 +254,20 @@ def profileWindow():
 
     # TODO = If is a visitor, show only the albuns and favorites buttons
 
-    (
+    role = userPayload.get("role", "")
+    if own_profile:
+        # Own profile: show all relevant buttons by role
+        if role in ("admin", "regular"):
+            albunsBtn.place(x=40, y=270)
+            favoritesBtn.place(x=240, y=270)
+        changePasswordBtn.place(x=440, y=270)
+        changeAvatarBtn.place(x=640, y=270)
+        if role == "admin":
+            contactsBtn.place(x=40, y=350)
+    else:
+        # Visitor / author view: only Albums and Favorites
         albunsBtn.place(x=40, y=270)
-        if userPayload["role"] == "admin" or userPayload["role"] == "regular"
-        else None
-    )
-    (
         favoritesBtn.place(x=240, y=270)
-        if userPayload["role"] == "admin" or userPayload["role"] == "regular"
-        else None
-    )
-    changePasswordBtn.place(x=440, y=270)
-    changeAvatarBtn.place(x=640, y=270)
-    contactsBtn.place(x=40, y=350) if userPayload["role"] == "admin" else None
 
     # ------------------------- Events ----------------------------------------------
 
@@ -245,24 +275,27 @@ def profileWindow():
     albunsBtn.bind("<Leave>", lambda event: button_on_leave(event, albunsBtn))
     favoritesBtn.bind("<Enter>", lambda event: button_on_enter(event, favoritesBtn))
     favoritesBtn.bind("<Leave>", lambda event: button_on_leave(event, favoritesBtn))
-    changePasswordBtn.bind(
-        "<Enter>", lambda event: button_on_enter(event, changePasswordBtn)
-    )
-    changePasswordBtn.bind(
-        "<Leave>", lambda event: button_on_leave(event, changePasswordBtn)
-    )
-    changeAvatarBtn.bind(
-        "<Enter>", lambda event: button_on_enter(event, changeAvatarBtn)
-    )
-    changeAvatarBtn.bind(
-        "<Leave>", lambda event: button_on_leave(event, changeAvatarBtn)
-    )
-    contactsBtn.bind("<Enter>", lambda event: button_on_enter(event, contactsBtn))
-    contactsBtn.bind("<Leave>", lambda event: button_on_leave(event, contactsBtn))
+
+    if own_profile:
+        changePasswordBtn.bind(
+            "<Enter>", lambda event: button_on_enter(event, changePasswordBtn)
+        )
+        changePasswordBtn.bind(
+            "<Leave>", lambda event: button_on_leave(event, changePasswordBtn)
+        )
+        changeAvatarBtn.bind(
+            "<Enter>", lambda event: button_on_enter(event, changeAvatarBtn)
+        )
+        changeAvatarBtn.bind(
+            "<Leave>", lambda event: button_on_leave(event, changeAvatarBtn)
+        )
+        contactsBtn.bind("<Enter>", lambda event: button_on_enter(event, contactsBtn))
+        contactsBtn.bind("<Leave>", lambda event: button_on_leave(event, contactsBtn))
+        changePasswordBtn.bind("<Button-1>", lambda event: changePasswordWindow())
+        contactsBtn.bind("<Button-1>", lambda event: contactsWindow())
+        changeAvatarBtn.bind("<Button-1>", lambda event: changeAvatarWindow())
+
     albunsBtn.bind("<Button-1>", lambda event: albunsProfileWindow())
     favoritesBtn.bind("<Button-1>", lambda event: favoritesProfileWindow())
-    changePasswordBtn.bind("<Button-1>", lambda event: changePasswordWindow())
-    contactsBtn.bind("<Button-1>", lambda event: contactsWindow())
-    changeAvatarBtn.bind("<Button-1>", lambda event: changeAvatarWindow())
 
     _profileWindow_.grab_set()

@@ -1,9 +1,8 @@
 import tkinter as tk
 
 from app.core.state.session import session
-from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandRegular
-from app.presentation.views.album.main import open_album
+from app.presentation.styles.theme import BTN_BG, BTN_FG, PAGE_BG
 from app.presentation.views.explore.helpers.data.catalog import load_catalog
 from app.presentation.views.explore.helpers.data.state import ExploreState
 from app.presentation.views.helpers.ui.builder import build_preview_panel
@@ -20,9 +19,9 @@ from app.presentation.widgets.window import create_toplevel
 
 _WIN_W = 1300
 _WIN_H = 750
-_PAGE_BG = colors["primary-50"]
-_BTN_BG = colors["accent-300"]
-_BTN_FG = colors["secondary-500"]
+_PAGE_BG = PAGE_BG
+_BTN_BG = BTN_BG
+_BTN_FG = BTN_FG
 
 
 def exploreWindow():
@@ -89,12 +88,6 @@ def exploreWindow():
             "  \u2022  Hover over the stars to rate the photo"
         ),
         extra_buttons=[
-            {
-                "name": "album_btn",
-                "label": "  See Album",
-                "icon": "Eye_Icon_V2.png",
-                "command": lambda: open_album(state),
-            },
             {
                 "name": "delete_btn",
                 "label": "  Delete Photo",
