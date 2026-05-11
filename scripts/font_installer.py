@@ -99,12 +99,12 @@ def is_font_installed(font_name: str) -> bool:
         try:
             import winreg
 
-            with winreg.OpenKey(
-                winreg.HKEY_LOCAL_MACHINE,
+            with winreg.OpenKey(  # type: ignore[attr-defined]
+                winreg.HKEY_LOCAL_MACHINE,  # type: ignore[attr-defined]
                 r"Software\Microsoft\Windows NT\CurrentVersion\Fonts",
             ) as key:
                 try:
-                    value, _ = winreg.QueryValueEx(key, f"{font_name}.ttf")
+                    value, _ = winreg.QueryValueEx(key, f"{font_name}.ttf")  # type: ignore[attr-defined]
                     return True
                 except FileNotFoundError:
                     pass
@@ -130,7 +130,7 @@ def load_fonts_windows(font_paths: list) -> bool:
         from ctypes import wintypes
 
         # Load Windows API
-        gdi32 = ctypes.windll.gdi32
+        gdi32 = ctypes.windll.gdi32  # type: ignore[attr-defined]
 
         # AddFontResourceEx signature
         AddFontResourceEx = gdi32.AddFontResourceExA
@@ -258,13 +258,17 @@ def install_fonts() -> bool:
                             import winreg
 
                             font_name = font_file.replace(".ttf", "")
-                            with winreg.OpenKey(
-                                winreg.HKEY_LOCAL_MACHINE,  # Add font entry to Windows registry for system-wide installation
+                            with winreg.OpenKey(  # type: ignore[attr-defined]
+                                winreg.HKEY_LOCAL_MACHINE,  # type: ignore[attr-defined]
                                 r"Software\Microsoft\Windows NT\CurrentVersion\Fonts",  # Registry path for installed fonts
-                                access=winreg.KEY_WRITE,
+                                access=winreg.KEY_WRITE,  # type: ignore[attr-defined]
                             ) as key:
-                                winreg.SetValueEx(
-                                    key, f"{font_name}", 0, winreg.REG_SZ, font_file
+                                winreg.SetValueEx(  # type: ignore[attr-defined]
+                                    key,
+                                    f"{font_name}",
+                                    0,
+                                    winreg.REG_SZ,  # type: ignore[attr-defined]
+                                    font_file,
                                 )
                         except PermissionError:
                             pass  # Registry write may fail; fall back to user dir
