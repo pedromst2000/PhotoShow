@@ -65,35 +65,35 @@ A demo video for PhotoShow will be added soon.
 
 **Core Technologies**
 
-- [Python 3.14+](https://www.python.org/) — Main programming language.
-- [Tkinter](https://docs.python.org/3/library/tkinter.html) — GUI framework.
-- [Pillow](https://pillow.readthedocs.io/en/stable/) — Image processing library.
-- [pip](https://pip.pypa.io/en/stable/) — Package manager.
+- [Python 3.14+](https://www.python.org/) - Main programming language.
+- [Tkinter](https://docs.python.org/3/library/tkinter.html) - GUI framework.
+- [Pillow](https://pillow.readthedocs.io/en/stable/) - Image processing library.
+- [pip](https://pip.pypa.io/en/stable/) - Package manager.
 
 **Data & Security**
 
-- [SQLite](https://www.sqlite.org/) — Embedded relational database.
-- [SQLAlchemy](https://www.sqlalchemy.org/) — ORM and database toolkit.
-- [bcrypt](https://github.com/pyca/bcrypt) — Password hashing.
+- [SQLite](https://www.sqlite.org/) - Embedded relational database.
+- [SQLAlchemy](https://www.sqlalchemy.org/) - ORM and database toolkit.
+- [bcrypt](https://github.com/pyca/bcrypt) - Password hashing.
 
 **Code Quality & Linting**
 
-- [Black](https://black.readthedocs.io/en/stable/) — Code formatter.
-- [flake8](https://flake8.pycqa.org/en/latest/) — Code linter.
-- [isort](https://pycqa.github.io/isort/) — Import sorter.
-- [yamllint](https://yamllint.readthedocs.io/en/stable/) — YAML linter.
-- [mypy](https://mypy.readthedocs.io/en/stable/) — Static type checker.
+- [Black](https://black.readthedocs.io/en/stable/) - Code formatter.
+- [flake8](https://flake8.pycqa.org/en/latest/) - Code linter.
+- [isort](https://pycqa.github.io/isort/) - Import sorter.
+- [yamllint](https://yamllint.readthedocs.io/en/stable/) - YAML linter.
+- [mypy](https://mypy.readthedocs.io/en/stable/) - Static type checker.
 
 **Testing**
 
-- [pytest](https://docs.pytest.org/en/stable/) — Testing framework.
-- [pytest-mock](https://github.com/pytest-dev/pytest-mock) — Mocking in tests.
-- [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) — Coverage reporting.
-- [codecov](https://about.codecov.io/) — Code coverage reporting service.
+- [pytest](https://docs.pytest.org/en/stable/) - Testing framework.
+- [pytest-mock](https://github.com/pytest-dev/pytest-mock) - Mocking in tests.
+- [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) - Coverage reporting.
+- [codecov](https://about.codecov.io/) - Code coverage reporting service.
 
 **Packaging**
 
-- [PyInstaller](https://www.pyinstaller.org/) — Build standalone executables.
+- [PyInstaller](https://www.pyinstaller.org/) - Build standalone executables.
 
 <br>
 
