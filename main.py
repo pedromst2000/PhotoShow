@@ -163,6 +163,19 @@ if __name__ == "__main__":
         restore_db_from_backup(_backup_path)
         sys.exit(0)
 
+    # ── Install fonts ────────────────────────────────────────────────────────
+    log_check("Installing custom fonts...")
+    try:
+        from scripts.font_installer import ensure_fonts_installed
+
+        fonts_ok = ensure_fonts_installed()
+        if fonts_ok:
+            log_success("Custom fonts installed/verified")
+        else:
+            log_issue("Font installation encountered issues (continuing anyway)")
+    except Exception as e:
+        log_issue("Font installation error (continuing anyway)", exc=e)
+
     # ── Normal startup ───────────────────────────────────────────────────────
     log_check("Initializing database...")
     try:
