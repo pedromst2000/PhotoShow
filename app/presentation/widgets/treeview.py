@@ -116,7 +116,7 @@ class TreeviewWidget(tk.Frame):
             foreground=colors["primary-50"],
             fieldbackground=colors["secondary-400"],
             rowheight=28,
-            font=("Quicksand", 10),
+            font=quickSandRegular(10),
             borderwidth=0,
             relief="flat",
         )
@@ -124,7 +124,7 @@ class TreeviewWidget(tk.Frame):
             "Explore.Treeview.Heading",
             background=colors["secondary-500"],
             foreground=colors["primary-50"],
-            font=("Quicksand Bold", 11),
+            font=quickSandBold(11),
             borderwidth=0,
             relief="flat",
             padding=3,

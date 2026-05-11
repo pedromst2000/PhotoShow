@@ -1,53 +1,94 @@
-import tkinter.font as tkFont
+# ══════════════════════════════════════════════════════════════════════════════
+#  Font Specification Functions (work with both Tkinter and TTK)
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# These functions return font tuples ("FontName", size, "weight") that work with:
+# - Regular Tkinter widgets: font=quickSandBold(12)
+# - TTK styles: style.configure("Style", font=quickSandBold(12))
+# - Font objects: tkFont.Font(family=quickSandBold(12)[0], size=quickSandBold(12)[1])
+#
+# Requires: Quicksand fonts installed on system (installed via font_installer.py at startup).
 
 
-def quickSandRegular(size: int) -> tkFont:
+def quickSandRegular(size: int) -> tuple:
     """
-    This function is used to set the font family to QuickSand Regular.
+    Get QuickSand Regular font specification.
 
     Args:
-        size (int): The size of the font.
+        size (int): The font size in points.
     Returns:
-        tkFont: The font object with QuickSand Regular style.
+        tuple: Font specification ("Quicksand", size, "normal").
     """
+    return ("Quicksand", size, "normal")
 
-    return tkFont.Font(family="QuickSand", size=size, weight="normal")
 
-
-def quickSandBold(size: int) -> tkFont:
+def quickSandBold(size: int) -> tuple:
     """
-    This function is used to set the font family to QuickSand Bold.
+    Get QuickSand Bold font specification.
 
     Args:
-        size (int): The size of the font.
+        size (int): The font size in points.
     Returns:
-        tkFont: The font object with QuickSand Bold style.
+        tuple: Font specification ("Quicksand", size, "bold").
     """
+    return ("Quicksand", size, "bold")
 
-    return tkFont.Font(family="QuickSand", size=size, weight="bold")
 
-
-def quickSandRegularUnderline(size: int) -> tkFont:
+def quickSandLight(size: int) -> tuple:
     """
-    This function is used to set the font family to QuickSand Regular Underline.
+    Get QuickSand Light font specification.
 
     Args:
-        size (int): The size of the font.
+        size (int): The font size in points.
     Returns:
-        tkFont: The font object with QuickSand Regular Underline style.
+        tuple: Font specification ("Quicksand", size, "normal").
     """
+    return ("Quicksand", size, "normal")
 
-    return tkFont.Font(family="QuickSand", size=size, weight="normal", underline=1)
 
-
-def quickSandBoldUnderline(size: int) -> tkFont:
+def quickSandMedium(size: int) -> tuple:
     """
-    This function is used to set the font family to QuickSand Bold Underline.
+    Get QuickSand Medium font specification.
 
     Args:
-        size (int): The size of the font.
+        size (int): The font size in points.
     Returns:
-        tkFont: The font object with QuickSand Bold Underline style.
+        tuple: Font specification ("Quicksand", size, "normal").
     """
+    return ("Quicksand", size, "normal")
 
-    return tkFont.Font(family="QuickSand", size=size, weight="bold", underline=1)
+
+def quickSandSemiBold(size: int) -> tuple:
+    """
+    Get QuickSand SemiBold font specification.
+
+    Args:
+        size (int): The font size in points.
+    Returns:
+        tuple: Font specification ("Quicksand", size, "bold").
+    """
+    return ("Quicksand", size, "bold")
+
+
+def quickSandRegularUnderline(size: int) -> tuple:
+    """
+    Get QuickSand Regular font specification with underline.
+
+    Args:
+        size (int): The font size in points.
+    Returns:
+        tuple: Font specification ("Quicksand", size, "normal", "underline").
+    """
+    return ("Quicksand", size, "normal", "underline")
+
+
+def quickSandBoldUnderline(size: int) -> tuple:
+    """
+    Get QuickSand Bold font specification with underline.
+
+    Args:
+        size (int): The font size in points.
+    Returns:
+        tuple: Font specification ("Quicksand", size, "bold", "underline").
+    """
+    return ("Quicksand", size, "bold", "underline")
