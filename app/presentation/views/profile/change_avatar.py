@@ -7,8 +7,7 @@ from app.controllers.user_controller import UserController
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.window import create_toplevel
 
@@ -62,8 +61,6 @@ def uploadAvatar(
         cursorBtn = "hand2"
         btnSaveAvatar["state"] = statusBtn
         btnSaveAvatar["cursor"] = cursorBtn
-        btnSaveAvatar.bind("<Enter>", lambda e: button_on_enter(e, btnSaveAvatar))
-        btnSaveAvatar.bind("<Leave>", lambda e: button_on_leave(e, btnSaveAvatar))
         btnSaveAvatar.bind("<Button-1>", lambda event: _saveAvatar_(event, image_path))
 
 
@@ -129,11 +126,11 @@ def changeAvatarWindow():
 
     # ----------------------  Buttons -----------------------------------
 
-    btnChangeAvatar: tk.Button = tk.Button(
+    btnChangeAvatar = make_button(
         _changeAvatarWindow_,
+        "Upload Avatar",
         width=16,
         height=2,
-        text="Upload Avatar",
         borderwidth=10,
         font=quickSandBold(12),
         fg=colors["secondary-500"],
@@ -147,12 +144,12 @@ def changeAvatarWindow():
 
     btnChangeAvatar.place(x=170, y=380)
 
-    btnSaveAvatar: tk.Button = tk.Button(
+    btnSaveAvatar = make_button(
         _changeAvatarWindow_,
+        "Save Avatar",
         width=16,
         height=2,
         state=statusBtn,
-        text="Save Avatar",
         borderwidth=10,
         font=quickSandBold(12),
         fg=colors["secondary-500"],
@@ -184,12 +181,6 @@ def changeAvatarWindow():
     canvasPreeviewAvatar.image = avatar_photo
 
     # ----------------------  Events -----------------------------------
-    btnChangeAvatar.bind(
-        "<Enter>", lambda event: button_on_enter(event, btnChangeAvatar)
-    )
-    btnChangeAvatar.bind(
-        "<Leave>", lambda event: button_on_leave(event, btnChangeAvatar)
-    )
     btnChangeAvatar.bind(
         "<Button-1>",
         lambda event: uploadAvatar(event, canvasPreeviewAvatar, btnSaveAvatar, userID),

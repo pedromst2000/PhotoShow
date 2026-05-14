@@ -6,8 +6,7 @@ from app.controllers.category_controller import CategoryController
 from app.controllers.user_controller import UserController
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.helpers.input import (
     on_click_outside,
@@ -207,12 +206,11 @@ def manageWindow():
     # -------------------------------------------------------------------------
     # filter search button section
 
-    searchUsernameBtn: tk.Button = tk.Button(
+    searchUsernameBtn = make_button(
         _manageWindow_,
+        "Search",
         width=10,
         height=1,
-        text="Search",
-        master=_manageWindow_,
         borderwidth=10,
         font=quickSandBold(12),
         background=colors["accent-300"],
@@ -224,21 +222,13 @@ def manageWindow():
 
     searchUsernameBtn.place(x=300, y=52)
 
-    searchUsernameBtn.bind(
-        "<Enter>", lambda event: button_on_enter(event, searchUsernameBtn)
-    )
-    searchUsernameBtn.bind(
-        "<Leave>", lambda event: button_on_leave(event, searchUsernameBtn)
-    )
-
     # -------------------------------------------------------------------------
     # filter search email button section
-    searchEmailBtn: tk.Button = tk.Button(
+    searchEmailBtn = make_button(
         _manageWindow_,
+        "Search",
         width=10,
         height=1,
-        text="Search",
-        master=_manageWindow_,
         borderwidth=10,
         font=quickSandBold(12),
         background=colors["accent-300"],
@@ -249,17 +239,13 @@ def manageWindow():
     )
     searchEmailBtn.place(x=300, y=138)
 
-    searchEmailBtn.bind("<Enter>", lambda event: button_on_enter(event, searchEmailBtn))
-    searchEmailBtn.bind("<Leave>", lambda event: button_on_leave(event, searchEmailBtn))
-
     # -------------------------------------------------------------------------
     # change role button section
-    changeRoleBtn: tk.Button = tk.Button(
+    changeRoleBtn = make_button(
         _manageWindow_,
+        "Update",
         width=10,
         height=1,
-        text="Update",
-        master=_manageWindow_,
         borderwidth=10,
         font=quickSandBold(12),
         background=colors["accent-300"],
@@ -270,17 +256,13 @@ def manageWindow():
     )
 
     changeRoleBtn.place(x=600, y=58)
-
-    changeRoleBtn.bind("<Enter>", lambda event: button_on_enter(event, changeRoleBtn))
-    changeRoleBtn.bind("<Leave>", lambda event: button_on_leave(event, changeRoleBtn))
     # -------------------------------------------------------------------------
     # change status button section
-    changeStatusBtn: tk.Button = tk.Button(
+    changeStatusBtn = make_button(
         _manageWindow_,
+        "Update",
         width=10,
         height=1,
-        text="Update",
-        master=_manageWindow_,
         borderwidth=10,
         font=quickSandBold(12),
         background=colors["accent-300"],
@@ -290,13 +272,6 @@ def manageWindow():
         cursor="hand2",
     )
     changeStatusBtn.place(x=600, y=148)
-
-    changeStatusBtn.bind(
-        "<Enter>", lambda event: button_on_enter(event, changeStatusBtn)
-    )
-    changeStatusBtn.bind(
-        "<Leave>", lambda event: button_on_leave(event, changeStatusBtn)
-    )
 
     # -------------------------------------------------------------------------
     # search category section
@@ -384,11 +359,12 @@ def manageWindow():
 
     insert_categories(categories, categoriesList)
 
-    btnAddCategory: tk.Button = tk.Button(
+    btnAddCategory = make_button(
         _manageWindow_,
+        "",
+        icon=addIcon,
         width=190,
         height=50,
-        master=_manageWindow_,
         borderwidth=10,
         font=quickSandBold(15),
         background=colors["accent-300"],
@@ -397,17 +373,15 @@ def manageWindow():
         cursor="hand2",
         compound="center",
         border=0,
-        image=addIcon,
     )
     btnAddCategory.place(x=950, y=460)
-    btnAddCategory.bind("<Enter>", lambda event: button_on_enter(event, btnAddCategory))
-    btnAddCategory.bind("<Leave>", lambda event: button_on_leave(event, btnAddCategory))
 
-    btnDeleteCategory: tk.Button = tk.Button(
+    btnDeleteCategory = make_button(
         _manageWindow_,
+        "",
+        icon=removeIcon,
         width=190,
         height=50,
-        master=_manageWindow_,
         borderwidth=10,
         font=quickSandBold(15),
         background=colors["accent-300"],
@@ -416,16 +390,9 @@ def manageWindow():
         cursor="hand2",
         compound="center",
         border=0,
-        image=removeIcon,
     )
 
     btnDeleteCategory.place(x=950, y=550)
-    btnDeleteCategory.bind(
-        "<Enter>", lambda event: button_on_enter(event, btnDeleteCategory)
-    )
-    btnDeleteCategory.bind(
-        "<Leave>", lambda event: button_on_leave(event, btnDeleteCategory)
-    )
 
     # -------------------------------------------------------------------------
     # trigger events OnClick

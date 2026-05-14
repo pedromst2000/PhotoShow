@@ -5,47 +5,62 @@ from app.controllers.user_controller import UserController
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
-from app.presentation.views.profile.albuns import albunsProfileWindow
-from app.presentation.views.profile.change_avatar import changeAvatarWindow
-from app.presentation.views.profile.change_password import changePasswordWindow
-from app.presentation.views.profile.contacts import contactsWindow
-from app.presentation.views.profile.favorites import favoritesProfileWindow
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.views.profile.helpers.data.feature_photos import (
+    load_feature_photos,
+)
+from app.presentation.views.profile.helpers.ui.action_buttons import (
+    build_profile_action_buttons,
+)
+from app.presentation.views.profile.helpers.ui.feature_photos import (
+    build_feature_photos,
+)
+from app.presentation.views.profile.helpers.ui.follow_button import (
+    build_profile_follow_button,
+)
+from app.presentation.views.profile.helpers.ui.nav import build_profile_nav
 from app.presentation.widgets.helpers.images import load_image
+from app.presentation.widgets.helpers.ui_dialogs import show_limited_access
 from app.presentation.widgets.window import create_toplevel
 from app.utils.file_utils import resolve_avatar_path
 
+# ── Layout constants ───────────────────────────────────────────────────────────
+_WIN_W = 1000
+_WIN_H = 530
+_BANNER_H = 155
+_NAV_H = 50
+_PHOTO_W = 240
+_PHOTO_H = 160
 
-def profileWindow(user_id: Optional[int] = None):
+
+def profileWindow(user_id: Optional[int] = None) -> None:
     """
     Display the profile window.
 
-    When called without arguments (or ``user_id=None``) it shows the
-    authenticated user's own profile with all management buttons.
-
-    When called with a *different* ``user_id`` it shows that user's public
-    profile with only the Albums and Favorites navigation buttons visible
-    (visitor / author view).
-
     Args:
-        user_id: ID of the user whose profile to display.  Pass ``None`` (default)
-                 to display the currently logged-in user's profile.
+        user_id: Optional user ID to view. If None, shows the logged-in user's profile.
     """
-    own_profile = user_id is None or user_id == session.user_id
+    # ── Resolve context ────────────────────────────────────────────────
+    # When called without arguments, show the logged-in user's own profile.
+    effective_user_id: Optional[int] = (
+        user_id if user_id is not None else session.user_id
+    )
+    own_profile: bool = (
+        effective_user_id is not None and effective_user_id == session.user_id
+    )
+    is_logged_in: bool = session.user_id is not None
 
     if own_profile:
         userID: int = session.user_id
         userPayload: dict = session.user_data
     else:
-        userID = user_id
-        userPayload = UserController.get_profile(user_id) or {}
+        userID = effective_user_id
+        userPayload = UserController.get_profile(effective_user_id) or {}
         if not userPayload:
-            # Author not found — show a minimal empty window.
+            # Profile not found — show a minimal error window instead of a blank screen.
             win = create_toplevel(
                 title="👤 Profile",
-                width=1000,
-                height=450,
+                width=_WIN_W,
+                height=_WIN_H,
                 icon_path="app/assets/PhotoShowIcon.ico",
                 bg_color=colors["primary-50"],
             )
@@ -62,240 +77,178 @@ def profileWindow(user_id: Optional[int] = None):
     stats: dict = UserController.get_profile_stats(userID)
     follower_count: int = stats["follower_count"]
     photo_count: int = stats["photo_count"]
+    role: str = userPayload.get("role", "")
 
-    profileWindowWidth: int = 1000  # width of the window
-    profileWindowHeight: int = 450  # height of the window
+    # Viewer role reflects the logged-in user, not the profile being visited.
+    _viewer_role: str = (
+        (session.user_data or {}).get("role", "") if is_logged_in else ""
+    )
+    is_unsigned: bool = _viewer_role == "unsigned"
 
+    # ── Window ────────────────────────────────────────────────────────
     _profileWindow_: tk.Toplevel = create_toplevel(
         title="👤 Profile 👤",
-        width=profileWindowWidth,
-        height=profileWindowHeight,
+        width=_WIN_W,
+        height=_WIN_H,
         icon_path="app/assets/PhotoShowIcon.ico",
         bg_color=colors["primary-50"],
     )
 
-    # Resolve avatar path robustly (stored values may be relative to project root)
-    avatar_found = resolve_avatar_path(userPayload.get("avatar"))
-
-    canvasBackgroundProfile: tk.Canvas = tk.Canvas(
+    # ── Banner canvas ─────────────────────────────────────────────────
+    banner_canvas = tk.Canvas(
         _profileWindow_,
-        width=profileWindowWidth,
-        height=220,
+        width=_WIN_W,
+        height=_BANNER_H,
         highlightthickness=0,
         borderwidth=0,
     )
+    banner_canvas.place(x=0, y=0)
 
-    canvasBackgroundProfile.place(x=0, y=0)
-
-    # Background image on the canvas
-    banner_profile = load_image(
+    banner_img = load_image(
         "app/assets/images/profile/bannerProfile.png",
-        size=(profileWindowWidth, 220),
-        canvas=canvasBackgroundProfile,
+        size=(_WIN_W, _BANNER_H),
+        canvas=banner_canvas,
         x=0,
         y=0,
     )
-    canvasBackgroundProfile.image = banner_profile
+    banner_canvas.image = banner_img  # type: ignore[attr-defined]
 
-    avatarCanvas: tk.Canvas = tk.Canvas(
+    # ── Avatar ────────────────────────────────────────────────────────
+    avatar_path = resolve_avatar_path(userPayload.get("avatar"))
+    avatar_canvas = tk.Canvas(
         _profileWindow_,
         width=130,
         height=130,
         highlightthickness=0,
         borderwidth=0,
+        bg=colors["secondary-500"],
     )
-    avatarCanvas.place(x=40, y=40)
-
-    # Load avatar (returns a PhotoImage). If avatar path is invalid, load_image will provide a fallback.
-    avatar_photo = load_image(
-        avatar_found, size=(130, 130), canvas=avatarCanvas, x=0, y=0
+    avatar_canvas.place(x=40, y=12)
+    avatar_img = load_image(
+        avatar_path, size=(130, 130), canvas=avatar_canvas, x=0, y=0
     )
-    avatarCanvas.image = avatar_photo
+    avatar_canvas.image = avatar_img  # type: ignore[attr-defined]
 
-    canvasBackgroundProfile.create_text(
-        200,
-        50,
-        text=f"{userPayload['username']}",
+    # ── Username ──────────────────────────────────────────────────────
+    banner_canvas.create_text(
+        190,
+        22,
+        text=userPayload.get("username", ""),
         font=quickSandBold(20),
         anchor=tk.NW,
         fill=colors["primary-50"],
     )
 
-    roleLabel: tk.Label = tk.Label(
+    # ── Role badge ────────────────────────────────────────────────────
+    role_badge = tk.Label(
         _profileWindow_,
-        text=f"{userPayload['role']}",
-        font=(
-            quickSandBold(12)
-            if userPayload["role"] == "admin"
-            else quickSandRegular(12)
-        ),
-        bg=(
-            colors["primary-50"]
-            if userPayload["role"] == "admin"
-            else colors["secondary-400"]
-        ),
-        fg=(
-            colors["secondary-500"]
-            if userPayload["role"] == "admin"
-            else colors["primary-50"]
-        ),
+        text=role,
+        font=quickSandBold(11) if role == "admin" else quickSandRegular(11),
+        bg=colors["primary-50"] if role == "admin" else colors["secondary-400"],
+        fg=colors["secondary-500"] if role == "admin" else colors["primary-50"],
+        padx=8,
+        pady=2,
     )
+    role_badge.place(x=190, y=57)
 
-    roleLabel.place(x=200, y=100)
-
-    canvasBackgroundProfile.create_text(
-        850,
-        175,
+    # ── Stats: photos + followers ─────────────────────────────────────
+    # Stats are rendered before the follow button so followers_text_id is
+    # available to pass to build_profile_follow_button.
+    banner_canvas.create_text(
+        695,
+        128,
+        text=f"{photo_count} photos",
+        font=quickSandBold(12),
+        anchor=tk.NW,
+        fill=colors["primary-50"],
+    )
+    followers_icon = load_image(
+        "app/assets/images/UI_Icons/followersIcon.png",
+        size=(20, 20),
+        canvas=banner_canvas,
+        x=820,
+        y=126,
+    )
+    _followers_text_id = banner_canvas.create_text(
+        845,
+        128,
         text=f"{follower_count} followers",
         font=quickSandRegular(12),
         anchor=tk.NW,
         fill=colors["primary-50"],
     )
 
-    followersImageIcon = load_image(
-        "app/assets/images/UI_Icons/followersIcon.png",
-        size=(20, 20),
-        canvas=canvasBackgroundProfile,
-        x=820,
-        y=177,
-    )
+    # Store references to banner elements that may need to be updated by the follow/unfollow button logic.
+    _profileWindow_._banner_refs = (banner_img, avatar_img, followers_icon)  # type: ignore[attr-defined]
 
-    # keep references to PhotoImage objects on the window to avoid GC
-    _profileWindow_._images = (
-        canvasBackgroundProfile.image,
-        avatarCanvas.image,
-        followersImageIcon,
-    )
-
-    canvasBackgroundProfile.create_text(
-        710,
-        175,
-        text=f"{photo_count} photos",
-        font=quickSandBold(12),
-        anchor=tk.NW,
-        fill=colors["primary-50"],
-    )
-
-    # ------------------------- Buttons ----------------------------------------------
-    albunsBtn: tk.Button = tk.Button(
-        _profileWindow_,
-        width=18,
-        height=2,
-        text="Albuns",
-        borderwidth=10,
-        font=quickSandBold(13),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        fg=colors["secondary-500"],
-        cursor="hand2",
-    )
-
-    favoritesBtn: tk.Button = tk.Button(
-        _profileWindow_,
-        width=18,
-        height=2,
-        text="Favorites",
-        borderwidth=10,
-        font=quickSandBold(13),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        fg=colors["secondary-500"],
-        cursor="hand2",
-    )
-
-    changePasswordBtn: tk.Button = tk.Button(
-        _profileWindow_,
-        width=18,
-        height=2,
-        text="Change Password",
-        borderwidth=10,
-        font=quickSandBold(13),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        fg=colors["secondary-500"],
-        cursor="hand2",
-    )
-
-    changeAvatarBtn: tk.Button = tk.Button(
-        _profileWindow_,
-        width=18,
-        height=2,
-        text="Change Avatar",
-        borderwidth=10,
-        font=quickSandBold(13),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        fg=colors["secondary-500"],
-        cursor="hand2",
-    )
-
-    contactsBtn: tk.Button = tk.Button(
-        _profileWindow_,
-        width=18,
-        height=2,
-        text="Contacts",
-        borderwidth=10,
-        font=quickSandBold(13),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        fg=colors["secondary-500"],
-        cursor="hand2",
-    )
-
-    # TODO = If is a visitor, show only the albuns and favorites buttons
-
-    role = userPayload.get("role", "")
-    if own_profile:
-        # Own profile: show all relevant buttons by role
-        if role in ("admin", "regular"):
-            albunsBtn.place(x=40, y=270)
-            favoritesBtn.place(x=240, y=270)
-        changePasswordBtn.place(x=440, y=270)
-        changeAvatarBtn.place(x=640, y=270)
-        if role == "admin":
-            contactsBtn.place(x=40, y=350)
-    else:
-        # Visitor / author view: only Albums and Favorites
-        albunsBtn.place(x=40, y=270)
-        favoritesBtn.place(x=240, y=270)
-
-    # ------------------------- Events ----------------------------------------------
-
-    albunsBtn.bind("<Enter>", lambda event: button_on_enter(event, albunsBtn))
-    albunsBtn.bind("<Leave>", lambda event: button_on_leave(event, albunsBtn))
-    favoritesBtn.bind("<Enter>", lambda event: button_on_enter(event, favoritesBtn))
-    favoritesBtn.bind("<Leave>", lambda event: button_on_leave(event, favoritesBtn))
-
-    if own_profile:
-        changePasswordBtn.bind(
-            "<Enter>", lambda event: button_on_enter(event, changePasswordBtn)
+    # ── Follow / Unfollow button ──────────────────────────────────────
+    if not own_profile and is_logged_in and not is_unsigned:
+        build_profile_follow_button(
+            _profileWindow_,
+            profile_user_id=userID,
+            role_badge=role_badge,
+            banner_canvas=banner_canvas,
+            followers_text_id=_followers_text_id,
         )
-        changePasswordBtn.bind(
-            "<Leave>", lambda event: button_on_leave(event, changePasswordBtn)
-        )
-        changeAvatarBtn.bind(
-            "<Enter>", lambda event: button_on_enter(event, changeAvatarBtn)
-        )
-        changeAvatarBtn.bind(
-            "<Leave>", lambda event: button_on_leave(event, changeAvatarBtn)
-        )
-        contactsBtn.bind("<Enter>", lambda event: button_on_enter(event, contactsBtn))
-        contactsBtn.bind("<Leave>", lambda event: button_on_leave(event, contactsBtn))
-        changePasswordBtn.bind("<Button-1>", lambda event: changePasswordWindow())
-        contactsBtn.bind("<Button-1>", lambda event: contactsWindow())
-        changeAvatarBtn.bind("<Button-1>", lambda event: changeAvatarWindow())
 
-    albunsBtn.bind("<Button-1>", lambda event: albunsProfileWindow())
-    favoritesBtn.bind("<Button-1>", lambda event: favoritesProfileWindow())
+    # ── Navigation bar ────────────────────────────────────────────────
+    # Unsigned users cannot access albums, favorites, contacts, or reports.
+    show_albuns = own_profile and not is_unsigned
+    show_favorites = own_profile and not is_unsigned
+    show_contacts = own_profile and role == "admin"
+    show_reports = own_profile and role == "admin"
+
+    if show_albuns or show_favorites or show_contacts or show_reports:
+        build_profile_nav(
+            _profileWindow_,
+            banner_height=_BANNER_H,
+            nav_height=_NAV_H,
+            win_width=_WIN_W,
+            show_albuns=show_albuns,
+            show_favorites=show_favorites,
+            show_contacts=show_contacts,
+            show_reports=show_reports,
+            own_profile=own_profile,
+            username=userPayload.get("username", ""),
+        )
+
+    # ── Unsigned-user / unsigned-visitor notice ───────────────────────
+    if is_unsigned or not is_logged_in:
+        show_limited_access(
+            _profileWindow_,
+            "You can view feature photos but cannot follow users, "
+            "manage albums or favorites",
+        )
+
+    # ── Feature Photos ────────────────────────────────────────────────
+    has_nav = show_albuns or show_favorites or show_contacts or show_reports
+    content_y = _BANNER_H + _NAV_H if has_nav else _BANNER_H
+
+    tk.Label(
+        _profileWindow_,
+        text="Feature Photos",
+        font=quickSandBold(16),
+        bg=colors["primary-50"],
+        fg=colors["secondary-500"],
+    ).place(x=40, y=content_y + 15)
+
+    feature_photos = load_feature_photos(userPayload.get("username", ""))
+    photos_y = content_y + 50
+
+    build_feature_photos(
+        _profileWindow_,
+        feature_photos,
+        photos_y=photos_y,
+        photo_w=_PHOTO_W,
+        photo_h=_PHOTO_H,
+        is_unsigned=is_unsigned,
+        is_logged_in=is_logged_in,
+        own_profile=own_profile,
+        win_h=_WIN_H,
+    )
+
+    # ── Bottom action buttons (own profile, non-unsigned only) ────────
+    if own_profile and not is_unsigned:
+        build_profile_action_buttons(_profileWindow_, win_w=_WIN_W, win_h=_WIN_H)
 
     _profileWindow_.grab_set()

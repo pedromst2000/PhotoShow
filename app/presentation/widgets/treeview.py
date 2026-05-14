@@ -5,7 +5,7 @@ from typing import Callable, List, Optional
 from app.controllers.ui.pagination_controller import PaginationUIController
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
-from app.presentation.widgets.helpers.button import on_enter, on_leave
+from app.presentation.widgets.helpers.button import make_button
 
 
 class TreeviewWidget(tk.Frame):
@@ -211,9 +211,10 @@ class TreeviewWidget(tk.Frame):
         pagination_frame = tk.Frame(left, bg=self._page_bg, height=36)
         pagination_frame.pack(fill="x", padx=6, pady=(6, 0), side=tk.BOTTOM)
 
-        prev_btn = tk.Button(
+        prev_btn = make_button(
             pagination_frame,
-            text="← Prev Page",
+            "← Prev Page",
+            cmd=lambda: pagination_controller.go_to_prev_page(),
             font=quickSandBold(10),
             bg=colors["accent-300"],
             fg=colors["secondary-500"],
@@ -223,11 +224,8 @@ class TreeviewWidget(tk.Frame):
             relief="flat",
             padx=8,
             pady=5,
-            command=lambda: pagination_controller.go_to_prev_page(),
         )
         prev_btn.pack(side=tk.LEFT, padx=2)
-        prev_btn.bind("<Enter>", lambda e: on_enter(e, prev_btn))
-        prev_btn.bind("<Leave>", lambda e: on_leave(e, prev_btn))
 
         page_info_lbl = tk.Label(
             pagination_frame,
@@ -239,9 +237,10 @@ class TreeviewWidget(tk.Frame):
         page_info_lbl.pack(side=tk.LEFT, padx=10, expand=True)
         self.state.page_info_label = page_info_lbl
 
-        next_btn = tk.Button(
+        next_btn = make_button(
             pagination_frame,
-            text="Next Page →",
+            "Next Page →",
+            cmd=lambda: pagination_controller.go_to_next_page(),
             font=quickSandBold(10),
             bg=colors["accent-300"],
             fg=colors["secondary-500"],
@@ -251,11 +250,8 @@ class TreeviewWidget(tk.Frame):
             relief="flat",
             padx=8,
             pady=5,
-            command=lambda: pagination_controller.go_to_next_page(),
         )
         next_btn.pack(side=tk.RIGHT, padx=2)
-        next_btn.bind("<Enter>", lambda e: on_enter(e, next_btn))
-        next_btn.bind("<Leave>", lambda e: on_leave(e, next_btn))
 
         self.state.prev_page_btn = prev_btn
         self.state.next_page_btn = next_btn

@@ -7,6 +7,7 @@ from app.presentation.views.helpers.ui.carousel import (
     listbox_navigate_prev,
 )
 from app.presentation.views.helpers.ui.preview import update_preview
+from app.presentation.widgets.helpers.button import switch_button
 from app.presentation.widgets.helpers.images import load_image
 
 _ICON_DIR = "app/assets/images/UI_Icons/"
@@ -80,7 +81,6 @@ def _update_favorite_btn(state: AlbumState) -> None:
         icon_name = "Favorite_Icon.png"
     try:
         new_icon = load_image(f"{_ICON_DIR}{icon_name}", size=(20, 20))
-        btn.config(text=label, image=new_icon)
-        btn.image = new_icon  # type: ignore[attr-defined]  # GC guard
+        switch_button(btn, label, icon=new_icon)
     except Exception:
-        btn.config(text=label)
+        switch_button(btn, label)

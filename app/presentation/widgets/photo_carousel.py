@@ -7,8 +7,7 @@ from PIL import Image, ImageTk
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.utils.file_utils import resolve_image_path
 
 _ARROW_ICON = "app/assets/images/UI_Icons/arrow_right.png"
@@ -111,12 +110,13 @@ class PhotoCarouselWidget(tk.Frame):
 
         # Flat buttons with text + icon – matching the search button style
         # Larger flat prev button with label + icon
-        self._prev_btn = tk.Button(
+        self._prev_btn = make_button(
             nav_frame,
+            "",
+            icon=self._prev_icon_ref,
+            cmd=self._on_prev_click,
             width=40,
             height=30,
-            image=self._prev_icon_ref,
-            compound=tk.LEFT,
             font=quickSandBold(12),
             bg=self._btn_bg,
             fg=self._btn_fg,
@@ -128,18 +128,17 @@ class PhotoCarouselWidget(tk.Frame):
             cursor="hand2",
             padx=18,
             pady=9,
-            command=self._on_prev_click,
         )
         self._prev_btn.pack(side=tk.LEFT)
-        self._prev_btn.bind("<Enter>", lambda e: button_on_enter(e, self._prev_btn))
-        self._prev_btn.bind("<Leave>", lambda e: button_on_leave(e, self._prev_btn))
 
         # Larger flat next button with label + icon
-        self._next_btn = tk.Button(
+        self._next_btn = make_button(
             nav_frame,
+            "",
+            icon=self._next_icon_ref,
+            cmd=self._on_next_click,
             width=40,
             height=30,
-            image=self._next_icon_ref,
             compound=tk.RIGHT,
             font=quickSandBold(12),
             bg=self._btn_bg,
@@ -152,11 +151,8 @@ class PhotoCarouselWidget(tk.Frame):
             cursor="hand2",
             padx=18,
             pady=9,
-            command=self._on_next_click,
         )
         self._next_btn.pack(side=tk.RIGHT)
-        self._next_btn.bind("<Enter>", lambda e: button_on_enter(e, self._next_btn))
-        self._next_btn.bind("<Leave>", lambda e: button_on_leave(e, self._next_btn))
 
         self.set_nav_enabled(prev=False, next_=False)
         self.show_empty()

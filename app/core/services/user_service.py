@@ -460,7 +460,23 @@ class UserService:
             bool: True if the relationship was removed, False if it didn't exist.
         """
         with SessionLocal() as session:
-            return FollowModel.unfollow(session, follower_id, followed_id)
+            result = FollowModel.unfollow(session, follower_id, followed_id)
+            session.commit()
+        return result
+
+    @staticmethod
+    def is_following(follower_id: int, followed_id: int) -> bool:
+        """
+        Check whether follower_id is currently following followed_id.
+
+        Args:
+            follower_id: The ID of the user who may be following.
+            followed_id: The ID of the user who may be followed.
+        Returns:
+            bool: True if the follow relationship exists.
+        """
+        with SessionLocal() as session:
+            return FollowModel.is_following(session, follower_id, followed_id)
 
     @staticmethod
     def get_followers(user_id: int) -> list:

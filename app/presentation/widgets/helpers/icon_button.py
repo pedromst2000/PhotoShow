@@ -2,8 +2,7 @@ import tkinter as tk
 from typing import Any, Optional
 
 from app.presentation.styles.fonts import quickSandBold
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.icon_label import add_icon_canvas
 
 _ICON_DIR = "app/assets/images/UI_Icons/"
@@ -65,11 +64,11 @@ def make_icon_button(
     Returns:
         Configured ``tk.Button`` (disabled by default; caller enables as needed).
     """
-    btn = tk.Button(
+    btn = make_button(
         parent,
-        text=label,
-        image=icon,
-        compound=tk.LEFT,
+        label,
+        cmd=command,
+        icon=icon,
         font=quickSandBold(10),
         bg=btn_bg,
         fg=btn_fg,
@@ -82,15 +81,11 @@ def make_icon_button(
         padx=8,
         pady=5,
         state=tk.DISABLED,
-        command=command,
     )
     btn.image = icon
 
     if like_icon and unlike_icon:
         btn._like_icon = like_icon
         btn._unlike_icon = unlike_icon
-
-    btn.bind("<Enter>", lambda e: button_on_enter(e, btn))
-    btn.bind("<Leave>", lambda e: button_on_leave(e, btn))
 
     return btn

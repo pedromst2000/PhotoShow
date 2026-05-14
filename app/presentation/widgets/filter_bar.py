@@ -8,8 +8,7 @@ from app.presentation.views.explore.helpers.data.catalog import (
     apply_filters,
     get_category_options,
 )
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.icon_label import add_icon_canvas
 from app.presentation.widgets.helpers.input import on_focus_in, on_focus_out
 
@@ -108,9 +107,10 @@ class FilterBarWidget(tk.Frame):
         author_entry.bind("<FocusIn>", lambda e: on_focus_in(e, author_entry))
         author_entry.bind("<FocusOut>", lambda e: on_focus_out(e, author_entry))
 
-        search_btn = tk.Button(
+        search_btn = make_button(
             author_section,
-            text="Search",
+            "Search",
+            cmd=lambda: apply_filters(self.state),
             font=quickSandBold(10),
             bg=self._btn_bg,
             fg=self._btn_fg,
@@ -121,11 +121,8 @@ class FilterBarWidget(tk.Frame):
             padx=8,
             pady=3,
             state=tk.NORMAL if filters_enabled else tk.DISABLED,
-            command=lambda: apply_filters(self.state),
         )
         search_btn.pack(side=tk.LEFT)
-        search_btn.bind("<Enter>", lambda e: button_on_enter(e, search_btn))
-        search_btn.bind("<Leave>", lambda e: button_on_leave(e, search_btn))
 
         # ── Category section ────────────────────────────────────────────
         category_section = tk.Frame(filter_container, bg=self._page_bg)

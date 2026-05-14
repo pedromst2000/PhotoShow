@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple
 from app.controllers.helpers.admin_helpers import AdminHelpers
 from app.controllers.helpers.profile_helpers import ProfileHelpers
 from app.core.services.user_service import UserService
+from app.core.state.session import session as _session
 
 
 class UserController:
@@ -202,3 +203,50 @@ class UserController:
             Tuple[bool, str]: (success, message) tuple.
         """
         return ProfileHelpers.contact_admin(title, message, user_id)
+
+    # ========== Follow Operations ==========
+
+    @staticmethod
+    def follow_user(followed_id: int) -> bool:
+        """
+        Follow a user. The current session user follows followed_id.
+
+        Args:
+            followed_id: The user ID to follow.
+        Returns:
+            bool: True if the follow was created, False if already following.
+        """
+        if _session.user_id is None:
+            return False
+        return UserService.follow_user(_session.user_id, followed_id)
+
+    @staticmethod
+    def unfollow_user(followed_id: int) -> bool:
+        """
+        Unfollow a user. The current session user unfollows followed_id.
+
+        Args:
+            followed_id: The user ID to unfollow.
+
+        Returns:
+            bool: True if the relationship was removed.
+        """
+        if _session.user_id is None:
+            return False
+        return UserService.unfollow_user(_session.user_id, followed_id)
+
+    @staticmethod
+    def is_following(followed_id: int) -> bool:
+        """
+        Check whether the current session user is following followed_id.
+
+        Args:
+            followed_id: The user ID to check.
+
+        Returns:
+            bool: True if currently following.
+        """
+
+        if _session.user_id is None:
+            return False
+        return UserService.is_following(_session.user_id, followed_id)

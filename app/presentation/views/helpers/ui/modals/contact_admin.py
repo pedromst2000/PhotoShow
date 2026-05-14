@@ -7,8 +7,7 @@ from app.presentation.views.helpers.ui.contact_helpers import (
     submit_contact_admin,
     validate_contact_inputs,
 )
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.scrollable_text import ScrollableText
 from app.presentation.widgets.window import create_toplevel
 
@@ -123,11 +122,12 @@ class ContactAdminModal:
         button_frame = tk.Frame(main_frame, bg=colors["primary-50"])
         button_frame.grid(row=8, column=0, pady=(16, 12))
 
-        self._submit_btn = tk.Button(
+        self._submit_btn = make_button(
             button_frame,
+            "Send Message",
+            cmd=self.on_submit,
             width=20,
             height=2,
-            text="Send Message",
             borderwidth=0,
             font=quickSandBold(12),
             background=colors["accent-300"],
@@ -135,11 +135,8 @@ class ContactAdminModal:
             activebackground=colors["accent-100"],
             fg=colors["secondary-500"],
             cursor="hand2",
-            command=self.on_submit,
         )
         self._submit_btn.pack()
-        self._submit_btn.bind("<Enter>", lambda e: button_on_enter(e, self._submit_btn))
-        self._submit_btn.bind("<Leave>", lambda e: button_on_leave(e, self._submit_btn))
 
         self._title_entry.focus_set()
         self._title_entry.bind("<KeyRelease>", self.on_input_change)

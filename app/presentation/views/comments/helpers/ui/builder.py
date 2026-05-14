@@ -5,8 +5,7 @@ from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.styles.theme import BTN_BG, BTN_FG, PAGE_BG, TEXT_FG
 from app.presentation.views.helpers.ui.modals import open_report_dialog
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.helpers.scrollable_text import ScrollableText
 from app.utils.date_utils import format_timestamp
@@ -125,11 +124,10 @@ def build_input_area(
     btn_frame = tk.Frame(input_frame, bg=_BG)
     btn_frame.grid(row=3, column=0, pady=(0, 10))
 
-    add_btn = tk.Button(
+    add_btn = make_button(
         btn_frame,
-        text="  Add Comment",
-        image=add_icon_ref,
-        compound=tk.LEFT,
+        "  Add Comment",
+        icon=add_icon_ref,
         font=quickSandBold(12),
         bg=_BTN_BG,
         fg=_BTN_FG,
@@ -142,8 +140,6 @@ def build_input_area(
         state=tk.DISABLED,
     )
     add_btn.pack()
-    add_btn.bind("<Enter>", lambda e: button_on_enter(e, add_btn))
-    add_btn.bind("<Leave>", lambda e: button_on_leave(e, add_btn))
 
     # Late import to avoid circular dependency: interactions.py imports constants from this module.
     from app.presentation.views.comments.helpers.ui.interactions import (

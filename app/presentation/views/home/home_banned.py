@@ -7,8 +7,7 @@ from app.presentation.layout.menu.helpers.menu_button_state import (
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.views.helpers.ui.modals import open_contact_admin
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.window import create_main_window
 
@@ -110,11 +109,11 @@ def homeBannedWindow():
     )
 
     # contact Admin button
-    contactAdminButton: tk.Button = tk.Button(
+    contactAdminButton = make_button(
         _homeBannedWindow_,
+        "Contact Admin",
         width=24,
         height=2,
-        text="Contact Admin",
         borderwidth=10,
         font=quickSandBold(13),
         background=colors["accent-300"],
@@ -157,13 +156,6 @@ def homeBannedWindow():
         logoImage,
         signout_default,
         signout_selected,
-    )
-
-    contactAdminButton.bind(
-        "<Enter>", lambda event: button_on_enter(event, contactAdminButton)
-    )
-    contactAdminButton.bind(
-        "<Leave>", lambda event: button_on_leave(event, contactAdminButton)
     )
 
     # Bind hover behavior for signOut button using state manager
