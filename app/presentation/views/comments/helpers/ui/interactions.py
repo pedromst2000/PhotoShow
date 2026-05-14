@@ -10,8 +10,7 @@ from app.presentation.views.comments.helpers.ui.builder import (
     _COMMENT_MAX_LEN,
     _ICON_DIR,
 )
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.char_limit import validate_text_char_limit
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.helpers.scrollable_text import ScrollableText
@@ -39,12 +38,11 @@ def make_action_button(
     """
     icon_ref = load_image(_ICON_DIR + icon_name, size=(14, 14))
     card_img_refs.append(icon_ref)
-
-    btn = tk.Button(
+    return make_button(
         parent,
-        text=text,
-        image=icon_ref,
-        compound=tk.LEFT,
+        text,
+        cmd=command,
+        icon=icon_ref,
         font=quickSandBold(9),
         bg=_BTN_BG,
         fg=_BTN_FG,
@@ -52,11 +50,7 @@ def make_action_button(
         borderwidth=0,
         highlightthickness=0,
         cursor="hand2",
-        command=command,
     )
-    btn.bind("<Enter>", lambda e, b=btn: button_on_enter(e, b))  # type: ignore[misc]
-    btn.bind("<Leave>", lambda e, b=btn: button_on_leave(e, b))  # type: ignore[misc]
-    return btn
 
 
 def submit_comment(

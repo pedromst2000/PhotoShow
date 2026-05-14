@@ -8,8 +8,7 @@ from app.presentation.views.helpers.auth.ui import (
     auth_switch_label,
 )
 from app.presentation.views.home.main import homeWindow
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.icon_label import add_icon_canvas, add_label
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.helpers.input import (
@@ -152,11 +151,11 @@ def registerWindow(event: object, Window: object):
         Window,
     )
 
-    btnSignUp: tk.Button = tk.Button(
+    btnSignUp = make_button(
         _registerWindow_,
+        "Sign Up",
         width=24,
         height=2,
-        text="Sign Up",
         borderwidth=10,
         font=quickSandBold(13),
         background=colors["accent-300"],
@@ -167,9 +166,6 @@ def registerWindow(event: object, Window: object):
     )
 
     btnSignUp.place(x=164, y=570)
-    # Hoover effect on the button
-    btnSignUp.bind("<Enter>", lambda event: button_on_enter(event, btnSignUp))
-    btnSignUp.bind("<Leave>", lambda event: button_on_leave(event, btnSignUp))
 
     _registerWindow_.bind(
         "<Button-1>",

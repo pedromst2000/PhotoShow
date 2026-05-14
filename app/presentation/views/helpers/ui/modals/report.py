@@ -7,8 +7,7 @@ from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.views.helpers.ui.modals.helpers.option_menu import (
     create_option_menu,
 )
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.char_limit import validate_text_char_limit
 from app.presentation.widgets.helpers.scrollable_text import ScrollableText
 from app.presentation.widgets.helpers.ui_dialogs import show_error, show_info
@@ -151,9 +150,10 @@ class ReportModal:
         )
 
         # Submit button (centered)
-        self._submit_btn = tk.Button(
+        self._submit_btn = make_button(
             main_frame,
-            text="Submit",
+            "Submit",
+            cmd=self.on_submit,
             width=20,
             height=2,
             borderwidth=0,
@@ -164,11 +164,8 @@ class ReportModal:
             fg=colors["secondary-500"],
             cursor="hand2",
             state=tk.DISABLED,
-            command=self.on_submit,
         )
         self._submit_btn.grid(row=4, column=0, pady=(0, 0))
-        self._submit_btn.bind("<Enter>", lambda e: button_on_enter(e, self._submit_btn))
-        self._submit_btn.bind("<Leave>", lambda e: button_on_leave(e, self._submit_btn))
 
         self._scrollable.text.bind("<KeyRelease>", self.on_description_change)
         # Cast to narrow type for mypy

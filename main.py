@@ -6,7 +6,7 @@ from PIL import ImageTk
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
 from app.presentation.views.auth.login import loginWindow
-from app.presentation.widgets.helpers.button import on_enter, on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.window import create_main_window
 
@@ -100,11 +100,11 @@ class main:
         )
 
         # Sign-in button
-        self.signInButton = tk.Button(
-            master=self.canvas,
+        self.signInButton = make_button(
+            self.canvas,
+            "Sign In",
             width=18,
             height=2,
-            text="Sign In",
             borderwidth=10,
             font=quickSandBold(16),
             background=colors["accent-300"],
@@ -116,12 +116,6 @@ class main:
         self.signInButton.place(x=600, y=500)
         self.signInButton.bind(
             "<Button-1>", lambda event: loginWindow(event, self.window)
-        )
-        self.signInButton.bind(
-            "<Enter>", lambda event: on_enter(event, self.signInButton)
-        )
-        self.signInButton.bind(
-            "<Leave>", lambda event: on_leave(event, self.signInButton)
         )
 
         # Keep PhotoImage references alive to prevent Tk garbage collection

@@ -6,6 +6,7 @@ from typing import (  # For type hinting tk.Button without importing the entire 
 
 from app.core.state.session import session
 from app.presentation.views.helpers.data.state import BasePhotoState
+from app.presentation.widgets.helpers.button import switch_button
 from app.presentation.widgets.helpers.images import load_image
 from app.utils.file_utils import resolve_image_path
 
@@ -147,10 +148,7 @@ def update_preview(state: BasePhotoState):
             if has_liked
             else getattr(state.like_btn, "_like_icon", None)
         )
-        if icon:
-            state.like_btn.config(text=label, image=icon)
-        else:
-            state.like_btn.config(text=label)
+        switch_button(state.like_btn, label, icon=icon)
 
     # ── Show and update action buttons ────────────────────────────────
     # Show the always-visible buttons

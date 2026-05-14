@@ -11,8 +11,7 @@ from app.presentation.views.helpers.auth.ui import (
 )
 from app.presentation.views.home.home_banned import homeBannedWindow
 from app.presentation.views.home.main import homeWindow
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.icon_label import add_icon_canvas, add_label
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.helpers.input import (
@@ -133,11 +132,11 @@ def loginWindow(event: object, Window: tk.Tk):
 
     # ---------------------------
 
-    btnSignIn: tk.Button = tk.Button(
+    btnSignIn = make_button(
         _loginWindow_,
+        "Sign In",
         width=24,
         height=2,
-        text="Sign In",
         borderwidth=10,
         font=quickSandBold(13),
         background=colors["accent-300"],
@@ -148,9 +147,6 @@ def loginWindow(event: object, Window: tk.Tk):
     )
 
     btnSignIn.place(x=164, y=475)
-    # Hoover effect on the button
-    btnSignIn.bind("<Enter>", lambda event: button_on_enter(event, btnSignIn))
-    btnSignIn.bind("<Leave>", lambda event: button_on_leave(event, btnSignIn))
 
     _loginWindow_.bind(
         "<Button-1>",

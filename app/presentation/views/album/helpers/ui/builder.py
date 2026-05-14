@@ -25,8 +25,7 @@ from app.presentation.views.helpers.ui.builder import (
 from app.presentation.views.helpers.ui.interactions import handle_rate
 from app.presentation.views.helpers.ui.preview import reset_preview
 from app.presentation.views.profile.author import open_author_profile
-from app.presentation.widgets.helpers.button import on_enter as button_on_enter
-from app.presentation.widgets.helpers.button import on_leave as button_on_leave
+from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.photo_listbox import PhotoListboxWidget
 
@@ -141,11 +140,11 @@ def _build_left_panel(
         f"{_ICON_DIR}Favorite_Icon.png",
         size=(20, 20),
     )
-    fav_btn = tk.Button(
+    fav_btn = make_button(
         left,
-        text=fav_label,
-        image=fav_icon_ref,
-        compound=tk.LEFT,
+        fav_label,
+        icon=fav_icon_ref,
+        cmd=lambda: handle_toggle_favorite(state, body),
         font=quickSandBold(12),
         bg=_BTN_BG,
         fg=_BTN_FG,
@@ -156,12 +155,9 @@ def _build_left_panel(
         cursor="hand2",
         padx=16,
         pady=8,
-        command=lambda: handle_toggle_favorite(state, body),
     )
     fav_btn.pack(fill="x", padx=10, pady=(4, 10))
     fav_btn.image = fav_icon_ref  # type: ignore[attr-defined]
-    fav_btn.bind("<Enter>", lambda e: button_on_enter(e, fav_btn))
-    fav_btn.bind("<Leave>", lambda e: button_on_leave(e, fav_btn))
     state.favorite_btn = fav_btn
 
 
