@@ -7,9 +7,7 @@ from app.presentation.views.album.helpers.ui.builder import (
     build_header,
 )
 from app.presentation.views.helpers.data.state import BasePhotoState
-from app.presentation.views.helpers.ui.builder.broken_module import (  # TEST BROKEN IMPORT (UNUSED)
-    broken_function,
-)
+
 from app.presentation.views.helpers.ui.builder.missing_validators import (  # TEST BROKEN IMPORT (USED)
     validate_album_data,
 )
