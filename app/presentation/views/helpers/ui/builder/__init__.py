@@ -14,12 +14,6 @@ from app.presentation.views.helpers.ui.builder.listbox_pagination import (
 )
 from app.presentation.views.helpers.ui.builder.photo_canvas import build_photo_canvas
 from app.presentation.views.helpers.ui.builder.preview_panel import build_preview_panel
-from app.presentation.views.helpers.ui.builder.profile import (
-    build_feature_photos,
-    build_profile_action_buttons,
-    build_profile_follow_button,
-    build_profile_nav,
-)
 
 __all__ = [
     "build_albums_empty_state",
@@ -31,9 +25,5 @@ __all__ = [
     "build_photo_canvas",
     "build_preview_panel",
     "build_profile_photos_empty_state",
-    "build_feature_photos",
-    "build_profile_action_buttons",
-    "build_profile_follow_button",
-    "build_profile_nav",
     "build_reports_empty_state",
 ]

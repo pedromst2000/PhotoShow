@@ -1,6 +1,6 @@
 name: Code Quality
 
-'on':
+"on":
   push:
     branches:
       - master
@@ -103,31 +103,57 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r dev-requirements.txt
 
-      # --- Python linting ---
-      - name: Lint Python (flake8)
+      # ═══════════════════════════════════════════════════════════════════════
+      # ⚡ RUNTIME VALIDATION (NEW - Catches issues that fail at runtime)
+      # Runs BEFORE static analysis to catch import errors early
+      # ═══════════════════════════════════════════════════════════════════════
+
+      - name: Validate module imports can be resolved
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
-            FILES='.'
-          else
-            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
+          echo "🔍 Validating that all modules can be imported..."
+          python -c "
+          import sys
+          import traceback
+
+          try:
+              import app
+              print('✓ app module imported successfully')
+              import main
+              print('✓ main module imported successfully')
+          except ModuleNotFoundError as e:
+              print(f'::error::ModuleNotFoundError: {e}')
+              traceback.print_exc()
+              sys.exit(1)
+          except Exception as e:
+              print(f'::error::Import failed with exception: {e}')
+              traceback.print_exc()
+              sys.exit(1)
+          "
+
+      - name: Validate __init__.py exports and detect circular imports
+        if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
+        run: |
+          echo "🔎 Running comprehensive runtime validation..."
+          echo "   - Checking __init__.py re-exports..."
+          echo "   - Detecting circular dependencies..."
+          echo "   - Validating entry points..."
+          if ! python app/scripts/validate_runtime.py; then
+            echo ""
+            echo "::error::Runtime validation failed!"
+            echo "::error::The code passes CI checks but has issues that will cause runtime failures."
+            exit 1
           fi
 
-          # Clean up file list to single line
-          FILES=$(echo "$FILES" | tr '\n' ' ' | xargs)
-
-          if [ -z "$FILES" ]; then
-            echo "No files to lint."
-          else
-            echo "Running flake8 on: $FILES"
-            if ! python -m flake8 $FILES; then
-              echo "::error::Python linting issues found. Fix the issues locally and commit."
-              exit 1
-            fi
-          fi
+      # ═══════════════════════════════════════════════════════════════════════
+      # STAGE 2: CODE FORMATTING (Run before linters to fix obvious issues)
+      # ═══════════════════════════════════════════════════════════════════════
 
       - name: Check Python formatting (black)
         if: >-
@@ -153,8 +179,11 @@ jobs:
             fi
           fi
 
-      # --- Import order linting ---
-      - name: Check import order linting
+      # ═══════════════════════════════════════════════════════════════════════
+      # STAGE 3: IMPORT ORDER CHECK (After black to preserve formatting)
+      # ═══════════════════════════════════════════════════════════════════════
+
+      - name: Check import order (isort)
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
           steps.changed-files.outputs.python_any_changed == 'true' ||
@@ -176,22 +205,39 @@ jobs:
             fi
           fi
 
-      # --- Type checking ---
-      # mypy always runs on the full target (app + main.py) regardless of mode
-      # because type checking requires the full module graph — partial runs miss
-      # cross-module type errors and give false-clean results.
-      - name: Type check Python (mypy)
+      # ═══════════════════════════════════════════════════════════════════════
+      # STAGE 4: CODE LINTING (After formatting and import order are fixed)
+      # ═══════════════════════════════════════════════════════════════════════
+
+      - name: Lint Python (flake8)
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          if ! python -m mypy app main.py; then
-            echo "::error::Type checking issues found. Run 'python -m mypy app main.py' locally and fix the errors before committing."
-            exit 1
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
+            FILES='.'
+          else
+            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
           fi
 
-      # --- CSV ---
+          # Clean up file list to single line
+          FILES=$(echo "$FILES" | tr '\n' ' ' | xargs)
+
+          if [ -z "$FILES" ]; then
+            echo "No files to lint."
+          else
+            echo "Running flake8 on: $FILES"
+            if ! python -m flake8 $FILES; then
+              echo "::error::Python linting issues found. Fix the issues locally and commit."
+              exit 1
+            fi
+          fi
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # STAGE 5: DATA FILE VALIDATION (CSV & YAML - independent of Python)
+      # ═══════════════════════════════════════════════════════════════════════
+
       - name: Lint CSV
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
@@ -219,7 +265,6 @@ jobs:
             fi
           fi
 
-      # --- YAML ---
       - name: Lint YAML (yamllint)
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
@@ -237,4 +282,21 @@ jobs:
               echo "::error::YAML linting issues found. Fix the YAML files manually."
               exit 1
             fi
+          fi
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # STAGE 6: TYPE CHECKING (Last - slowest, needs full module graph)
+      # ═══════════════════════════════════════════════════════════════════════
+      # mypy always runs on the full target (app + main.py) regardless of mode
+      # because type checking requires the full module graph — partial runs miss
+      # cross-module type errors and give false-clean results.
+      - name: Type check Python (mypy)
+        if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
+        run: |
+          if ! python -m mypy app main.py; then
+            echo "::error::Type checking issues found. Run 'python -m mypy app main.py' locally and fix the errors before committing."
+            exit 1
           fi
