@@ -133,7 +133,12 @@ jobs:
               traceback.print_exc()
               sys.exit(1)
           "
-
+        # Note: This import validation catches issues like:
+        # - Syntax errors in __init__.py that prevent module loading
+        # - Broken imports in __init__.py that cause ImportError
+        # - Missing dependencies that cause ImportError
+        # - Circular imports that cause ImportError or RuntimeError
+        # It does NOT catch all possible runtime issues, but it catches a large class of common problems that static analysis can miss.
       - name: Validate __init__.py exports and detect circular imports
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
