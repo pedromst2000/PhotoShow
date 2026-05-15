@@ -181,9 +181,9 @@ jobs:
                       tree = ast.parse(f.read())
 
                   all_names = None
-                  imports = {}
+                  available = {}
 
-                  # Find __all__ and collect imports
+                  # Find __all__ and collect available names (imports, functions, classes)
                   for node in ast.walk(tree):
                       if isinstance(node, ast.Assign):
                           for target in node.targets:
@@ -192,16 +192,20 @@ jobs:
                                       all_names = [elt.value for elt in node.value.elts if isinstance(elt, ast.Constant)]
                       elif isinstance(node, ast.ImportFrom):
                           for alias in node.names:
-                              imports[alias.asname or alias.name] = True
+                              available[alias.asname or alias.name] = True
                       elif isinstance(node, ast.Import):
                           for alias in node.names:
-                              imports[alias.asname or alias.name] = True
+                              available[alias.asname or alias.name] = True
+                      elif isinstance(node, ast.FunctionDef):
+                          available[node.name] = True
+                      elif isinstance(node, ast.ClassDef):
+                          available[node.name] = True
 
                   # Verify all exported names exist
                   if all_names:
                       for name in all_names:
-                          if name not in imports:
-                              print(f'::error::{init_file}: exported name \\\"{name}\\\" not found in imports')
+                          if name not in available:
+                              print(f'::error::{init_file}: exported name \\\"{name}\\\" not found in imports or definitions')
                               return False
                   return True
               except SyntaxError as e:
