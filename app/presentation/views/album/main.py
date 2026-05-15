@@ -7,6 +7,9 @@ from app.presentation.views.album.helpers.ui.builder import (
     build_header,
 )
 from app.presentation.views.helpers.data.state import BasePhotoState
+from app.presentation.views.helpers.ui.builder.missing_validators import (  # TEST BROKEN IMPORT (USED)
+    validate_album_data,
+)
 from app.presentation.views.helpers.ui.preview import reset_preview, update_preview
 from app.presentation.widgets.window import create_toplevel
 
@@ -32,6 +35,9 @@ def open_album(state: BasePhotoState) -> None:
 
     album_state = AlbumState()
     album_state.is_unsigned = state.is_unsigned
+
+    # Validate album data before loading (uses broken import)
+    validate_album_data(album_id)
 
     load_album_data(album_state, album_id, default_photo_id)
 

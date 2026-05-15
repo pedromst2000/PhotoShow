@@ -1,6 +1,6 @@
 name: Code Quality
 
-'on':
+"on":
   push:
     branches:
       - master
@@ -103,31 +103,224 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r dev-requirements.txt
 
-      # --- Python linting ---
-      - name: Lint Python (flake8)
+      # ═══════════════════════════════════════════════════════════════════════
+      # ⚡ RUNTIME VALIDATION (NEW - Catches issues that fail at runtime)
+      # Runs BEFORE static analysis to catch import errors early
+      # ═══════════════════════════════════════════════════════════════════════
+
+      - name: Validate module imports can be resolved
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
-            FILES='.'
-          else
-            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
-          fi
+          echo "🔍 Validating that all modules can be imported..."
+          python -c "
+          import sys
+          import traceback
 
-          # Clean up file list to single line
-          FILES=$(echo "$FILES" | tr '\n' ' ' | xargs)
+          try:
+              import app
+              print('✓ app module imported successfully')
+              import main
+              print('✓ main module imported successfully')
+          except ModuleNotFoundError as e:
+              print(f'::error::ModuleNotFoundError: {e}')
+              traceback.print_exc()
+              sys.exit(1)
+          except Exception as e:
+              print(f'::error::Import failed with exception: {e}')
+              traceback.print_exc()
+              sys.exit(1)
+          "
+        # Note: This import validation catches issues like:
+        # - Syntax errors in __init__.py that prevent module loading and cause ImportError
+        # - Broken imports in __init__.py that cause ImportError
+        # - Missing dependencies that cause ImportError
+        # - Circular imports that cause ImportError or RuntimeError
+        # It does NOT catch all possible runtime issues, but it catches a large class of common problems that static analysis can miss.
+      - name: Validate __init__.py exports and detect circular imports
+        if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
+        run: |
+          echo "🔎 Validating __init__.py re-exports and circular dependencies..."
+          python -c "
+          import sys
+          import ast
+          import importlib.util
+          from pathlib import Path
+          from collections import deque, defaultdict
 
-          if [ -z "$FILES" ]; then
-            echo "No files to lint."
-          else
-            echo "Running flake8 on: $FILES"
-            if ! python -m flake8 $FILES; then
-              echo "::error::Python linting issues found. Fix the issues locally and commit."
-              exit 1
-            fi
-          fi
+          def find_all_init_files():
+              \"\"\"Find all __init__.py files in the project.\"\"\"
+              return list(Path('app').rglob('__init__.py'))
+
+          def extract_imports_from_file(file_path):
+              \"\"\"Extract all imports from a Python file.\"\"\"
+              try:
+                  with open(file_path, 'r', encoding='utf-8') as f:
+                      tree = ast.parse(f.read())
+                  imports = set()
+                  for node in ast.walk(tree):
+                      if isinstance(node, ast.ImportFrom):
+                          if node.module:
+                              imports.add(node.module)
+                      elif isinstance(node, ast.Import):
+                          for alias in node.names:
+                              imports.add(alias.name)
+                  return imports
+              except Exception:
+                  return set()
+
+          def check_exports(init_file):
+              \"\"\"Check that all __all__ exports exist in the module.\"\"\"
+              try:
+                  with open(init_file, 'r', encoding='utf-8') as f:
+                      tree = ast.parse(f.read())
+
+                  all_names = None
+                  available = {}
+
+                  # Find __all__ and collect available names (imports, functions, classes)
+                  for node in ast.walk(tree):
+                      if isinstance(node, ast.Assign):
+                          for target in node.targets:
+                              if isinstance(target, ast.Name) and target.id == '__all__':
+                                  if isinstance(node.value, ast.List):
+                                      all_names = [elt.value for elt in node.value.elts if isinstance(elt, ast.Constant)]
+                      elif isinstance(node, ast.ImportFrom):
+                          for alias in node.names:
+                              available[alias.asname or alias.name] = True
+                      elif isinstance(node, ast.Import):
+                          for alias in node.names:
+                              available[alias.asname or alias.name] = True
+                      elif isinstance(node, ast.FunctionDef):
+                          available[node.name] = True
+                      elif isinstance(node, ast.ClassDef):
+                          available[node.name] = True
+
+                  # Verify all exported names exist
+                  if all_names:
+                      for name in all_names:
+                          if name not in available:
+                              print(f'::error::{init_file}: exported name \\\"{name}\\\" not found in imports or definitions')
+                              return False
+                  return True
+              except SyntaxError as e:
+                  print(f'::error::{init_file}: Syntax error: {e}')
+                  return False
+              except Exception as e:
+                  print(f'::error::{init_file}: {e}')
+                  return False
+
+          def check_import_resolution(init_file):
+              \"\"\"Check if imports can actually be resolved.\"\"\"
+              try:
+                  with open(init_file, 'r', encoding='utf-8') as f:
+                      tree = ast.parse(f.read())
+
+                  for node in ast.walk(tree):
+                      if isinstance(node, ast.ImportFrom):
+                          if node.module:
+                              try:
+                                  importlib.util.find_spec(node.module)
+                              except (ImportError, ModuleNotFoundError, ValueError):
+                                  print(f'::error::{init_file}: Cannot resolve import: {node.module}')
+                                  return False
+                      elif isinstance(node, ast.Import):
+                          for alias in node.names:
+                              try:
+                                  importlib.util.find_spec(alias.name)
+                              except (ImportError, ModuleNotFoundError, ValueError):
+                                  print(f'::error::{init_file}: Cannot resolve import: {alias.name}')
+                                  return False
+                  return True
+              except Exception:
+                  return True
+
+          def detect_circular_imports(init_files):
+              \"\"\"Detect circular dependencies between modules.\"\"\"
+              graph = defaultdict(set)
+              file_to_module = {}
+
+              # Build import graph
+              for init_file in init_files:
+                  module_path = str(init_file).replace('\\\\', '/').replace('__init__.py', '').rstrip('/')
+                  module_name = module_path.replace('/', '.').replace('app.', '', 1) if 'app' in module_path else module_path
+                  file_to_module[str(init_file)] = module_name
+
+                  try:
+                      with open(init_file, 'r', encoding='utf-8') as f:
+                          tree = ast.parse(f.read())
+                      for node in ast.walk(tree):
+                          if isinstance(node, ast.ImportFrom) and node.module:
+                              if node.module.startswith('app'):
+                                  graph[module_name].add(node.module)
+                  except Exception:
+                      pass
+
+              # Check for cycles using DFS
+              visited = set()
+              rec_stack = set()
+              cycles = []
+
+              def has_cycle(node, path):
+                  visited.add(node)
+                  rec_stack.add(node)
+                  path.append(node)
+
+                  for neighbor in graph[node]:
+                      if neighbor not in visited:
+                          if has_cycle(neighbor, path.copy()):
+                              return True
+                      elif neighbor in rec_stack:
+                          cycle = path[path.index(neighbor):] + [neighbor]
+                          cycles.append(' -> '.join(cycle))
+                          return True
+
+                  rec_stack.discard(node)
+                  return False
+
+              for node in list(graph.keys()):
+                  if node not in visited:
+                      has_cycle(node, [])
+
+              if cycles:
+                  for cycle in cycles:
+                      print(f'::warning::Circular import detected: {cycle}')
+              return True
+
+          # Run all checks
+          all_valid = True
+          init_files = find_all_init_files()
+
+          # Check 1: __all__ exports
+          print('📋 Checking __all__ exports...')
+          for init_file in init_files:
+              if not check_exports(init_file):
+                  all_valid = False
+
+          # Check 2: Import resolution
+          print('🔗 Checking import resolution...')
+          for init_file in init_files:
+              if not check_import_resolution(init_file):
+                  all_valid = False
+
+          # Check 3: Circular dependencies
+          print('🔄 Detecting circular dependencies...')
+          detect_circular_imports(init_files)
+
+          if all_valid:
+              print(f'✓ All {len(init_files)} __init__.py files validated')
+          else:
+              sys.exit(1)
+          "
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # STAGE 2: CODE FORMATTING (Run before linters to fix obvious issues)
+      # ═══════════════════════════════════════════════════════════════════════
 
       - name: Check Python formatting (black)
         if: >-
@@ -153,8 +346,11 @@ jobs:
             fi
           fi
 
-      # --- Import order linting ---
-      - name: Check import order linting
+      # ═══════════════════════════════════════════════════════════════════════
+      # STAGE 3: IMPORT ORDER CHECK (After black to preserve formatting)
+      # ═══════════════════════════════════════════════════════════════════════
+
+      - name: Check import order (isort)
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
           steps.changed-files.outputs.python_any_changed == 'true' ||
@@ -176,22 +372,39 @@ jobs:
             fi
           fi
 
-      # --- Type checking ---
-      # mypy always runs on the full target (app + main.py) regardless of mode
-      # because type checking requires the full module graph — partial runs miss
-      # cross-module type errors and give false-clean results.
-      - name: Type check Python (mypy)
+      # ═══════════════════════════════════════════════════════════════════════
+      # STAGE 4: CODE LINTING (After formatting and import order are fixed)
+      # ═══════════════════════════════════════════════════════════════════════
+
+      - name: Lint Python (flake8)
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          if ! python -m mypy app main.py; then
-            echo "::error::Type checking issues found. Run 'python -m mypy app main.py' locally and fix the errors before committing."
-            exit 1
+          if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
+            FILES='.'
+          else
+            FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
           fi
 
-      # --- CSV ---
+          # Clean up file list to single line
+          FILES=$(echo "$FILES" | tr '\n' ' ' | xargs)
+
+          if [ -z "$FILES" ]; then
+            echo "No files to lint."
+          else
+            echo "Running flake8 on: $FILES"
+            if ! python -m flake8 $FILES; then
+              echo "::error::Python linting issues found. Fix the issues locally and commit."
+              exit 1
+            fi
+          fi
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # STAGE 5: DATA FILE VALIDATION (CSV & YAML - independent of Python)
+      # ═══════════════════════════════════════════════════════════════════════
+
       - name: Lint CSV
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
@@ -219,7 +432,6 @@ jobs:
             fi
           fi
 
-      # --- YAML ---
       - name: Lint YAML (yamllint)
         if: >-
           steps.run_mode.outputs.run_globally == 'true' ||
@@ -237,4 +449,21 @@ jobs:
               echo "::error::YAML linting issues found. Fix the YAML files manually."
               exit 1
             fi
+          fi
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # STAGE 6: TYPE CHECKING (Last - slowest, needs full module graph)
+      # ═══════════════════════════════════════════════════════════════════════
+      # mypy always runs on the full target (app + main.py) regardless of mode
+      # because type checking requires the full module graph — partial runs miss
+      # cross-module type errors and give false-clean results.
+      - name: Type check Python (mypy)
+        if: >-
+          steps.run_mode.outputs.run_globally == 'true' ||
+          steps.changed-files.outputs.python_any_changed == 'true' ||
+          steps.changed-files.outputs.configs_any_changed == 'true'
+        run: |
+          if ! python -m mypy app main.py; then
+            echo "::error::Type checking issues found. Run 'python -m mypy app main.py' locally and fix the errors before committing."
+            exit 1
           fi

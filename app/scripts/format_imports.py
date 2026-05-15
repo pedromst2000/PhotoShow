@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-# Add repo root to path for direct script execution
+# Add repo root to path for direct script execution (e.g. from CI changed-files) without needing to cd into app/
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
