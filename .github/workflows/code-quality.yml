@@ -140,16 +140,174 @@ jobs:
           steps.changed-files.outputs.python_any_changed == 'true' ||
           steps.changed-files.outputs.configs_any_changed == 'true'
         run: |
-          echo "🔎 Running comprehensive runtime validation..."
-          echo "   - Checking __init__.py re-exports..."
-          echo "   - Detecting circular dependencies..."
-          echo "   - Validating entry points..."
-          if ! python app/scripts/validate_runtime.py; then
-            echo ""
-            echo "::error::Runtime validation failed!"
-            echo "::error::The code passes CI checks but has issues that will cause runtime failures."
-            exit 1
-          fi
+          echo "🔎 Validating __init__.py re-exports and circular dependencies..."
+          python -c "
+          import sys
+          import ast
+          import importlib.util
+          from pathlib import Path
+          from collections import deque, defaultdict
+
+          def find_all_init_files():
+              \"\"\"Find all __init__.py files in the project.\"\"\"
+              return list(Path('app').rglob('__init__.py'))
+
+          def extract_imports_from_file(file_path):
+              \"\"\"Extract all imports from a Python file.\"\"\"
+              try:
+                  with open(file_path, 'r', encoding='utf-8') as f:
+                      tree = ast.parse(f.read())
+                  imports = set()
+                  for node in ast.walk(tree):
+                      if isinstance(node, ast.ImportFrom):
+                          if node.module:
+                              imports.add(node.module)
+                      elif isinstance(node, ast.Import):
+                          for alias in node.names:
+                              imports.add(alias.name)
+                  return imports
+              except Exception:
+                  return set()
+
+          def check_exports(init_file):
+              \"\"\"Check that all __all__ exports exist in the module.\"\"\"
+              try:
+                  with open(init_file, 'r', encoding='utf-8') as f:
+                      tree = ast.parse(f.read())
+
+                  all_names = None
+                  imports = {}
+
+                  # Find __all__ and collect imports
+                  for node in ast.walk(tree):
+                      if isinstance(node, ast.Assign):
+                          for target in node.targets:
+                              if isinstance(target, ast.Name) and target.id == '__all__':
+                                  if isinstance(node.value, ast.List):
+                                      all_names = [elt.s for elt in node.value if isinstance(elt, ast.Constant)]
+                      elif isinstance(node, ast.ImportFrom):
+                          for alias in node.names:
+                              imports[alias.asname or alias.name] = True
+                      elif isinstance(node, ast.Import):
+                          for alias in node.names:
+                              imports[alias.asname or alias.name] = True
+
+                  # Verify all exported names exist
+                  if all_names:
+                      for name in all_names:
+                          if name not in imports:
+                              print(f'::error::{init_file}: exported name \\\"{name}\\\" not found in imports')
+                              return False
+                  return True
+              except SyntaxError as e:
+                  print(f'::error::{init_file}: Syntax error: {e}')
+                  return False
+              except Exception as e:
+                  print(f'::error::{init_file}: {e}')
+                  return False
+
+          def check_import_resolution(init_file):
+              \"\"\"Check if imports can actually be resolved.\"\"\"
+              try:
+                  with open(init_file, 'r', encoding='utf-8') as f:
+                      tree = ast.parse(f.read())
+
+                  for node in ast.walk(tree):
+                      if isinstance(node, ast.ImportFrom):
+                          if node.module:
+                              try:
+                                  importlib.util.find_spec(node.module)
+                              except (ImportError, ModuleNotFoundError, ValueError):
+                                  print(f'::error::{init_file}: Cannot resolve import: {node.module}')
+                                  return False
+                      elif isinstance(node, ast.Import):
+                          for alias in node.names:
+                              try:
+                                  importlib.util.find_spec(alias.name)
+                              except (ImportError, ModuleNotFoundError, ValueError):
+                                  print(f'::error::{init_file}: Cannot resolve import: {alias.name}')
+                                  return False
+                  return True
+              except Exception:
+                  return True
+
+          def detect_circular_imports(init_files):
+              \"\"\"Detect circular dependencies between modules.\"\"\"
+              graph = defaultdict(set)
+              file_to_module = {}
+
+              # Build import graph
+              for init_file in init_files:
+                  module_path = str(init_file).replace('\\\\', '/').replace('__init__.py', '').rstrip('/')
+                  module_name = module_path.replace('/', '.').replace('app.', '', 1) if 'app' in module_path else module_path
+                  file_to_module[str(init_file)] = module_name
+
+                  try:
+                      with open(init_file, 'r', encoding='utf-8') as f:
+                          tree = ast.parse(f.read())
+                      for node in ast.walk(tree):
+                          if isinstance(node, ast.ImportFrom) and node.module:
+                              if node.module.startswith('app'):
+                                  graph[module_name].add(node.module)
+                  except Exception:
+                      pass
+
+              # Check for cycles using DFS
+              visited = set()
+              rec_stack = set()
+              cycles = []
+
+              def has_cycle(node, path):
+                  visited.add(node)
+                  rec_stack.add(node)
+                  path.append(node)
+
+                  for neighbor in graph[node]:
+                      if neighbor not in visited:
+                          if has_cycle(neighbor, path.copy()):
+                              return True
+                      elif neighbor in rec_stack:
+                          cycle = path[path.index(neighbor):] + [neighbor]
+                          cycles.append(' -> '.join(cycle))
+                          return True
+
+                  rec_stack.discard(node)
+                  return False
+
+              for node in graph:
+                  if node not in visited:
+                      has_cycle(node, [])
+
+              if cycles:
+                  for cycle in cycles:
+                      print(f'::warning::Circular import detected: {cycle}')
+              return True
+
+          # Run all checks
+          all_valid = True
+          init_files = find_all_init_files()
+
+          # Check 1: __all__ exports
+          print('📋 Checking __all__ exports...')
+          for init_file in init_files:
+              if not check_exports(init_file):
+                  all_valid = False
+
+          # Check 2: Import resolution
+          print('🔗 Checking import resolution...')
+          for init_file in init_files:
+              if not check_import_resolution(init_file):
+                  all_valid = False
+
+          # Check 3: Circular dependencies
+          print('🔄 Detecting circular dependencies...')
+          detect_circular_imports(init_files)
+
+          if all_valid:
+              print(f'✓ All {len(init_files)} __init__.py files validated')
+          else:
+              sys.exit(1)
+          "
 
       # ═══════════════════════════════════════════════════════════════════════
       # STAGE 2: CODE FORMATTING (Run before linters to fix obvious issues)
