@@ -134,7 +134,7 @@ jobs:
               sys.exit(1)
           "
         # Note: This import validation catches issues like:
-        # - Syntax errors in __init__.py that prevent module loading
+        # - Syntax errors in __init__.py that prevent module loading and cause ImportError
         # - Broken imports in __init__.py that cause ImportError
         # - Missing dependencies that cause ImportError
         # - Circular imports that cause ImportError or RuntimeError
