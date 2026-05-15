@@ -184,7 +184,7 @@ jobs:
                           for target in node.targets:
                               if isinstance(target, ast.Name) and target.id == '__all__':
                                   if isinstance(node.value, ast.List):
-                                      all_names = [elt.s for elt in node.value if isinstance(elt, ast.Constant)]
+                                      all_names = [elt.value for elt in node.value.elts if isinstance(elt, ast.Constant)]
                       elif isinstance(node, ast.ImportFrom):
                           for alias in node.names:
                               imports[alias.asname or alias.name] = True
@@ -274,7 +274,7 @@ jobs:
                   rec_stack.discard(node)
                   return False
 
-              for node in graph:
+              for node in list(graph.keys()):
                   if node not in visited:
                       has_cycle(node, [])
 
