@@ -193,8 +193,9 @@ def profileWindow(user_id: Optional[int] = None) -> None:
 
     # ── Navigation bar ────────────────────────────────────────────────
     # Unsigned users cannot access albums, favorites, contacts, or reports.
+    # Visitor profiles can only see favorites (if not unsigned).
     show_albuns = own_profile and not is_unsigned
-    show_favorites = own_profile and not is_unsigned
+    show_favorites = not is_unsigned
     show_contacts = own_profile and role == "admin"
     show_reports = own_profile and role == "admin"
 
