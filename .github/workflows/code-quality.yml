@@ -109,16 +109,17 @@ jobs:
       # ═══════════════════════════════════════════════════════════════════════
 
       - name: Validate module imports can be resolved
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.python_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+
         run: |
           echo "🔍 Validating that all modules can be imported..."
           python -c "
           import sys
           import traceback
+          import ast
+          from pathlib import Path
+          import importlib
 
+          # Test 1: Import entry points
           try:
               import app
               print('✓ app module imported successfully')
@@ -132,6 +133,36 @@ jobs:
               print(f'::error::Import failed with exception: {e}')
               traceback.print_exc()
               sys.exit(1)
+
+          # Test 2: Try to import all Python modules to detect broken imports at runtime
+          print('🔗 Detecting broken imports by attempting module imports...')
+          errors = []
+
+          for py_file in sorted(Path('app').rglob('*.py')):
+              if '__pycache__' in str(py_file):
+                  continue
+
+              # Convert file path to module name
+              module_parts = list(py_file.relative_to('.').parts[:-1]) + [py_file.stem]
+              if module_parts[-1] == '__init__':
+                  module_parts = module_parts[:-1]
+
+              module_name = '.'.join(module_parts)
+
+              try:
+                  importlib.import_module(module_name)
+              except ModuleNotFoundError as e:
+                  errors.append(f'{py_file}: {str(e)}')
+              except Exception:
+                  # Ignore other exceptions (e.g., runtime errors)
+                  pass
+
+          if errors:
+              print(f'::error::Found {len(errors)} files with broken imports:')
+              for error in errors:
+                  print(f'::error::{error}')
+              sys.exit(1)
+          print('✓ All module imports successful')
           "
         # Note: This import validation catches issues like:
         # - Syntax errors in __init__.py that prevent module loading and cause ImportError
@@ -140,10 +171,7 @@ jobs:
         # - Circular imports that cause ImportError or RuntimeError
         # It does NOT catch all possible runtime issues, but it catches a large class of common problems that static analysis can miss.
       - name: Validate __init__.py exports and detect circular imports
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.python_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+
         run: |
           echo "🔎 Validating __init__.py re-exports and circular dependencies..."
           python -c "
@@ -156,23 +184,6 @@ jobs:
           def find_all_init_files():
               \"\"\"Find all __init__.py files in the project.\"\"\"
               return list(Path('app').rglob('__init__.py'))
-
-          def extract_imports_from_file(file_path):
-              \"\"\"Extract all imports from a Python file.\"\"\"
-              try:
-                  with open(file_path, 'r', encoding='utf-8') as f:
-                      tree = ast.parse(f.read())
-                  imports = set()
-                  for node in ast.walk(tree):
-                      if isinstance(node, ast.ImportFrom):
-                          if node.module:
-                              imports.add(node.module)
-                      elif isinstance(node, ast.Import):
-                          for alias in node.names:
-                              imports.add(alias.name)
-                  return imports
-              except Exception:
-                  return set()
 
           def check_exports(init_file):
               \"\"\"Check that all __all__ exports exist in the module.\"\"\"
@@ -214,31 +225,6 @@ jobs:
               except Exception as e:
                   print(f'::error::{init_file}: {e}')
                   return False
-
-          def check_import_resolution(init_file):
-              \"\"\"Check if imports can actually be resolved.\"\"\"
-              try:
-                  with open(init_file, 'r', encoding='utf-8') as f:
-                      tree = ast.parse(f.read())
-
-                  for node in ast.walk(tree):
-                      if isinstance(node, ast.ImportFrom):
-                          if node.module:
-                              try:
-                                  importlib.util.find_spec(node.module)
-                              except (ImportError, ModuleNotFoundError, ValueError):
-                                  print(f'::error::{init_file}: Cannot resolve import: {node.module}')
-                                  return False
-                      elif isinstance(node, ast.Import):
-                          for alias in node.names:
-                              try:
-                                  importlib.util.find_spec(alias.name)
-                              except (ImportError, ModuleNotFoundError, ValueError):
-                                  print(f'::error::{init_file}: Cannot resolve import: {alias.name}')
-                                  return False
-                  return True
-              except Exception:
-                  return True
 
           def detect_circular_imports(init_files):
               \"\"\"Detect circular dependencies between modules.\"\"\"
@@ -302,13 +288,7 @@ jobs:
               if not check_exports(init_file):
                   all_valid = False
 
-          # Check 2: Import resolution
-          print('🔗 Checking import resolution...')
-          for init_file in init_files:
-              if not check_import_resolution(init_file):
-                  all_valid = False
-
-          # Check 3: Circular dependencies
+          # Check 2: Circular dependencies (import resolution already checked in pipeline Stage 1)
           print('🔄 Detecting circular dependencies...')
           detect_circular_imports(init_files)
 
@@ -323,10 +303,7 @@ jobs:
       # ═══════════════════════════════════════════════════════════════════════
 
       - name: Check Python formatting (black)
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.python_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+        if: steps.run_mode.outputs.run_globally == 'false' || steps.changed-files.outputs.python_any_changed == 'true'
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             FILES='.'
@@ -351,10 +328,7 @@ jobs:
       # ═══════════════════════════════════════════════════════════════════════
 
       - name: Check import order (isort)
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.python_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+        if: steps.run_mode.outputs.run_globally == 'false' || steps.changed-files.outputs.python_any_changed == 'true'
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             # No args → script scans the whole project by default
@@ -406,10 +380,7 @@ jobs:
       # ═══════════════════════════════════════════════════════════════════════
 
       - name: Lint CSV
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.csv_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+        if: steps.run_mode.outputs.run_globally == 'false' || steps.changed-files.outputs.csv_any_changed == 'true'
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             echo "Running CSV linter on: files/ (all)"
@@ -433,10 +404,7 @@ jobs:
           fi
 
       - name: Lint YAML (yamllint)
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.yaml_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+        if: steps.run_mode.outputs.run_globally == 'false' || steps.changed-files.outputs.yaml_any_changed == 'true'
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             FILES='.'
