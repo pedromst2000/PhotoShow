@@ -109,10 +109,7 @@ jobs:
       # ═══════════════════════════════════════════════════════════════════════
 
       - name: Validate module imports can be resolved
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.python_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+
         run: |
           echo "🔍 Validating that all modules can be imported..."
           python -c "
@@ -174,10 +171,7 @@ jobs:
         # - Circular imports that cause ImportError or RuntimeError
         # It does NOT catch all possible runtime issues, but it catches a large class of common problems that static analysis can miss.
       - name: Validate __init__.py exports and detect circular imports
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.python_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+
         run: |
           echo "🔎 Validating __init__.py re-exports and circular dependencies..."
           python -c "
@@ -190,23 +184,6 @@ jobs:
           def find_all_init_files():
               \"\"\"Find all __init__.py files in the project.\"\"\"
               return list(Path('app').rglob('__init__.py'))
-
-          def extract_imports_from_file(file_path):
-              \"\"\"Extract all imports from a Python file.\"\"\"
-              try:
-                  with open(file_path, 'r', encoding='utf-8') as f:
-                      tree = ast.parse(f.read())
-                  imports = set()
-                  for node in ast.walk(tree):
-                      if isinstance(node, ast.ImportFrom):
-                          if node.module:
-                              imports.add(node.module)
-                      elif isinstance(node, ast.Import):
-                          for alias in node.names:
-                              imports.add(alias.name)
-                  return imports
-              except Exception:
-                  return set()
 
           def check_exports(init_file):
               \"\"\"Check that all __all__ exports exist in the module.\"\"\"
@@ -326,10 +303,7 @@ jobs:
       # ═══════════════════════════════════════════════════════════════════════
 
       - name: Check Python formatting (black)
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.python_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+        if: steps.run_mode.outputs.run_globally == 'false' || steps.changed-files.outputs.python_any_changed == 'true'
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             FILES='.'
@@ -354,10 +328,7 @@ jobs:
       # ═══════════════════════════════════════════════════════════════════════
 
       - name: Check import order (isort)
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.python_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+        if: steps.run_mode.outputs.run_globally == 'false' || steps.changed-files.outputs.python_any_changed == 'true'
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             # No args → script scans the whole project by default
@@ -409,10 +380,7 @@ jobs:
       # ═══════════════════════════════════════════════════════════════════════
 
       - name: Lint CSV
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.csv_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+        if: steps.run_mode.outputs.run_globally == 'false' || steps.changed-files.outputs.csv_any_changed == 'true'
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             echo "Running CSV linter on: files/ (all)"
@@ -436,10 +404,7 @@ jobs:
           fi
 
       - name: Lint YAML (yamllint)
-        if: >-
-          steps.run_mode.outputs.run_globally == 'true' ||
-          steps.changed-files.outputs.yaml_any_changed == 'true' ||
-          steps.changed-files.outputs.configs_any_changed == 'true'
+        if: steps.run_mode.outputs.run_globally == 'false' || steps.changed-files.outputs.yaml_any_changed == 'true'
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
             FILES='.'
