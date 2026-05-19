@@ -40,7 +40,10 @@ def build_profile_action_buttons(
     action_frame.place(x=win_w - 20, y=win_h - 55, anchor=tk.NE)
 
     change_av_btn = make_button(
-        action_frame, "Change Avatar", cmd=changeAvatarWindow, **_btn_style
+        action_frame,
+        "Change Avatar",
+        cmd=lambda: changeAvatarWindow(profile_window=window),
+        **_btn_style,
     )
     change_av_btn.pack(side=tk.RIGHT, padx=(6, 0))
 

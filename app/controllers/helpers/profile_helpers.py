@@ -90,7 +90,7 @@ class ProfileHelpers:
             assert session.user_id is not None
 
             if UserService.update_avatar(session.user_id, avatar_filename):
-                new_avatar_path = f"assets/images/profile_avatars/{avatar_filename}"
+                new_avatar_path = f"assets/images/local_cloud_media/latest/profile_avatars/{avatar_filename}"
                 session.update_user_data({"avatar": new_avatar_path})
                 log_operation(
                     "profile.update_avatar",

@@ -40,7 +40,7 @@ User Stories - Requirements - Features
 
 ## ALL USERS - Profile
 
-- [ ] **Change Avatar**: User can upload a new profile picture (accept jpg/png, max 2MB).
+- [X] **Change Avatar**: User can upload a new profile picture (accept jpg/png, max 2MB).
 - [X] **Change password**: User can change account password.
 - [ ] **Albums**: Create and manage photo albums.
 - [X] **Empty State** - No Albums: Show empty state when user has no albums.
