@@ -95,7 +95,7 @@ def update_preview(state: BasePhotoState):
             # Load avatar image (only when owner changes)
             avatar_path = (
                 photo.get("owner_avatar")
-                or "app/assets/images/profile_avatars/default_avatar.jpg"
+                or "app/assets/images/local_cloud_media/default/profile_avatars/default_avatar.jpg"
             )
             from app.utils.file_utils import resolve_avatar_path
 

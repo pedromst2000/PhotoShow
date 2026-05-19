@@ -160,7 +160,7 @@ class UserService:
             Exception: Any database error is caught and logged; False returned.
         """
         try:
-            avatar_path = f"assets/images/profile_avatars/{avatar_filename}"
+            avatar_path = f"assets/images/local_cloud_media/latest/profile_avatars/{avatar_filename}"
             with SessionLocal() as session:
                 result = AvatarModel.update(session, user_id, avatar_path)
                 session.commit()

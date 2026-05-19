@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 
 from app.core.services.photo_service import PhotoService
 from app.core.state.session import session
+from app.utils.file_utils import copy_to_latest_photos, delete_from_latest
 from app.utils.log_utils import log_exception, log_operation
 
 
@@ -108,8 +109,12 @@ class PhotoController:
         """
         Upload a new photo.
 
+        Copies the source file into the latest media tier, then records the
+        stored path in the database.  If the database write fails the copied
+        file is removed so the two stores remain in sync.
+
         Args:
-            image_path: The file path of the photo to upload.
+            image_path: Full path to the source image chosen by the user.
             album_id: Optional album ID to associate with the photo.
             category_id: Optional category ID to associate with the photo.
             description: Optional description of the photo.
@@ -117,18 +122,23 @@ class PhotoController:
 
         Returns:
             Tuple[bool, str]: Tuple of (success, message)
-
-        Raises:
-            Exception: Any unexpected error during photo creation is caught and logged.
         """
-
         if not image_path:
             return False, "Image path is required"
         if album_id is None:
             return False, "Album ID is required"
+
+        # Copy file to latest tier before touching the DB.
+        try:
+            stored_path = copy_to_latest_photos(image_path)
+        except ValueError as e:
+            return False, str(e)
+        except OSError as e:
+            return False, f"Failed to save photo file: {str(e)}"
+
         try:
             PhotoService.create_photo(
-                image_path=image_path,
+                image_path=stored_path,
                 album_id=album_id,
                 category_id=category_id,
                 description=description,
@@ -142,12 +152,15 @@ class PhotoController:
             )
             return True, "Photo uploaded successfully"
         except Exception as e:
+            # Rollback: remove the file we copied if the DB write failed.
+            delete_from_latest(stored_path)
             log_exception(
                 "photo.upload_photo",
                 e,
                 user_id=session.user_id,
                 context={
                     "image_path": image_path,
+                    "stored_path": stored_path,
                     "album_id": album_id,
                     "category_id": category_id,
                 },

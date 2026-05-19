@@ -9,7 +9,9 @@ from app.core.db.models.role import RoleModel
 from app.core.db.models.user import UserModel
 from app.utils.log_utils import log_exception, log_operation
 
-_DEFAULT_AVATAR = "assets/images/profile_avatars/default_avatar.png"
+_DEFAULT_AVATAR = (
+    "assets/images/local_cloud_media/default/profile_avatars/default_avatar.png"
+)
 
 
 class AuthService:

@@ -1,11 +1,10 @@
 import csv
-import sqlite3
 from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy import Boolean, DateTime, Integer
 
-from app.core.db.engine import DB_PATH, SessionLocal, engine, init_db
+from app.core.db.engine import SessionLocal, drop_all_tables_raw, init_db
 from app.core.db.models import (
     AlbumModel,
     AvatarModel,
@@ -23,28 +22,8 @@ from app.core.db.models import (
     RoleModel,
     UserModel,
 )
+from app.utils.file_utils import clear_latest_media
 from app.utils.log_utils import log_check, log_issue, log_success
-
-
-def _drop_all_tables_raw() -> None:
-    """
-    Drop every table in the SQLite file using a raw sqlite3 connection.
-    Disables FK constraints first so no ordering issues arise from stale
-    FK columns that no longer appear in the SQLAlchemy metadata.
-    """
-    engine.dispose()
-    con = sqlite3.connect(DB_PATH)
-    try:
-        cur = con.cursor()
-        cur.execute("PRAGMA foreign_keys=OFF")
-        cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-        tables = [row[0] for row in cur.fetchall() if not row[0].startswith("sqlite_")]
-        for table in tables:
-            cur.execute(f'DROP TABLE IF EXISTS "{table}"')
-        con.commit()
-    finally:
-        con.close()
-
 
 # ── Table restore order (must respect FK dependencies) ────────────────────────
 # Mirrors _CSV_ORDER in migration.py but uses actual DB table names (from __table__.name).
@@ -248,10 +227,15 @@ def restore_db_from_backup(backup_dir: str | None = None) -> None:
     # Delete the DB file entirely — avoids FK-ordering issues from stale schema
     log_check("[restoreDB] Dropping all tables...")
     try:
-        _drop_all_tables_raw()
+        drop_all_tables_raw()
     except Exception as e:
         log_issue("[restoreDB] Failed to drop tables — aborting restore", exc=e)
         return
+
+    log_check("[restoreDB] Clearing latest media files...")
+    clear_latest_media()
+    log_success("[restoreDB] Latest media cleared.")
+
     log_check("[restoreDB] Recreating schema...")
     init_db()
     log_success("[restoreDB] Schema ready.")

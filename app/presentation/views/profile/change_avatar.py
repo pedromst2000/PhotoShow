@@ -1,100 +1,34 @@
 import tkinter as tk
-import tkinter.filedialog as filedialog
-import tkinter.messagebox as messagebox
-from typing import Any, Callable
+from typing import Optional
 
-from app.controllers.user_controller import UserController
 from app.core.state.session import session
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
+from app.presentation.views.profile.helpers.avatar import (
+    on_avatar_save,
+    on_avatar_upload,
+)
 from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.window import create_toplevel
 
-image: Any = ""
-photo_image: Any = ""
-statusBtn = "disabled"
-cursorBtn = "arrow"
 
-
-def uploadAvatar(
-    event: Callable[..., Any],
-    canvasAvatar: tk.Canvas,
-    btnSaveAvatar: tk.Button,
-    userID: int,
-):
+def changeAvatarWindow(profile_window: Optional[tk.Toplevel] = None) -> None:
     """
-    This function is used to upload the avatar.
+    Display the change avatar window.
+
+    Provides UI for:
+    - Viewing current avatar
+    - Uploading new avatar image with preview
+    - Saving avatar (copies to profile_avatars with {username}_avatar naming)
+    - Persisting to database and syncing UI
 
     Args:
-        event (callable): The event object from the button click.
-        canvasAvatar (tk.Canvas): The Canvas widget to display the avatar preview.
-        btnSaveAvatar (tk.Button): The Button widget to save the avatar.
-        userID (int): The ID of the user whose avatar is being changed.
+        profile_window: The parent profile window to close after a successful save.
     """
+    user_id: int = session.user_id
 
-    global image, photo_image, statusBtn, cursorBtn
-
-    # open the file dialog
-    filename: str = filedialog.askopenfilename(
-        initialdir="/",
-        title="Select an image",
-        filetypes=(
-            ("png files", "*.png"),
-            ("jpg files", "*.jpg"),
-            ("jpeg files", "*.jpeg"),
-        ),
-    )
-
-    if filename == "":
-        return
-
-    if filename != "":
-        image_path = filename
-
-        photo_image = load_image(
-            image_path, size=(200, 200), canvas=canvasAvatar, x=0, y=0
-        )
-        image = image_path  # assigning the global variable image to the image_path
-        canvasAvatar.image = photo_image  # type: ignore
-        statusBtn = "normal"
-        cursorBtn = "hand2"
-        btnSaveAvatar["state"] = statusBtn
-        btnSaveAvatar["cursor"] = cursorBtn
-        btnSaveAvatar.bind("<Button-1>", lambda event: _saveAvatar_(event, image_path))
-
-
-def _saveAvatar_(event: Callable[..., Any], avatar: str):
-    """
-    This function is used to save the avatar.
-
-    Args:
-        event (callable): The event object from the button click.
-        avatar (str): The file path of the new avatar image.
-
-    """
-
-    # slicing the path to get only the image name
-    avatar_filename: str = avatar.split("/")[-1]
-
-    success, message = UserController.update_avatar(avatar_filename)
-
-    if success:
-        UserController.refresh_session_data()
-        messagebox.showinfo("Success", message)
-    else:
-        messagebox.showerror("Error", message)
-
-
-def changeAvatarWindow():
-    """
-    This function is used to display change avatar window.
-    """
-
-    # create the window using the reusable helper
-    userID: int = session.user_id
-
-    _changeAvatarWindow_: tk.Toplevel = create_toplevel(
+    change_avatar_window: tk.Toplevel = create_toplevel(
         title="👤 Profile - Change Avatar 👤",
         width=500,
         height=595,
@@ -104,30 +38,77 @@ def changeAvatarWindow():
 
     # ----------------------  Labels -----------------------------------
 
-    changeAvatarLabel: tk.Label = tk.Label(
-        _changeAvatarWindow_,
+    change_avatar_label: tk.Label = tk.Label(
+        change_avatar_window,
         text="Change Avatar",
         font=quickSandBold(22),
         bg=colors["primary-50"],
         fg=colors["secondary-500"],
     )
 
-    changeAvatarLabel.place(x=140, y=15)
+    change_avatar_label.place(x=140, y=15)
 
-    helpLabel: tk.Label = tk.Label(
-        _changeAvatarWindow_,
+    help_label: tk.Label = tk.Label(
+        change_avatar_window,
         text="Select a new avatar for your profile",
         font=quickSandRegular(12),
         bg=colors["primary-50"],
         fg=colors["secondary-500"],
     )
 
-    helpLabel.place(x=125, y=70)
+    help_label.place(x=125, y=70)
+
+    # ----------------------  Canvas for Preview Avatar -----------------------------------
+
+    canvas_preview_avatar: tk.Canvas = tk.Canvas(
+        change_avatar_window,
+        width=200,
+        height=200,
+        bg=colors["primary-50"],
+        highlightthickness=0,
+    )
+
+    canvas_preview_avatar.place(x=150, y=135)
+
+    avatar_photo = load_image(
+        session.avatar, size=(200, 200), canvas=canvas_preview_avatar, x=0, y=0
+    )
+    canvas_preview_avatar.image = avatar_photo
+
+    # ----------------------  State Container -----------------------------------
+
+    # Persistent state container across button clicks
+    selected_avatar: dict[str, Optional[str]] = {"path": None}
 
     # ----------------------  Buttons -----------------------------------
 
-    btnChangeAvatar = make_button(
-        _changeAvatarWindow_,
+    btn_save_avatar = make_button(
+        change_avatar_window,
+        "Save Avatar",
+        width=16,
+        height=2,
+        state="disabled",
+        borderwidth=10,
+        font=quickSandBold(12),
+        fg=colors["secondary-500"],
+        background=colors["accent-300"],
+        highlightthickness=0,
+        activebackground=colors["accent-100"],
+        cursor="arrow",
+        compound="center",
+        border=0,
+        command=lambda: on_avatar_save(
+            selected_avatar,
+            user_id,
+            change_avatar_window,
+            profile_window,
+        ),
+    )
+
+    btn_save_avatar.place(x=170, y=470)
+
+    btn_change_avatar = make_button(
+        change_avatar_window,
         "Upload Avatar",
         width=16,
         height=2,
@@ -140,50 +121,14 @@ def changeAvatarWindow():
         cursor="hand2",
         compound="center",
         border=0,
+        command=lambda: on_avatar_upload(
+            canvas_preview_avatar,
+            btn_save_avatar,
+            user_id,
+            selected_avatar,
+        ),
     )
 
-    btnChangeAvatar.place(x=170, y=380)
+    btn_change_avatar.place(x=170, y=380)
 
-    btnSaveAvatar = make_button(
-        _changeAvatarWindow_,
-        "Save Avatar",
-        width=16,
-        height=2,
-        state=statusBtn,
-        borderwidth=10,
-        font=quickSandBold(12),
-        fg=colors["secondary-500"],
-        background=colors["accent-300"],
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor=cursorBtn,
-        compound="center",
-        border=0,
-    )
-
-    btnSaveAvatar.place(x=170, y=470)
-
-    # ----------------------  Preeview Avatar -----------------------------------
-
-    canvasPreeviewAvatar: tk.Canvas = tk.Canvas(
-        _changeAvatarWindow_,
-        width=200,
-        height=200,
-        bg=colors["primary-50"],
-        highlightthickness=0,
-    )
-
-    canvasPreeviewAvatar.place(x=150, y=135)
-
-    avatar_photo = load_image(
-        session.avatar, size=(200, 200), canvas=canvasPreeviewAvatar, x=0, y=0
-    )
-    canvasPreeviewAvatar.image = avatar_photo
-
-    # ----------------------  Events -----------------------------------
-    btnChangeAvatar.bind(
-        "<Button-1>",
-        lambda event: uploadAvatar(event, canvasPreeviewAvatar, btnSaveAvatar, userID),
-    )
-
-    _changeAvatarWindow_.grab_set()
+    change_avatar_window.grab_set()
