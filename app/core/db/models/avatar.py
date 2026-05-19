@@ -64,7 +64,7 @@ class AvatarModel(Base):
     @classmethod
     def create(cls, session: Session, user_id: int, avatar_path: str) -> dict:
         """
-        Create or update the avatar for a user. If an avatar exists it is updated in-place.
+        Create a new avatar for a user.
 
         Args:
             session: Active SQLAlchemy session.
@@ -72,7 +72,25 @@ class AvatarModel(Base):
             avatar_path (str): File path or URL of the avatar image (pre-validated).
 
         Returns:
-            dict: The created or updated avatar row as a dictionary.
+            dict: The created avatar row as a dictionary.
+        """
+        obj = cls(userId=user_id, avatar=avatar_path)
+        session.add(obj)
+        session.flush()  # Flush to assign an ID before returning
+        return obj.to_dict()
+
+    @classmethod
+    def update(cls, session: Session, user_id: int, avatar_path: str) -> dict | None:
+        """
+        Update the avatar for an existing user.
+
+        Args:
+            session: Active SQLAlchemy session.
+            user_id (int): ID of the user whose avatar should be updated.
+            avatar_path (str): File path or URL of the avatar image (pre-validated).
+
+        Returns:
+            dict | None: The updated avatar row as a dictionary, or None if not found.
         """
         existing = (
             session.query(cls)
@@ -80,15 +98,11 @@ class AvatarModel(Base):
             .order_by(desc(cls.createdAt))
             .first()
         )
-        if existing:
+        if existing:  # Only update if an existing avatar is found for the user
             existing.avatar = avatar_path
-            session.flush()
+            session.flush()  # Flush to apply the update before returning
             return existing.to_dict()
-
-        obj = cls(userId=user_id, avatar=avatar_path)
-        session.add(obj)
-        session.flush()
-        return obj.to_dict()
+        return None
 
     @classmethod
     def get_for_user(cls, session: Session, user_id: int) -> dict | None:
@@ -106,7 +120,7 @@ class AvatarModel(Base):
             session.query(cls)
             .filter_by(userId=user_id)
             .order_by(desc(cls.createdAt))
-            .first()
+            .first()  # Get the most recently created avatar for the user, which is considered the active one
         )
         if row:
             return row.to_dict()

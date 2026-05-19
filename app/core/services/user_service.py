@@ -162,7 +162,7 @@ class UserService:
         try:
             avatar_path = f"assets/images/profile_avatars/{avatar_filename}"
             with SessionLocal() as session:
-                result = AvatarModel.create(session, user_id, avatar_path)
+                result = AvatarModel.update(session, user_id, avatar_path)
                 session.commit()
             if result:
                 log_operation(
@@ -175,7 +175,7 @@ class UserService:
                 log_operation(
                     "user.update_avatar",
                     "validation_error",
-                    f"Failed to update avatar for user {user_id}",
+                    f"Avatar not found for user {user_id}",
                     user_id=user_id,
                 )
             return result is not None
@@ -184,7 +184,9 @@ class UserService:
                 "user.update_avatar",
                 e,
                 user_id=user_id,
-                context={"filename": avatar_filename},
+                context={
+                    "filename": avatar_filename
+                },  # Log the filename for debugging purposes
             )
             return False
 
