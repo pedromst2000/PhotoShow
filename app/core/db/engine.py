@@ -1,3 +1,6 @@
+import sqlite3
+import threading
+
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.pool import NullPool
@@ -43,7 +46,6 @@ def _setup_wal_mode() -> None:
     WAL persists once enabled, so subsequent calls are instant (no-op).
     This is critical for preventing "database is locked" errors in concurrent access.
     """
-    import sqlite3
 
     db_file = DATABASE_URL.replace("sqlite:///", "")
     try:
@@ -74,8 +76,6 @@ def _setup_wal_mode_async() -> None:
     Enable WAL mode asynchronously (after app startup).
     WAL persists once enabled, so this doesn't need to block initialization.
     """
-    import sqlite3
-    import threading
 
     def _enable_wal():
         try:
@@ -98,7 +98,6 @@ def _apply_schema_migrations() -> None:
     Called automatically by init_db() after create_all().
     Optimized: skips I/O if no migrations needed.
     """
-    import sqlite3
 
     db_file = DATABASE_URL.replace("sqlite:///", "")
     con = sqlite3.connect(db_file, timeout=5)  # Add timeout for lock handling
@@ -186,3 +185,31 @@ def check_db() -> tuple:
         return True, "Database OK"
     except Exception as e:
         return False, f"Database connection failed: {e}"
+
+
+def drop_all_tables_raw() -> None:
+    """
+    Drop every table in the SQLite database using a raw sqlite3 connection.
+    Disables FK constraints first so no ordering issues arise from stale
+    FK columns that no longer appear in the SQLAlchemy metadata.
+    """
+
+    engine.dispose()  # return all pooled connections before we take the file
+    con = sqlite3.connect(DB_PATH)
+    try:
+        cur = con.cursor()
+        cur.execute("PRAGMA foreign_keys=OFF")
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [row[0] for row in cur.fetchall() if not row[0].startswith("sqlite_")]
+        for table in tables:
+            cur.execute(f'DROP TABLE IF EXISTS "{table}"')
+        con.commit()
+        # Explicitly flush WAL and checkpoint to ensure changes are persisted to disk
+        con.execute("PRAGMA wal_checkpoint(RESTART)")
+        con.close()
+    finally:
+        con.close()
+
+    # Critical: dispose engine again after dropping tables to clear any cached connections
+    # This ensures the next SessionLocal() gets a fresh connection that reads the new schema
+    engine.dispose()

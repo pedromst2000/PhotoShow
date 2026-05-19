@@ -12,6 +12,7 @@ from app.core.db.models.photo_image import PhotoImageModel
 from app.core.db.models.rating import RatingModel
 from app.core.db.models.user import UserModel
 from app.core.services.helpers.weighted_rating import calculate_weighted_rating
+from app.utils.file_utils import delete_from_latest
 from app.utils.log_utils import log_exception, log_operation
 
 
@@ -255,8 +256,9 @@ class PhotoService:
         """
         Delete a photo by ID.
 
-        The database cascade handles removal of all related records
-        (likes, comments, ratings, images).
+        Fetches the stored image path before deletion so the corresponding
+        file can be removed from the latest media tier after the database
+        cascade completes.  Default-tier files are never touched.
 
         Args:
             photo_id: The ID of the photo to delete.
@@ -276,8 +278,18 @@ class PhotoService:
                         f"Photo {photo_id} not found",
                     )
                     return False, "Photo not found"
+
+                # Capture the image path before the cascade wipes it.
+                image_record = PhotoImageModel.get_for_photo(db, photo_id)
+                stored_image_path = image_record.get("image") if image_record else None
+
                 PhotoModel.delete(db, photo_id)
                 db.commit()
+
+            # Remove from latest tier only — default-tier files are preserved.
+            if stored_image_path:
+                delete_from_latest(stored_image_path)
+
             log_operation("photo.delete_photo", "success", f"Deleted photo {photo_id}")
             return True, "Photo deleted successfully"
         except Exception as e:
