@@ -14,9 +14,6 @@ class ProfileHelpers:
         """
         Get a user's profile information.
 
-        Orchestrates profile retrieval via UserService for database access,
-        maintaining clean separation of concerns (helpers do not access DB directly).
-
         Args:
             user_id: The user's ID. If None, returns the current user's profile from session.
 
@@ -138,6 +135,7 @@ class ProfileHelpers:
             ValueError: If the new password format is invalid.
             Exception: Any other unexpected error during password change is caught and logged.
         """
+
         if not current_password or not new_password or not confirm_password:
             log_operation(
                 "profile.change_password",
@@ -155,6 +153,20 @@ class ProfileHelpers:
                 user_id=session.user_id,
             )
             return False, "New passwords do not match"
+
+        # Validate password format using AuthService (no redundancy)
+        password_valid, password_error = AuthService.validate_password_format(
+            new_password
+        )
+        if not password_valid:
+            error_msg = password_error or "Invalid password format"
+            log_operation(
+                "profile.change_password",
+                "validation_error",
+                f"Invalid password format: {error_msg}",
+                user_id=session.user_id,
+            )
+            return False, error_msg
 
         try:
             if not session.user_id:
@@ -189,7 +201,7 @@ class ProfileHelpers:
                 f"ValueError: {str(e)}",
                 user_id=session.user_id,
             )
-            return False, "Invalid password format."
+            return False, str(e)
         except Exception as e:
             log_exception("profile.change_password", e, user_id=session.user_id)
             return False, "Something went wrong. Please try again later."
@@ -199,9 +211,6 @@ class ProfileHelpers:
         """
         Refresh the current session with the latest user data from the database.
         Should be called after any profile update (avatar, password, etc.).
-
-        Orchestrates session refresh via UserService for database access,
-        maintaining clean separation of concerns (helpers do not access DB directly).
 
         Returns:
             bool: True if refreshed successfully.
