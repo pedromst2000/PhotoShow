@@ -215,7 +215,6 @@ python main.py
 
 | Command | Description |
 |---|---|
-| 
 | `python main.py --backupDB` | Snapshot the current live DB to `backups/<timestamp>/` |
 | `python main.py --resetDB` | Auto-backup, then wipe and reseed from seed CSV files |
 | `python main.py --restoreDB` | Restore DB from the latest backup |
