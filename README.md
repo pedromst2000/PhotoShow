@@ -211,33 +211,23 @@ python main.py
 
 ### :floppy_disk: Database Setup
 
-`photoshow.db` is created automatically at the project root on first run. It is empty by default — use the commands below to create, seed, or restore data.
+`photoshow.db` is created automatically at the project root on first run. Use the commands below to manage the database state.
 
-**Start (create schema if missing)**
+| Command | Description |
+|---|---|
+| 
+| `python main.py --backupDB` | Snapshot the current live DB to `backups/<timestamp>/` |
+| `python main.py --resetDB` | Auto-backup, then wipe and reseed from seed CSV files |
+| `python main.py --restoreDB` | Restore DB from the latest backup |
+| `python main.py --restoreDB backups/<folder>` | Restore DB from a specific backup snapshot |
 
-```bash
-python main.py
-```
+**When to use each:**
 
-**Reset (backup current DB, wipe and reseed from CSV files)**
+- **`--backupDB`** - before making risky changes or testing destructive operations; saves the current live state
+- **`--resetDB`** - returns the app to the initial dummy-data state (useful for local feature testing); always auto-backups first
+- **`--restoreDB`** - brings back a previous state after a reset or data loss; defaults to the newest backup
 
-```bash
-python main.py --resetDB
-```
-
-**Restore the latest backup**
-
-```bash
-python main.py --restoreDB
-```
-
-**Restore a specific backup**
-
-```bash
-python main.py --restoreDB backups/<folder>
-```
-
-> :warning: Backups may contain sensitive data (e.g., emails, password hashes). Keep backups local and do not commit them to version control — add backup folders or a matching pattern to your `.gitignore`.
+> :warning: Backups may contain sensitive data (e.g., emails, password hashes). Keep the `backups/` folder local and out of version control - it is already listed in `.gitignore`.
 
 <br>
 
