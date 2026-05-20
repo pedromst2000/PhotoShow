@@ -133,6 +133,15 @@ if __name__ == "__main__":
     from app.core.db.reset import reset_db
     from app.utils.log_utils import log_check, log_issue, log_success
 
+    if "--backupDB" in sys.argv:
+        # ── Backup: snapshot current live DB state to backups/<timestamp>/ ───
+        # Usage:  python main.py --backupDB
+        from app.core.db.backup import backup_db_to_csv
+
+        init_db()
+        backup_db_to_csv()
+        sys.exit(0)
+
     if "--resetDB" in sys.argv:
         # ── Reset: wipe database and re-seed from CSV files ──────────────────
         # NOTE WARNING: all existing data (photos, users, albums, etc.) will be lost.
