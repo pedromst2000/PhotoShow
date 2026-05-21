@@ -1,6 +1,7 @@
 import tkinter as tk
 
 from app.controllers.auth_controller import AuthController
+from app.presentation.styles.button import AUTH_BTN_STYLE
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
 from app.presentation.views.helpers.auth.ui import (
@@ -156,13 +157,7 @@ def registerWindow(event: object, Window: object):
         "Sign Up",
         width=24,
         height=2,
-        borderwidth=10,
-        font=quickSandBold(13),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor="hand2",
+        **AUTH_BTN_STYLE,
     )
 
     btnSignUp.place(x=164, y=570)

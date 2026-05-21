@@ -1,12 +1,9 @@
 import tkinter as tk
 
 from app.controllers.comment_controller import CommentController
-from app.presentation.styles.colors import colors
-from app.presentation.styles.fonts import quickSandBold
+from app.presentation.styles.button import CARD_ACTION_BTN_STYLE
 from app.presentation.views.comments.helpers.data.comments import load_and_render
 from app.presentation.views.comments.helpers.ui.builder import (
-    _BTN_BG,
-    _BTN_FG,
     _COMMENT_MAX_LEN,
     _ICON_DIR,
 )
@@ -43,13 +40,7 @@ def make_action_button(
         text,
         cmd=command,
         icon=icon_ref,
-        font=quickSandBold(9),
-        bg=_BTN_BG,
-        fg=_BTN_FG,
-        activebackground=colors["accent-100"],
-        borderwidth=0,
-        highlightthickness=0,
-        cursor="hand2",
+        **CARD_ACTION_BTN_STYLE,
     )
 
 

@@ -1,7 +1,8 @@
 import tkinter as tk
+from typing import Optional
 
+from app.presentation.styles.button import NAV_BTN_STYLE
 from app.presentation.styles.colors import colors
-from app.presentation.styles.fonts import quickSandBold
 from app.presentation.widgets.helpers.button import make_button
 
 
@@ -17,6 +18,7 @@ def build_profile_nav(
     show_reports: bool,
     own_profile: bool,
     username: str,
+    profile_user_id: Optional[int] = None,
 ) -> None:
     """Build and place the horizontal navigation bar below the profile banner.
 
@@ -36,29 +38,19 @@ def build_profile_nav(
     nav_frame.place(x=0, y=banner_height, width=win_width, height=nav_height)
     nav_frame.pack_propagate(False)
 
-    _btn_style = dict(
-        font=quickSandBold(13),
-        bg=colors["accent-300"],
-        fg=colors["secondary-500"],
-        activebackground=colors["accent-100"],
-        activeforeground=colors["secondary-500"],
-        borderwidth=0,
-        highlightthickness=0,
-        cursor="hand2",
-        padx=24,
-        pady=10,
-        relief=tk.FLAT,
-    )
-
     def _make_nav_btn(text: str, cmd) -> None:
-        make_button(nav_frame, text, cmd=cmd, **_btn_style).pack(side=tk.LEFT)
+        make_button(nav_frame, text, cmd=cmd, **NAV_BTN_STYLE).pack(side=tk.LEFT)
 
     if show_albuns:
         from app.presentation.views.profile.albuns import albunsProfileWindow
 
         _make_nav_btn(
             "Albums",
-            lambda: albunsProfileWindow(is_own=own_profile, username=username),
+            lambda: albunsProfileWindow(
+                is_own=own_profile,
+                username=username,
+                user_id=profile_user_id,
+            ),
         )
 
     if show_favorites:

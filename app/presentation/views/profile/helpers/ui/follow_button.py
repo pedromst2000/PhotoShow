@@ -1,8 +1,7 @@
 import tkinter as tk
 
 from app.controllers.user_controller import UserController
-from app.presentation.styles.colors import colors
-from app.presentation.styles.fonts import quickSandBold
+from app.presentation.styles.button import FOLLOW_BTN_STYLE
 from app.presentation.widgets.helpers.button import make_button, switch_button
 from app.presentation.widgets.helpers.images import load_image
 
@@ -36,22 +35,9 @@ def build_profile_follow_button(
     # Keep image references alive for the lifetime of the window.
     window._follow_icons = (follow_icon, unfollow_icon)  # type: ignore[attr-defined]
 
-    _btn_style = dict(
-        font=quickSandBold(11),
-        bg=colors["accent-300"],
-        fg=colors["secondary-500"],
-        activebackground=colors["accent-100"],
-        activeforeground=colors["secondary-500"],
-        borderwidth=0,
-        highlightthickness=0,
-        cursor="hand2",
-        padx=10,
-        pady=4,
-    )
-
     icon = unfollow_icon if is_following else follow_icon
     label = "  Unfollow" if is_following else "  Follow"
-    btn = make_button(window, label, icon=icon, **_btn_style)
+    btn = make_button(window, label, icon=icon, **FOLLOW_BTN_STYLE)
     state_ref = [is_following]
 
     def _place() -> None:
