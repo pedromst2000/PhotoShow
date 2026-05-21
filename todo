@@ -30,7 +30,7 @@ User Stories - Requirements - Features
 - [x] **Blocked account notice**: Show suspension notice and contact admin option.
 - [x] **Unsigned user limits**: Allow browsing but with limited interactions (e.g., view-only top photos).
 
-## ADMIN USER - Profile
+## ADMIN USER - Profile CONTACTS & REPORTS
 
 - [ ] **Contacts**: Can view contact messages sent by users and mark them as resolved.
   - Should be able to mark as resolved and delete the message from the list of contacts
@@ -42,24 +42,33 @@ User Stories - Requirements - Features
 
 - [X] **Change Avatar**: User can upload a new profile picture (accept jpg/png, max 2MB).
 - [X] **Change password**: User can change account password.
-- [ ] **Albums**: Create and manage photo albums.
-- [X] **Empty State** - No Albums: Show empty state when user has no albums.
-- [ ] **List albums**: Show user's albums.
-- [ ] **Edit album**: Rename and delete own albums.
-- [ ] **Add photo to Album**: Upload photo with short description (max 150 chars), publish date (auto), category, and image file (accept jpg/png, max 5MB) to an album. Users can only add photos to their own albums.
 - [X] **Feature Photos** : Should display top 3 photos in the user profile based on the highest interactions similar to the catalog when filtering by highest commented, most liked or highest rated. This section should be prominently displayed in the user profile to showcase the user's most popular photos.
 
 ## VISITORS - Profile
 
 - [X] **Follow/Unfollow Users**: Allow user to follow or unfollow other users trough there profile page.
-- [ ] **View Albuns**: Allow users to view the albums of other users from their profile page.
+- [X] **Feature Photos Access**: Visitors can see feature photos of the user profile.
+- [ ] **Favorites Access**: Visitors can see the favorite albums of the user profile but cannot interact with them (like photos, view comments, rate photos, report photos).
 - [X] **Unsigned User Profile Access**: Unsigned users can view profiles but cannot follow/unfollow or see albums. Can only see feature photos of the user profile.
+
+## ALL USERS - ALBUNS PROFILE
+
+- [X] **Create Album**: User can create new albums with name in a window with a form to fill the album name and select the category.
+- [X] **Empty State** - No Albums: Show empty state when user has no albums.
+- [X] **List albums**: Show user's albums.
+- [X] **Album Photos***: Show the photos of the selected album in a listbox widget with the name of the photo only! (name format: "Photo {photo_id} — {first 30 characters of the description}…" (em-dash separator; description truncated to 30 characters with an ellipsis if longer)).
+- [X] **Edit album**: Rename albuns with name in a window with a form to fill the new album name and select the category.
+- [X] **Delete album**: Remove albuns and all associated photos (CASCADE delete in the database).
+- [X] **Photo Preview** : Show selected photo details in preview painel (nlikes, nComments, rating)!
+- [X] **Delete Photo**: Allow users to delete their own photos from their albums.
+- [ ] **Add photo to Album**: Upload photo with short description (max 150 chars), publish date (auto), category, and image file (accept jpg/png, max 5MB) to an album. Users can only add photos to their own albums.
+- [X] **Pagination for Albuns and Photo Albuns**: Implement pagination for albums and photos within albums to improve load times and user experience. Should render 5 albums/photos per page with navigation controls to move between pages.
 
 
 ## ALL USERS - FAVORITES ALBUNS
 
 - [ ] **List favorite albuns**: Show the list of the user's favorite albuns with album details (name, author, category) and interactions: navigate to album photos, preview photos, like photos, view comments, rate photos, report photos.
-- [X] **Empty state — no favorite albuns**: Display an empty state when the user has no favorite albuns.
+- [ ] **Empty state — no favorite albuns**: Display an empty state when the user has no favorite albuns.
 - [ ] **Empty state — selected album has no photos**: When a favorite album is selected but contains no photos, display an empty state informing the user that there are no photos in this album.
 - [ ] **Empty state — selected album removed by owner**: If a selected favorite album is no longer available because the owner removed it, show an empty state explaining the album was removed and offer an option to remove it from favorites.
 - [x] **Remove favorite album**: Allow the user to remove a single album from their favorites list.
