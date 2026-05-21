@@ -46,10 +46,10 @@ class PhotoModel(Base):
     description: str = Column(String(255), nullable=False)
     publishedDate: DateTime = Column(DateTime(timezone=True), nullable=False)
     categoryId: int = Column(
-        Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False
     )
     albumId: int = Column(
-        Integer, ForeignKey("albuns.id", ondelete="SET NULL"), nullable=True
+        Integer, ForeignKey("albuns.id", ondelete="CASCADE"), nullable=True
     )
     createdAt: DateTime = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

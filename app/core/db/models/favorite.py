@@ -39,7 +39,7 @@ class FavoriteModel(Base):
         Integer, ForeignKey("albuns.id", ondelete="CASCADE"), nullable=False
     )
     userId: int = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
     createdAt: DateTime = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
