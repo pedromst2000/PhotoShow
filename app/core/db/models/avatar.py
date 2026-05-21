@@ -33,7 +33,7 @@ class AvatarModel(Base):
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     userId: int = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
     avatar: str = Column(String(255), nullable=False)
     createdAt: DateTime = Column(

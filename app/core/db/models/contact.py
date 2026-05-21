@@ -40,7 +40,7 @@ class ContactModel(Base):
     title: str = Column(String(75), nullable=False)
     message: str = Column(String(255), nullable=False)
     userId: int = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
     createdAt: DateTime = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

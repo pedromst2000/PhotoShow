@@ -35,7 +35,7 @@ class AlbumModel(Base):
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     name: str = Column(String(50), nullable=False)
     creatorId: int = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
     createdAt: DateTime = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

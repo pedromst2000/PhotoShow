@@ -59,14 +59,14 @@ class NotificationModel(Base):
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     typeId: int = Column(
         Integer,
-        ForeignKey("notification_types.id", ondelete="CASCADE"),
+        ForeignKey("notification_types.id", ondelete="RESTRICT"),
         nullable=False,
     )
     recipientId: int = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )  # recipient
     senderId: int = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )  # who triggered it
     photoId: int = Column(
         Integer, ForeignKey("photos.id", ondelete="SET NULL"), nullable=True

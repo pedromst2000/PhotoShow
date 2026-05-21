@@ -38,7 +38,7 @@ class CommentModel(Base):
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     authorId: int = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
     comment: str = Column(String(255), nullable=False)
     publishedDate: DateTime = Column(

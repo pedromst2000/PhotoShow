@@ -47,7 +47,7 @@ class ReportModel(Base):
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     reporterId: int = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
     reasonId: int = Column(
         Integer, ForeignKey("report_reasons.id", ondelete="RESTRICT"), nullable=False

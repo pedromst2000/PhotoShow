@@ -38,7 +38,7 @@ class RatingModel(Base):
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     userId: int = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
     photoId: int = Column(
         Integer, ForeignKey("photos.id", ondelete="CASCADE"), nullable=False
