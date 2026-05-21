@@ -1,13 +1,13 @@
 import os
 import tkinter as tk
 import tkinter.filedialog as filedialog
-import tkinter.messagebox as messagebox
 from pathlib import Path
 from typing import Optional
 
 from app.controllers.user_controller import UserController
 from app.core.state.session import session
 from app.presentation.widgets.helpers.images import load_image
+from app.presentation.widgets.helpers.ui_dialogs import show_error
 from app.utils.file_utils import replace_avatar_in_latest
 
 
@@ -60,7 +60,7 @@ def handle_upload_avatar(
         return filename
 
     except Exception as e:
-        messagebox.showerror("Error", f"Failed to load image: {str(e)}")
+        show_error(canvas_avatar, "Error", f"Failed to load image: {str(e)}")
         return None
 
 

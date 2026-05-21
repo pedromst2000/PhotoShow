@@ -8,6 +8,7 @@ from app.presentation.styles.fonts import quickSandBold
 from app.presentation.views.auth.login import loginWindow
 from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.images import load_image
+from app.presentation.widgets.helpers.ui_dialogs import show_error
 from app.presentation.widgets.window import create_main_window
 
 
@@ -192,11 +193,10 @@ if __name__ == "__main__":
     ok, message = check_db()  # Check DB health before launching the app
     if not ok:
         log_issue(f"Database check failed: {message}")
-        import tkinter.messagebox as mb
-
         _root = tk.Tk()
         _root.withdraw()
-        mb.showerror(
+        show_error(
+            _root,
             "Database Error",
             f"Cannot start PhotoShow:\n\n{message}\n\nRun: python main.py --resetDB to reset the database (WARNING: all data will be lost).",
         )

@@ -3,6 +3,9 @@ from typing import Optional, Tuple
 from app.core.db.engine import SessionLocal
 from app.core.db.models.album import AlbumModel
 from app.core.db.models.favorite import FavoriteModel
+from app.core.db.models.photo import PhotoModel
+from app.core.db.models.photo_image import PhotoImageModel
+from app.utils.file_utils import delete_from_latest
 from app.utils.log_utils import log_exception, log_operation
 
 
@@ -243,8 +246,25 @@ class AlbumService:
                         user_id=user_id,
                     )
                     raise ValueError("You can only delete your own albums")
+
+                # Collect image paths for disk cleanup before the cascade wipes them.
+                photos_in_album = PhotoModel.get_by_album(session, album_id)
+                image_paths = []
+                for p in photos_in_album:
+                    img = PhotoImageModel.get_for_photo(session, p["id"])
+                    if img and img.get("image"):
+                        image_paths.append(img["image"])
+
+                # Deleting the album triggers the DB CASCADE which removes all
+                # associated photos, photo_image, likes, comments, ratings, and
+                # reports automatically (PRAGMA foreign_keys=ON is active).
                 result = AlbumModel.delete(session, album_id)
                 session.commit()
+
+            # Remove latest-tier image files from disk (default-tier files are skipped).
+            for img_path in image_paths:
+                delete_from_latest(img_path)
+
             log_operation(
                 "album.delete_album_for_user",
                 "success",
