@@ -1,11 +1,11 @@
 import tkinter as tk
-import tkinter.messagebox as messagebox
 from typing import Optional
 
 from app.presentation.views.helpers.avatar.ui import (
     handle_save_avatar,
     handle_upload_avatar,
 )
+from app.presentation.widgets.helpers.ui_dialogs import show_error, show_info
 
 
 def on_avatar_upload(
@@ -56,15 +56,15 @@ def on_avatar_save(
     selected_path = state_container["path"]
 
     if not selected_path:
-        messagebox.showwarning("No Avatar Selected", "Please upload an avatar first")
+        show_info(window, "No Avatar Selected", "Please upload an avatar first.")
         return
 
     success, message = handle_save_avatar(selected_path, user_id=user_id)
 
     if success:
-        messagebox.showinfo("Success", message)
+        show_info(window, "Success", message)
         window.destroy()
         if profile_window and profile_window.winfo_exists():
             profile_window.destroy()
     else:
-        messagebox.showerror("Error", message)
+        show_error(window, "Error", message)

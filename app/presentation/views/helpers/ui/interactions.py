@@ -1,9 +1,9 @@
 import tkinter as tk
-from tkinter import messagebox
 
 from app.controllers.explore_controller import ExploreController
 from app.presentation.views.helpers.data.state import BasePhotoState
 from app.presentation.views.helpers.ui.preview import update_preview
+from app.presentation.widgets.helpers.ui_dialogs import show_error
 
 
 def handle_like(state: BasePhotoState, parent: tk.Widget):
@@ -20,7 +20,7 @@ def handle_like(state: BasePhotoState, parent: tk.Widget):
 
     success, msg, is_liked_now = ExploreController.toggle_like(photo["id"])
     if not success:
-        messagebox.showerror("Error", msg, parent=parent)
+        show_error(parent, "Error", msg)
         return
 
     photo["has_liked"] = is_liked_now
@@ -43,7 +43,7 @@ def handle_rate(state: BasePhotoState, rating_value: int, parent: tk.Widget):
 
     success, msg = ExploreController.rate_photo(photo["id"], rating_value)
     if not success:
-        messagebox.showerror("Error", msg, parent=parent)
+        show_error(parent, "Error", msg)
         return
 
     # Update user's rating

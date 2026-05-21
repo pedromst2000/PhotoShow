@@ -1,9 +1,9 @@
 import tkinter as tk
-import tkinter.messagebox as messagebox
 import tkinter.ttk as ttk
 
 from app.controllers.category_controller import CategoryController
 from app.controllers.user_controller import UserController
+from app.presentation.styles.button import COMPACT_BTN_STYLE, ICON_CENTER_BTN_STYLE
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
 from app.presentation.widgets.helpers.button import make_button
@@ -12,6 +12,11 @@ from app.presentation.widgets.helpers.input import (
     on_click_outside,
     on_focus_in,
     on_focus_out,
+)
+from app.presentation.widgets.helpers.ui_dialogs import (
+    show_confirmation,
+    show_error,
+    show_info,
 )
 from app.presentation.widgets.lists import insert_categories, insert_users
 from app.presentation.widgets.window import create_toplevel
@@ -211,13 +216,7 @@ def manageWindow():
         "Search",
         width=10,
         height=1,
-        borderwidth=10,
-        font=quickSandBold(12),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor="hand2",
+        **COMPACT_BTN_STYLE,
     )
 
     searchUsernameBtn.place(x=300, y=52)
@@ -229,13 +228,7 @@ def manageWindow():
         "Search",
         width=10,
         height=1,
-        borderwidth=10,
-        font=quickSandBold(12),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor="hand2",
+        **COMPACT_BTN_STYLE,
     )
     searchEmailBtn.place(x=300, y=138)
 
@@ -246,13 +239,7 @@ def manageWindow():
         "Update",
         width=10,
         height=1,
-        borderwidth=10,
-        font=quickSandBold(12),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor="hand2",
+        **COMPACT_BTN_STYLE,
     )
 
     changeRoleBtn.place(x=600, y=58)
@@ -263,13 +250,7 @@ def manageWindow():
         "Update",
         width=10,
         height=1,
-        borderwidth=10,
-        font=quickSandBold(12),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor="hand2",
+        **COMPACT_BTN_STYLE,
     )
     changeStatusBtn.place(x=600, y=148)
 
@@ -365,14 +346,7 @@ def manageWindow():
         icon=addIcon,
         width=190,
         height=50,
-        borderwidth=10,
-        font=quickSandBold(15),
-        background=colors["accent-300"],
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor="hand2",
-        compound="center",
-        border=0,
+        **ICON_CENTER_BTN_STYLE,
     )
     btnAddCategory.place(x=950, y=460)
 
@@ -382,14 +356,7 @@ def manageWindow():
         icon=removeIcon,
         width=190,
         height=50,
-        borderwidth=10,
-        font=quickSandBold(15),
-        background=colors["accent-300"],
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor="hand2",
-        compound="center",
-        border=0,
+        **ICON_CENTER_BTN_STYLE,
     )
 
     btnDeleteCategory.place(x=950, y=550)
@@ -408,9 +375,7 @@ def manageWindow():
         username: str = filterUsernameInput.get()
         email: str = filterEmailInput.get()
         if email and not _is_valid_email_(email):
-            messagebox.showerror(
-                "Error", "Please enter a valid email.", parent=_manageWindow_
-            )
+            show_error(_manageWindow_, "Error", "Please enter a valid email.")
             return
         filtered: list = UserController.filter_users(username, email)
         usersTable.delete(*usersTable.get_children())
@@ -430,25 +395,19 @@ def manageWindow():
 
     def _change_role_(event: tk.Event):
         if not usersTable.selection():
-            messagebox.showerror(
-                "Error", "Please select a user.", parent=_manageWindow_
-            )
+            show_error(_manageWindow_, "Error", "Please select a user.")
             return
         if initialRoleVal.get() == "select role":
-            messagebox.showerror(
-                "Error", "Please select a role.", parent=_manageWindow_
-            )
+            show_error(_manageWindow_, "Error", "Please select a role.")
             return
         username: str = usersTable.item(usersTable.selection()[0])["values"][0]
         new_role: str = initialRoleVal.get()
         if new_role == usersTable.item(usersTable.selection()[0])["values"][2]:
-            messagebox.showerror(
-                "Error", f'"{username}" is already {new_role}.', parent=_manageWindow_
-            )
+            show_error(_manageWindow_, "Error", f'"{username}" is already {new_role}.')
             return
         success, msg = UserController.change_user_role(username, new_role)
         if success:
-            messagebox.showinfo("Success", msg, parent=_manageWindow_)
+            show_info(_manageWindow_, "Success", msg)
             updated: list = UserController.get_manageable_users()
             usersTable.delete(*usersTable.get_children())
             for user in updated:
@@ -463,38 +422,30 @@ def manageWindow():
                     ),
                 )
         else:
-            messagebox.showerror("Error", msg, parent=_manageWindow_)
+            show_error(_manageWindow_, "Error", msg)
 
     def _change_status_(event: tk.Event):
         if not usersTable.selection():
-            messagebox.showerror(
-                "Error", "Please select a user.", parent=_manageWindow_
-            )
+            show_error(_manageWindow_, "Error", "Please select a user.")
             return
         if initialStatusVal.get() == "select status":
-            messagebox.showerror(
-                "Error", "Please select a status.", parent=_manageWindow_
-            )
+            show_error(_manageWindow_, "Error", "Please select a status.")
             return
         username: str = usersTable.item(usersTable.selection()[0])["values"][0]
         new_status: str = initialStatusVal.get()
         current_status: str = usersTable.item(usersTable.selection()[0])["values"][3]
         if new_status == "blocked" and current_status == "Blocked":
-            messagebox.showerror(
-                "Error", f'"{username}" is already blocked.', parent=_manageWindow_
-            )
+            show_error(_manageWindow_, "Error", f'"{username}" is already blocked.')
             return
         if new_status == "unblocked" and current_status == "Not Blocked":
-            messagebox.showerror(
-                "Error", f'"{username}" is already unblocked.', parent=_manageWindow_
-            )
+            show_error(_manageWindow_, "Error", f'"{username}" is already unblocked.')
             return
         if new_status == "blocked":
             success, msg = UserController.block_user(username)
         else:
             success, msg = UserController.unblock_user(username)
         if success:
-            messagebox.showinfo("Success", msg, parent=_manageWindow_)
+            show_info(_manageWindow_, "Success", msg)
             updated: list = UserController.get_manageable_users()
             usersTable.delete(*usersTable.get_children())
             for user in updated:
@@ -509,34 +460,30 @@ def manageWindow():
                     ),
                 )
         else:
-            messagebox.showerror("Error", msg, parent=_manageWindow_)
+            show_error(_manageWindow_, "Error", msg)
 
     def _add_category_(event: tk.Event):
         success, msg = CategoryController.add_category(categoryInput.get())
         if success:
-            messagebox.showinfo("Success", msg, parent=_manageWindow_)
+            show_info(_manageWindow_, "Success", msg)
             categoriesList.insert("end", categoryInput.get())
             categoryInput.delete(0, "end")
         else:
-            messagebox.showerror("Error", msg, parent=_manageWindow_)
+            show_error(_manageWindow_, "Error", msg)
 
     def _delete_category_(event: tk.Event):
         if not categoriesList.curselection():
-            messagebox.showwarning(
-                "Warning", "Please select a category to delete", parent=_manageWindow_
-            )
+            show_info(_manageWindow_, "Warning", "Please select a category to delete.")
             return
         selected: str = categoriesList.get(categoriesList.curselection())
-        if not messagebox.askyesno(
+        if not show_confirmation(
+            _manageWindow_,
             "Confirm",
             f"Are you sure you want to delete {selected}?",
-            parent=_manageWindow_,
         ):
             return
-        messagebox.showinfo(
-            "Info",
-            "Delete category feature not implemented yet.",
-            parent=_manageWindow_,
+        show_info(
+            _manageWindow_, "Info", "Delete category feature not implemented yet."
         )
 
     btnAddCategory.bind("<Button-1>", _add_category_)

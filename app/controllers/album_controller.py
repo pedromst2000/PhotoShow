@@ -66,6 +66,14 @@ class AlbumController:
                 user_id=session.user_id,
             )
             return True, f"Album '{name}' created successfully"
+        except ValueError as e:
+            log_operation(
+                "album.create_album",
+                "validation_error",
+                str(e),
+                user_id=session.user_id,
+            )
+            return False, str(e)
         except Exception as e:
             log_exception(
                 "album.create_album",
