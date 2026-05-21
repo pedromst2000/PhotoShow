@@ -2,6 +2,7 @@ import tkinter as tk
 from typing import Optional
 
 from app.core.state.session import session
+from app.presentation.styles.button import COMPACT_BTN_STYLE
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.views.profile.helpers.avatar import (
@@ -88,21 +89,14 @@ def changeAvatarWindow(profile_window: Optional[tk.Toplevel] = None) -> None:
         width=16,
         height=2,
         state="disabled",
-        borderwidth=10,
-        font=quickSandBold(12),
-        fg=colors["secondary-500"],
-        background=colors["accent-300"],
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor="arrow",
         compound="center",
-        border=0,
         command=lambda: on_avatar_save(
             selected_avatar,
             user_id,
             change_avatar_window,
             profile_window,
         ),
+        **{**COMPACT_BTN_STYLE, "cursor": "arrow"},
     )
 
     btn_save_avatar.place(x=170, y=470)
@@ -112,21 +106,14 @@ def changeAvatarWindow(profile_window: Optional[tk.Toplevel] = None) -> None:
         "Upload Avatar",
         width=16,
         height=2,
-        borderwidth=10,
-        font=quickSandBold(12),
-        fg=colors["secondary-500"],
-        background=colors["accent-300"],
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor="hand2",
         compound="center",
-        border=0,
         command=lambda: on_avatar_upload(
             canvas_preview_avatar,
             btn_save_avatar,
             user_id,
             selected_avatar,
         ),
+        **COMPACT_BTN_STYLE,
     )
 
     btn_change_avatar.place(x=170, y=380)

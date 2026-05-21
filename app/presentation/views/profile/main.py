@@ -211,6 +211,7 @@ def profileWindow(user_id: Optional[int] = None) -> None:
             show_reports=show_reports,
             own_profile=own_profile,
             username=userPayload.get("username", ""),
+            profile_user_id=userID,
         )
 
     # ── Unsigned-user / unsigned-visitor notice ───────────────────────

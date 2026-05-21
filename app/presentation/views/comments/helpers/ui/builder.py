@@ -1,6 +1,7 @@
 import tkinter as tk
 
 from app.core.state.session import session
+from app.presentation.styles.button import MEDIUM_BTN_STYLE
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.styles.theme import BTN_BG, BTN_FG, PAGE_BG, TEXT_FG
@@ -128,16 +129,8 @@ def build_input_area(
         btn_frame,
         "  Add Comment",
         icon=add_icon_ref,
-        font=quickSandBold(12),
-        bg=_BTN_BG,
-        fg=_BTN_FG,
-        activebackground=colors["accent-100"],
-        borderwidth=0,
-        highlightthickness=0,
-        cursor="hand2",
-        padx=16,
-        pady=8,
         state=tk.DISABLED,
+        **MEDIUM_BTN_STYLE,
     )
     add_btn.pack()
 

@@ -4,6 +4,7 @@ from app.core.state.session import session
 from app.presentation.layout.menu.helpers.menu_button_state import (
     MenuButtonStateManager,
 )
+from app.presentation.styles.button import AUTH_BTN_STYLE
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.views.helpers.ui.modals import open_contact_admin
@@ -114,13 +115,7 @@ def homeBannedWindow():
         "Contact Admin",
         width=24,
         height=2,
-        borderwidth=10,
-        font=quickSandBold(13),
-        background=colors["accent-300"],
-        bd=0,
-        highlightthickness=0,
-        activebackground=colors["accent-100"],
-        cursor="hand2",
+        **AUTH_BTN_STYLE,
     )
 
     contactAdminButton.place(x=560, y=500)
