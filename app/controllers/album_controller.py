@@ -58,7 +58,9 @@ class AlbumController:
             return False, "Album name is required"
 
         try:
-            AlbumService.create_album(name.strip(), session.user_id)
+            result = AlbumService.create_album(name.strip(), session.user_id)
+            if result is None:
+                return False, "Failed to create album. Please try again."
             log_operation(
                 "album.create_album",
                 "success",
@@ -191,25 +193,6 @@ class AlbumController:
             return False, "Something went wrong. Please try again later."
 
     @staticmethod
-    def get_album_id_by_name(
-        album_name: str, user_id: Optional[int] = None
-    ) -> Optional[int]:
-        """
-        Get album ID from album name for a user.
-
-        Args:
-            album_name: The name of the album.
-            user_id: The user's ID. If None, uses current user.
-
-        Returns:
-            int or None: The album ID if found.
-        """
-        target_user_id = user_id if user_id is not None else session.user_id
-        if target_user_id is None:
-            return None
-        return AlbumService.get_album_id_by_name(target_user_id, album_name)
-
-    @staticmethod
     def get_favorite_albums(user_id: Optional[int] = None) -> List[dict]:
         """
         Get favorite albums for a user.
@@ -224,19 +207,6 @@ class AlbumController:
         if target_user_id is None:
             return []
         return AlbumService.get_favorite_albums(target_user_id)
-
-    @staticmethod
-    def album_name_exists(album_name: str) -> bool:
-        """
-        Check whether an album name already exists system-wide (case-insensitive).
-
-        Args:
-            album_name: The album name to check.
-
-        Returns:
-            bool: True if the name exists, False otherwise.
-        """
-        return AlbumService.album_name_exists(album_name)
 
     @staticmethod
     def get_album_details(album_id: int) -> Optional[dict]:

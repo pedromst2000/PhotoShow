@@ -117,13 +117,17 @@ def update_preview(state: BasePhotoState):
 
     # ── Star rating ───────────────────────────────────────────────────
     if state.star_widget:
-        # Use weighted rating for display (more professional, accounts for vote reliability)
-        weighted_rating = photo.get("weighted_rating", photo.get("avg_rating", 1.0))
         rating_count = photo.get("rating_count", 0)
+        # A brand-new photo with 0 ratings has a weighted_rating equal to the
+        # global Bayesian average (~4 stars).  Show the minimum (1) instead so
+        # the widget correctly reflects "not yet rated".
+        if rating_count == 0:
+            display_rating = 1.0
+        else:
+            display_rating = photo.get("weighted_rating", photo.get("avg_rating", 1.0))
 
-        # Display the weighted average rating
-        state.star_widget.set_value(weighted_rating)
-        can_rate = not state.is_unsigned
+        state.star_widget.set_value(display_rating)
+        can_rate = not state.is_unsigned and not state.read_only
         state.star_widget.set_interactive(can_rate)
 
     # ── Rating count label ────────────────────────────────────────────
