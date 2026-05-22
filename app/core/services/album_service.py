@@ -51,35 +51,6 @@ class AlbumService:
             return []
 
     @staticmethod
-    def album_name_exists(album_name: str) -> bool:
-        """
-        Check whether an album name already exists system-wide (case-insensitive).
-
-        Args:
-            album_name: The album name to check.
-
-        Returns:
-            bool: True if the name exists, False otherwise.
-
-        Raises:
-            Exception: Any database error is caught and logged; False returned.
-        """
-        try:
-            with SessionLocal() as session:
-                albums = AlbumModel.get_all(session)
-            exists = any(a["name"].lower() == album_name.lower() for a in albums)
-            if exists:
-                log_operation(
-                    "album.album_name_exists",
-                    "success",
-                    f"Album name '{album_name}' already exists",
-                )
-            return exists
-        except Exception as e:
-            log_exception("album.album_name_exists", e, context={"name": album_name})
-            return False
-
-    @staticmethod
     def create_album(name: str, creator_id: int) -> Optional[dict]:
         """
         Create a new album.
@@ -117,20 +88,26 @@ class AlbumService:
                 )
                 raise ValueError("Album name too long (max 50 characters)")
 
-            # ensure user doesn't already have an album with the same name (case-insensitive)
-            existing_id = AlbumService.get_album_id_by_name(creator_id, trimmed)
-            if existing_id is not None:
-                log_operation(
-                    "album.create_album",
-                    "validation_error",
-                    f"Duplicate album name: '{trimmed}'",
-                    user_id=creator_id,
-                )
-                raise ValueError("You already have an album with that name")
-
+            # CRITICAL FIX: Consolidate all DB operations into a single session to avoid SQLite lock timeouts.
+            # Opening multiple SessionLocal() contexts in sequence causes "database is locked" errors.
             with SessionLocal() as session:
+                # Check for duplicate album name (case-insensitive) - WITHIN SAME TRANSACTION
+                existing_albums = AlbumModel.get_by_creator(session, creator_id)
+                target = trimmed.lower()
+                for album in existing_albums:
+                    if album["name"].strip().lower() == target:
+                        log_operation(
+                            "album.create_album",
+                            "validation_error",
+                            f"Duplicate album name: '{trimmed}'",
+                            user_id=creator_id,
+                        )
+                        raise ValueError("You already have an album with that name")
+
+                # Create the album in the SAME session/transaction
                 result = AlbumModel.create(session, name=trimmed, creatorId=creator_id)
                 session.commit()
+
             log_operation(
                 "album.create_album",
                 "success",
@@ -173,6 +150,7 @@ class AlbumService:
             if len(trimmed) > 50:
                 raise ValueError("Album name too long (max 50 characters)")
 
+            # CRITICAL FIX: Consolidate all DB operations into a single session to avoid SQLite lock timeouts.
             with SessionLocal() as session:
                 album = AlbumModel.get_by_id(session, album_id)
                 if not album:
@@ -180,12 +158,15 @@ class AlbumService:
                 if album["creatorId"] != user_id and not is_admin:
                     raise ValueError("You can only rename your own albums")
 
-                # prevent renaming to a name already used by the same creator
-                existing_id = AlbumService.get_album_id_by_name(
-                    album["creatorId"], trimmed
-                )
-                if existing_id is not None and existing_id != album_id:
-                    raise ValueError("You already have an album with that name")
+                # prevent renaming to a name already used by the same creator - WITHIN SAME TRANSACTION
+                existing_albums = AlbumModel.get_by_creator(session, album["creatorId"])
+                target = trimmed.lower()
+                for existing_album in existing_albums:
+                    if (
+                        existing_album["id"] != album_id
+                        and existing_album["name"].strip().lower() == target
+                    ):
+                        raise ValueError("You already have an album with that name")
 
                 AlbumModel.update(session, {**album, "name": trimmed})
                 session.commit()
@@ -282,26 +263,6 @@ class AlbumService:
                 context={"album_id": album_id},
             )
             return False
-
-    @staticmethod
-    def get_album_id_by_name(user_id: int, album_name: str) -> Optional[int]:
-        """
-        Get album ID from album name for a specific user.
-
-        Args:
-            user_id: The ID of the user.
-            album_name: The name of the album.
-
-        Returns:
-            int or None: The album ID if found, None otherwise.
-        """
-        with SessionLocal() as session:
-            albums = AlbumModel.get_by_creator(session, user_id)
-        target = album_name.strip().lower()
-        for album in albums:
-            if album["name"].strip().lower() == target:
-                return int(album["id"])
-        return None
 
     @staticmethod
     def get_favorite_albums(user_id: int) -> list:

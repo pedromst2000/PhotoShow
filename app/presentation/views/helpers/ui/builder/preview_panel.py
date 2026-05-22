@@ -71,7 +71,9 @@ def build_preview_panel(
         on_next = lambda: navigate_next(state)  # noqa: E731
     if on_username_click is None:
         on_username_click = lambda: open_author_profile(state)  # noqa: E731
-    if on_rate is None:
+    # Only apply the default rate handler when the panel has action buttons.
+    # Passing on_rate=None with show_buttons=False signals a display-only panel.
+    if on_rate is None and show_buttons:
         on_rate = lambda v: handle_rate(state, v, parent)  # noqa: E731
 
     # Standard buttons present in every preview panel.
