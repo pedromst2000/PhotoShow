@@ -51,6 +51,8 @@ class BasePhotoState:
         # Cache to avoid reloading same avatar on repeated navigation
         self._cached_avatar_owner_id: Optional[int] = None
 
+        self.read_only: bool = False
+
         # Pagination state
         self.current_page: int = 1
         self.items_per_page: int = 10  # Changed from 20 to 10 items per page

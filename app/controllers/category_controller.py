@@ -32,6 +32,18 @@ class CategoryController:
         return categories
 
     @staticmethod
+    def get_all_categories() -> List[dict]:
+        """
+        Return all available categories as full objects with ID and name.
+
+        Used by views that need to map category names back to IDs (e.g. photo upload).
+
+        Returns:
+            list[dict]: List of category dictionaries with 'id' and 'category' keys.
+        """
+        return CategoryService.get_all_categories()
+
+    @staticmethod
     def add_category(category_name: str) -> Tuple[bool, str]:
         """
         Add a new category.

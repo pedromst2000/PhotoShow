@@ -50,3 +50,5 @@ class AlbumProfileState(BasePhotoState):
         # ── Profile context ───────────────────────────────────────────────────
         self.user_id: Optional[int] = None
         self.is_own: bool = True
+        # Album profile always shows photos in read-only mode (no like/rate/comment).
+        self.read_only: bool = True
