@@ -61,7 +61,7 @@ User Stories - Requirements - Features
 - [X] **Delete album**: Remove albuns and all associated photos (CASCADE delete in the database).
 - [X] **Photo Preview** : Show selected photo details in preview painel (nlikes, nComments, rating)!
 - [X] **Delete Photo**: Allow users to delete their own photos from their albums.
-- [ ] **Add photo to Album**: Upload photo with short description (max 150 chars), publish date (auto), category, and image file (accept jpg/png, max 5MB) to an album. Users can only add photos to their own albums.
+- [X] **Add photo to Album**: Upload photo with short description (max 150 chars), publish date (auto), category, and image file (accept jpg/png, max 5MB) to an album. Users can only add photos to their own albums.
 - [X] **Pagination for Albuns and Photo Albuns**: Implement pagination for albums and photos within albums to improve load times and user experience. Should render 5 albums/photos per page with navigation controls to move between pages.
 
 
