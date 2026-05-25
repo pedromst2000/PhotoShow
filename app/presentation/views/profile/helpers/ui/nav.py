@@ -58,7 +58,11 @@ def build_profile_nav(
 
         _make_nav_btn(
             "Favorites",
-            lambda: favoritesProfileWindow(is_own=own_profile, username=username),
+            lambda: favoritesProfileWindow(
+                is_own=own_profile,
+                username=username,
+                user_id=profile_user_id,
+            ),
         )
 
     if show_contacts:
