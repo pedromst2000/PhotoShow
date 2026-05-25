@@ -24,7 +24,8 @@ class FavoriteModel(Base):
     __table_args__ = (
         CheckConstraint("id > 0 AND id < 10000000", name="ck_favorites_id_range"),
         CheckConstraint(
-            "albumId > 0 AND albumId < 10000000", name="ck_favorites_albumId_range"
+            "albumId > 0 AND albumId < 10000000",
+            name="ck_favorites_albumId_range",
         ),
         CheckConstraint(
             "userId > 0 AND userId < 10000000", name="ck_favorites_userId_range"

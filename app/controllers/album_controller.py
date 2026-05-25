@@ -193,22 +193,6 @@ class AlbumController:
             return False, "Something went wrong. Please try again later."
 
     @staticmethod
-    def get_favorite_albums(user_id: Optional[int] = None) -> List[dict]:
-        """
-        Get favorite albums for a user.
-
-        Args:
-            user_id: The user's ID. If None, uses current user.
-
-        Returns:
-            List[dict]: List of dicts with albumID and name.
-        """
-        target_user_id = user_id if user_id is not None else session.user_id
-        if target_user_id is None:
-            return []
-        return AlbumService.get_favorite_albums(target_user_id)
-
-    @staticmethod
     def get_album_details(album_id: int) -> Optional[dict]:
         """
         Get enriched album details including photos, creator, avg category, and favorite status.
@@ -235,3 +219,36 @@ class AlbumController:
         """
         assert session.user_id is not None
         return AlbumService.toggle_favorite(album_id, session.user_id)
+
+    @staticmethod
+    def get_enriched_favorite_albums(user_id: Optional[int] = None) -> List[dict]:
+        """
+        Get favorite albums for a user, enriched with creator username.
+
+        Returns dicts with ``id``, ``name``, and ``creator_username`` keys so
+        they work directly with ``ListboxWidget`` (default ``id_key="id"``).
+
+        Args:
+            user_id: The user's ID.  Defaults to the current session user.
+
+        Returns:
+            List[dict]: Enriched favorite album entries.
+        """
+        target_user_id = user_id if user_id is not None else session.user_id
+        if target_user_id is None:
+            return []
+        return AlbumService.get_enriched_favorite_albums(target_user_id)
+
+    @staticmethod
+    def remove_favorite(album_id: int) -> Tuple[bool, str]:
+        """
+        Remove an album from the current user's favorites.
+
+        Args:
+            album_id: The ID of the album to remove from favorites.
+
+        Returns:
+            Tuple[bool, str]: (success, message).
+        """
+        assert session.user_id is not None
+        return AlbumService.remove_favorite(album_id, session.user_id)

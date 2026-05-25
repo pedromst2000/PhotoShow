@@ -5,6 +5,7 @@ from app.core.db.models.album import AlbumModel
 from app.core.db.models.favorite import FavoriteModel
 from app.core.db.models.photo import PhotoModel
 from app.core.db.models.photo_image import PhotoImageModel
+from app.core.db.models.user import UserModel
 from app.utils.file_utils import delete_from_latest
 from app.utils.log_utils import log_exception, log_operation
 
@@ -265,28 +266,6 @@ class AlbumService:
             return False
 
     @staticmethod
-    def get_favorite_albums(user_id: int) -> list:
-        """
-        Retrieve all favorite albums for a specific user.
-
-        Args:
-            user_id: The ID of the user.
-
-        Returns:
-            list: A list of dicts with albumID and name for each favorited album.
-        """
-        with SessionLocal() as session:
-            favorites = FavoriteModel.get_by_user(session, user_id)
-            if not favorites:
-                return []
-            result = []
-            for fav in favorites:
-                album = AlbumModel.get_by_id(session, fav["albumId"])
-                if album:
-                    result.append({"albumId": fav["albumId"], "name": album["name"]})
-            return result
-
-    @staticmethod
     def get_album_details(
         album_id: int, user_id: Optional[int] = None
     ) -> Optional[dict]:
@@ -377,3 +356,87 @@ class AlbumService:
                 context={"album_id": album_id},
             )
             return False, "Something went wrong. Please try again later.", False
+
+    @staticmethod
+    def get_enriched_favorite_albums(user_id: int) -> list:
+        """
+        Retrieve favorite albums for a user, enriched with creator username.
+
+        Each returned dict uses ``id`` (not ``albumId``) so it is compatible
+        with the ``ListboxWidget`` default ``id_key="id"`` contract.
+
+        Args:
+            user_id: The ID of the user whose favorites are retrieved.
+
+        Returns:
+            list: Dicts with ``id``, ``name``, and ``creator_username``.
+        """
+        try:
+            with SessionLocal() as session:
+                favorites = FavoriteModel.get_by_user(session, user_id)
+                if not favorites:
+                    return []
+                result = []
+                for fav in favorites:
+                    album = AlbumModel.get_by_id(session, fav["albumId"])
+                    if album:
+                        creator = UserModel.get_by_id(session, album["creatorId"])
+                        creator_username = creator["username"] if creator else "Unknown"
+                        result.append(
+                            {
+                                "id": fav["albumId"],
+                                "favorite_id": fav["id"],
+                                "name": album["name"],
+                                "creator_username": creator_username,
+                            }
+                        )
+                return result
+        except Exception as e:
+            log_exception(
+                "album.get_enriched_favorite_albums",
+                e,
+                context={"user_id": user_id},
+            )
+            return []
+
+    @staticmethod
+    def remove_favorite(album_id: int, user_id: int) -> Tuple[bool, str]:
+        """
+        Remove a specific album from the user's favorites.
+
+        Unlike ``toggle_favorite``, this always removes without checking the
+        current state first, making it safe to call from the Favorites window.
+
+        Args:
+            album_id: The ID of the album to remove.
+            user_id: The ID of the user whose favorite entry is removed.
+
+        Returns:
+            Tuple[bool, str]: ``(True, success_msg)`` or ``(False, error_msg)``.
+        """
+        try:
+            with SessionLocal() as session:
+                deleted = FavoriteModel.delete_for_user(session, album_id, user_id)
+                session.commit()
+            if deleted:
+                log_operation(
+                    "album.remove_favorite",
+                    "success",
+                    f"Removed album {album_id} from favorites",
+                    user_id=user_id,
+                )
+                return True, "Album removed from favorites."
+            log_operation(
+                "album.remove_favorite",
+                "not_found",
+                f"Album {album_id} was not in favorites for user {user_id}",
+                user_id=user_id,
+            )
+            return False, "Album was not in your favorites."
+        except Exception as e:
+            log_exception(
+                "album.remove_favorite",
+                e,
+                context={"album_id": album_id, "user_id": user_id},
+            )
+            return False, "Something went wrong. Please try again later."
