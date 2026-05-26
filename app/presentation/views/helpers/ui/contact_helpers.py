@@ -1,7 +1,7 @@
 import tkinter as tk
 from typing import Optional
 
-from app.controllers.user_controller import UserController
+from app.controllers.contact_controller import ContactController
 from app.presentation.widgets.helpers.char_limit import (
     validate_entry_char_limit,
     validate_text_char_limit,
@@ -48,7 +48,7 @@ def submit_contact_admin(
         message_text: The ScrollableText widget containing the message.
         e: Optional event parameter for key binding.
     """
-    success, msg = UserController.contact_admin(
+    success, msg = ContactController.create(
         title_entry.get(), message_text.get("1.0", "end-1c")
     )
 

@@ -100,6 +100,24 @@ class ContactModel(Base):
         return obj.to_dict()
 
     @classmethod
+    def delete_by_id(cls, session: Session, contact_id: int) -> bool:
+        """
+        Delete a contact message by its primary key.
+
+        Args:
+            session: Active SQLAlchemy session.
+            contact_id: The ID of the contact message to delete.
+
+        Returns:
+            bool: True if the record was found and deleted, False if not found.
+        """
+        obj = session.query(cls).filter_by(id=contact_id).first()
+        if obj is None:
+            return False
+        session.delete(obj)
+        return True
+
+    @classmethod
     def title_exists(cls, session: Session, title: str) -> bool:
         """
         Check whether a contact with this title already exists (case-insensitive, exact match).

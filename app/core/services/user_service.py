@@ -1,10 +1,8 @@
-import re as regex
 from typing import Optional
 
 from app.core.db.engine import SessionLocal
 from app.core.db.models.album import AlbumModel
 from app.core.db.models.avatar import AvatarModel
-from app.core.db.models.contact import ContactModel
 from app.core.db.models.follow import FollowModel
 from app.core.db.models.photo import PhotoModel
 from app.core.db.models.role import RoleModel
@@ -22,7 +20,6 @@ class UserService:
     - Role changes validate that the new role is a valid assignable role.
     - Blocking/unblocking users checks current status to prevent redundant operations.
     - User filtering by username/email is case-insensitive and excludes admin users.
-    - Contact messages are checked for duplicate titles before creation.
     - Follow/unfollow operations check for existing relationships to prevent duplicates or errors.
     - When retrieving followers/following, full user profiles are returned for display purposes.
     - All methods that modify data enforce necessary validation and business rules.
@@ -409,30 +406,6 @@ class UserService:
         return users
 
     @staticmethod
-    def get_contacts_with_usernames() -> list:
-        """
-        Retrieve all contact messages enriched with the submitting user's username.
-
-        Returns:
-            list: List of dicts with contactID, title, message, username.
-        """
-        with SessionLocal() as session:
-            contacts = ContactModel.get_all(session)
-            if not contacts:
-                return []
-            return [
-                {
-                    "id": c["id"],
-                    "title": c["title"],
-                    "message": c["message"],
-                    "username": (UserModel.get_by_id(session, c["userId"]) or {}).get(
-                        "username", "Unknown"
-                    ),
-                }
-                for c in contacts
-            ]
-
-    @staticmethod
     def follow_user(follower_id: int, followed_id: int) -> bool:
         """
         Make follower_id follow followed_id.
@@ -512,63 +485,6 @@ class UserService:
                 user = UserModel.get_by_id(session, f["followedId"])
                 if user:
                     result.append(user)
-            return result
-
-    @staticmethod
-    def validate_contact_title_format(title: str) -> bool:
-        """
-        Validate contact message title format.
-
-        Rules enforced:
-        - Title must contain only ASCII letters (A-Z, a-z).
-        - No digits, spaces, or special characters allowed.
-
-        Args:
-            title: The contact title to validate.
-
-        Returns:
-            bool: True if the title format is valid, False otherwise.
-        """
-        if not title or not isinstance(title, str):
-            return False
-        # Use fullmatch to ensure only letters, no spaces or special chars
-        return bool(regex.fullmatch(r"[A-Za-z]+", title))
-
-    @staticmethod
-    def create_contact(title: str, message: str, userId: int) -> dict:
-        """
-        Create a new contact message from a user.
-
-        Args:
-            title: Subject of the message (should be trimmed, pre-validated).
-            message: Body of the message (should be trimmed, pre-validated).
-            userId: The ID of the user sending the message.
-
-        Returns:
-            dict: The created contact message as a dictionary.
-
-        Raises:
-            ValueError: If a message with the same title already exists (after whitespace normalization).
-        """
-
-        # Business rule: normalize whitespace for duplicate detection.
-        # Treats "Apologizes ", "Apologizes", "Apologizes   ", and "Apologizes  A"
-        # as duplicates based on their normalized form.
-        def _normalize(s: str) -> str:
-            return " ".join(s.split()).strip().lower()
-
-        normalized_title = _normalize(title)
-
-        with SessionLocal() as session:
-            # Fetch all existing titles and check normalized duplicates in service layer
-            rows = session.query(ContactModel.title).all()
-            for (t,) in rows:
-                if _normalize(t) == normalized_title:
-                    raise ValueError("A message with this title already exists")
-            result = ContactModel.create(
-                session, title=title, message=message, userId=userId
-            )
-            session.commit()
             return result
 
     @staticmethod

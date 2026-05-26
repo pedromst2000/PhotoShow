@@ -1,7 +1,9 @@
 import tkinter as tk
 
 from app.controllers.album_controller import AlbumController
-from app.presentation.views.helpers.ui.preview import reset_preview, update_preview
+from app.presentation.views.helpers.ui.builder import toggle_empty_content_state
+from app.presentation.views.helpers.ui.page_change import reset_photo_panel
+from app.presentation.views.helpers.ui.preview import update_preview
 from app.presentation.views.profile.helpers.data.favorites_data import (
     load_favorite_album_photos,
     refresh_favorites_list,
@@ -14,52 +16,6 @@ from app.presentation.widgets.helpers.ui_dialogs import (
 )
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
-
-
-def _reset_photo_panel(state: FavoritesState, msg: str) -> None:
-    """Clear the photo listbox and reset the preview to a placeholder message.
-
-    Args:
-        state: Favorites view state.
-        msg: Message to display in the empty preview placeholder.
-    """
-    state.photos = []
-    state.selected_index = None
-
-    photo_widget = getattr(state, "listbox_widget", None)
-    if photo_widget is not None:
-        photo_widget.refresh([])
-
-    photo_ctrl = getattr(state, "_pagination_ui_controller", None)
-    if photo_ctrl is not None:
-        photo_ctrl.refresh_ui()
-
-    reset_preview(state, msg)
-
-
-def _rebuild_empty_or_content(state: FavoritesState, body: tk.Widget) -> None:
-    """Show the empty frame or the three-column content frame as appropriate.
-
-    Args:
-        state: Favorites view state.
-        body: The outer body frame containing both child frames.
-    """
-    content_frame = getattr(state, "_content_frame", None)
-    empty_frame = getattr(state, "_empty_frame", None)
-
-    has_favorites = bool(state.all_favorites)
-
-    if content_frame is not None:
-        if has_favorites:
-            content_frame.pack(fill="both", expand=True)
-        else:
-            content_frame.pack_forget()
-
-    if empty_frame is not None:
-        if has_favorites:
-            empty_frame.pack_forget()
-        else:
-            empty_frame.pack(fill="both", expand=True)
 
 
 def _set_remove_btn_state(state: FavoritesState, *, enabled: bool) -> None:
@@ -102,7 +58,7 @@ def on_fav_album_select(idx: int, state: FavoritesState) -> None:
 
     ok = load_favorite_album_photos(state, album_id)
     if not ok:
-        _reset_photo_panel(state, "Could not load photos.")
+        reset_photo_panel(state, "Could not load photos.")
         return
 
     photo_widget = getattr(state, "listbox_widget", None)
@@ -119,7 +75,7 @@ def on_fav_album_select(idx: int, state: FavoritesState) -> None:
             photo_widget.select_index(0)
         update_preview(state)
     else:
-        _reset_photo_panel(state, "No photos in this album")
+        reset_photo_panel(state, "No photos in this album")
 
 
 # ── Photo selection ───────────────────────────────────────────────────────────
@@ -170,9 +126,9 @@ def on_remove_favorite(state: FavoritesState, body: tk.Widget) -> None:
         state.selected_album = None
         state.album_list_state.selected_index = None
         _set_remove_btn_state(state, enabled=False)
-        _reset_photo_panel(state, "Select an album")
+        reset_photo_panel(state, "Select an album")
         refresh_favorites_list(state)
-        _rebuild_empty_or_content(state, body)
+        toggle_empty_content_state(state, has_items=bool(state.all_favorites))
         show_info(
             body,
             "Remove Favorite",
@@ -206,7 +162,7 @@ def sync_favorites_on_focus(state: FavoritesState) -> None:
 
     # Rebuild empty/content frame when the list goes empty or becomes non-empty.
     if old_count != new_count and body is not None:
-        _rebuild_empty_or_content(state, body)
+        toggle_empty_content_state(state, has_items=bool(state.all_favorites))
 
     # If the currently selected album was removed externally, clear the panel.
     if state.selected_album is not None:
@@ -217,4 +173,4 @@ def sync_favorites_on_focus(state: FavoritesState) -> None:
             state.selected_album = None
             state.album_list_state.selected_index = None
             _set_remove_btn_state(state, enabled=False)
-            _reset_photo_panel(state, "Select an album")
+            reset_photo_panel(state, "Select an album")
