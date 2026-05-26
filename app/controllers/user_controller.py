@@ -14,7 +14,6 @@ class UserController:
     - User listing and filtering
     - Role changes
     - Blocking/unblocking users
-    - Contact management
     """
 
     @staticmethod
@@ -105,16 +104,6 @@ class UserController:
         """
         return AdminHelpers.filter_users(username, email)
 
-    @staticmethod
-    def get_contacts() -> List[dict]:
-        """
-        Get all contacts with associated usernames.
-
-        Returns:
-            List[dict]: List of dicts with contactID, title, message, username.
-        """
-        return UserService.get_contacts_with_usernames()
-
     # ========== Profile Operations ==========
 
     @staticmethod
@@ -185,24 +174,6 @@ class UserController:
             bool: True if refreshed successfully.
         """
         return ProfileHelpers.refresh_session_data()
-
-    @staticmethod
-    def contact_admin(
-        title: str, message: str, user_id: Optional[int] = None
-    ) -> Tuple[bool, str]:
-        """
-        Send a contact message to the admin (used by blocked users).
-        Controller handles input validation and user-facing error messages.
-
-        Args:
-            title: Subject/title of the message.
-            message: Body of the message.
-            user_id: Optional user ID; falls back to session if not provided.
-
-        Returns:
-            Tuple[bool, str]: (success, message) tuple.
-        """
-        return ProfileHelpers.contact_admin(title, message, user_id)
 
     # ========== Follow Operations ==========
 

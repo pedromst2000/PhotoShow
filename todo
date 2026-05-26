@@ -30,13 +30,18 @@ User Stories - Requirements - Features
 - [x] **Blocked account notice**: Show suspension notice and contact admin option.
 - [x] **Unsigned user limits**: Allow browsing but with limited interactions (e.g., view-only top photos).
 
-## ADMIN USER - Profile CONTACTS & REPORTS
+## ADMIN USER - Manage Contacts
 
-- [ ] **Contacts**: Can view contact messages sent by users and mark them as resolved.
-  - Should be able to mark as resolved and delete the message from the list of contacts
-- [ ] **Reporting**: View reports of inappropriate content and take action (e.g., remove content, block user).
-  - Should be able to mark as resolved and delete the report from the list of reports.
-  - Mark as resolved means that the admin has taken action on the report and it is no longer pending review. This could involve removing the reported content, blocking the offending user, or taking other appropriate measures based on the nature of the report. Once marked as resolved, the report should be removed from the list of active reports to keep the admin dashboard organized and focused on unresolved issues.
+- [X] **List Contacts**: View a list of contact messages in a listbox widget. Each item of the list should display the title of the contact message and the name of the author (e.g., "{username} - {title}").
+- [X] **Delete contact message**: Should be able to mark as resolved and delete the message from the list of contacts.
+- [X] **Contact message details**: Should be able to see the details of the contact message, including the author, title and message content, to better understand the user's issue and provide an appropriate response.
+
+## ADMIN USER - Manage Reports
+
+- [ ] **List Reports**: View a list of reports in a listboc widget. Each item of the list should display the type of report and the comment or photo reported (e.g., "Photo Report - Photo {photo_id} - {reason}" or "Comment Report - Comment {comment_id} - {reason}").
+- [ ] **Delete reported content**: Should be able to delete the reported photo or comment directly from the list of reports.
+- [ ] **Report details**: Should be able to see the details of the report, including the type of report, the content reported (photo or comment), the reason for the report, and any additional information provided by the user who submitted the report (description)!
+
 
 ## ALL USERS - Profile
 

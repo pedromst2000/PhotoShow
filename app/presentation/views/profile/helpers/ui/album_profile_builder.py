@@ -20,13 +20,15 @@ from app.presentation.views.helpers.ui.carousel import (
     listbox_navigate_next,
     listbox_navigate_prev,
 )
+from app.presentation.views.helpers.ui.page_change import (
+    on_album_page_changed,
+    on_photo_page_changed,
+)
 from app.presentation.views.helpers.ui.preview import reset_preview
 from app.presentation.views.profile.helpers.data.album_profile_state import (
     AlbumProfileState,
 )
 from app.presentation.views.profile.helpers.ui.album_profile_interactions import (
-    _reset_photo_panel,
-    _set_album_btns_state,
     on_add_album,
     on_add_photo,
     on_album_select,
@@ -128,28 +130,32 @@ def build_albums_body(
     state._empty_frame = empty_frame  # type: ignore[attr-defined]
 
     if state.is_own:
-        build_empty_state(
-            empty_frame,
-            icon="\U0001f4f7",
-            title="You don't have any albums yet",
-            subtitle="Create your first album to start sharing your photos!",
-            btn_text="  Add Album",
-            btn_cmd=lambda: on_add_album(state, body),
-            icon_rely=0.38,
-            title_rely=0.52,
-            subtitle_rely=0.61,
-            btn_rely=0.73,
-        )
+        es_title = "You don't have any albums yet"
+        es_subtitle = "Create your first album to start sharing your photos!"
+        es_btn_text = "  Add Album"
+
+        def _on_add_album() -> None:
+            on_add_album(state, body)
+
+        es_btn_cmd = _on_add_album
     else:
-        build_empty_state(
-            empty_frame,
-            icon="\U0001f4f7",
-            title="This user doesn't have any albums yet",
-            subtitle="Check back later to see their albums.",
-            icon_rely=0.38,
-            title_rely=0.52,
-            subtitle_rely=0.61,
-        )
+        es_title = "This user doesn't have any albums yet"
+        es_subtitle = "Check back later to see their albums."
+        es_btn_text = None
+        es_btn_cmd = None
+
+    build_empty_state(
+        empty_frame,
+        icon="\U0001f4f7",
+        title=es_title,
+        subtitle=es_subtitle,
+        btn_text=es_btn_text,
+        btn_cmd=es_btn_cmd,
+        icon_rely=0.38,
+        title_rely=0.52,
+        subtitle_rely=0.61,
+        btn_rely=0.73,
+    )
 
     # ── Content frame (three-column layout) ───────────────────────────────────
     content_frame = tk.Frame(body, bg=_BG)
@@ -212,7 +218,7 @@ def _build_left_panel(
     build_listbox_pagination(
         left,
         state.album_list_state,  # type: ignore[arg-type]
-        on_page_changed=lambda: _on_album_page_changed(state),
+        on_page_changed=lambda: on_album_page_changed(state),
         bg=_LIST_BG,
         btn_bg=_BTN_BG,
         btn_fg=_BTN_FG,
@@ -289,14 +295,6 @@ def _build_album_action_buttons(
     state.delete_album_btn = del_btn
 
 
-def _on_album_page_changed(state: AlbumProfileState) -> None:
-    """Reset album selection and clear photo panel when page changes."""
-    state.selected_album = None
-    state.album_list_state.selected_index = None
-    _set_album_btns_state(state, enabled=False)
-    _reset_photo_panel(state, "Select an album")
-
-
 # ── Middle panel — photo listbox ───────────────────────────────────────────────
 
 
@@ -367,7 +365,7 @@ def _build_middle_panel(body: tk.Frame, state: AlbumProfileState) -> None:
     build_listbox_pagination(
         middle,
         state,
-        on_page_changed=lambda: _on_photo_page_changed(state),
+        on_page_changed=lambda: on_photo_page_changed(state),
         bg=_LIST_BG,
         btn_bg=_BTN_BG,
         btn_fg=_BTN_FG,
@@ -376,13 +374,6 @@ def _build_middle_panel(body: tk.Frame, state: AlbumProfileState) -> None:
 
     # Initial empty state message.
     reset_preview(state, "Select an album")
-
-
-def _on_photo_page_changed(state: AlbumProfileState) -> None:
-    """Reset photo selection and preview when the photo page changes."""
-    reset_preview(state, "Select a photo")
-    if state.delete_photo_btn is not None:
-        state.delete_photo_btn.config(state=tk.DISABLED)
 
 
 # ── Right panel — preview ──────────────────────────────────────────────────────

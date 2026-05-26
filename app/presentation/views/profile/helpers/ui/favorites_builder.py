@@ -20,10 +20,13 @@ from app.presentation.views.helpers.ui.carousel import (
     listbox_navigate_next,
     listbox_navigate_prev,
 )
+from app.presentation.views.helpers.ui.page_change import (
+    on_album_page_changed,
+    on_photo_page_changed,
+)
 from app.presentation.views.helpers.ui.preview import reset_preview
 from app.presentation.views.profile.helpers.data.favorites_state import FavoritesState
 from app.presentation.views.profile.helpers.ui.favorites_interactions import (
-    _reset_photo_panel,
     on_fav_album_select,
     on_fav_photo_select,
     on_remove_favorite,
@@ -125,34 +128,34 @@ def build_favorites_body(win: tk.Toplevel, state: FavoritesState) -> None:
     """
     body = tk.Frame(win, bg=_BG)
     body.pack(fill="both", expand=True)
-    # Store so that focus-sync handler can call _rebuild_empty_or_content.
+    # Store so that focus-sync handler can call toggle_empty_content_state.
     state._body_frame = body  # type: ignore[attr-defined]
 
     # ── Empty state frame ─────────────────────────────────────────────────────
     empty_frame = tk.Frame(body, bg=_BG)
     state._empty_frame = empty_frame  # type: ignore[attr-defined]
 
-    if state.is_own:
-        build_empty_state(
-            empty_frame,
-            icon="\u2728",
-            title="You haven't added any favorites yet",
-            subtitle="Browse albums and add them to your favorites to see them here.",
-            icon_rely=0.38,
-            title_rely=0.52,
-            subtitle_rely=0.61,
-        )
-    else:
-        name = state.username or "This user"
-        build_empty_state(
-            empty_frame,
-            icon="\u2728",
-            title=f"{name} hasn't added any favorites yet",
-            subtitle="Check back later to see their favorite albums.",
-            icon_rely=0.38,
-            title_rely=0.52,
-            subtitle_rely=0.61,
-        )
+    name = state.username or "This user"
+    es_title = (
+        "You haven't added any favorites yet"
+        if state.is_own
+        else f"{name} hasn't added any favorites yet"
+    )
+    es_subtitle = (
+        "Browse albums and add them to your favorites to see them here."
+        if state.is_own
+        else "Check back later to see their favorite albums."
+    )
+
+    build_empty_state(
+        empty_frame,
+        icon="\u2728",
+        title=es_title,
+        subtitle=es_subtitle,
+        icon_rely=0.38,
+        title_rely=0.52,
+        subtitle_rely=0.61,
+    )
 
     # ── Content frame (three-column layout) ───────────────────────────────────
     content_frame = tk.Frame(body, bg=_BG)
@@ -223,7 +226,7 @@ def _build_left_panel(
     build_listbox_pagination(
         left,
         state.album_list_state,  # type: ignore[arg-type]
-        on_page_changed=lambda: _on_album_page_changed(state),
+        on_page_changed=lambda: on_album_page_changed(state),
         bg=_LIST_BG,
         btn_bg=_BTN_BG,
         btn_fg=_BTN_FG,
@@ -293,26 +296,6 @@ def _build_outdated_notice(parent: tk.Frame) -> None:
     ).pack(fill="x", padx=8, pady=6)
 
 
-def _on_album_page_changed(state: FavoritesState) -> None:
-    """Reset album selection and clear photo panel when album page changes."""
-    state.selected_album = None
-    state.album_list_state.selected_index = None
-    _set_remove_btn_state(state, enabled=False)
-    _reset_photo_panel(state, "Select an album")
-
-
-def _set_remove_btn_state(state: FavoritesState, *, enabled: bool) -> None:
-    """Enable or disable the Remove button (when one exists).
-
-    Args:
-        state: Favorites state carrying the button reference.
-        enabled: True to enable, False to disable.
-    """
-    btn = state.remove_fav_btn
-    if btn is not None:
-        btn.config(state=tk.NORMAL if enabled else tk.DISABLED)
-
-
 # ── Middle panel — photo listbox ───────────────────────────────────────────────
 
 
@@ -347,7 +330,7 @@ def _build_middle_panel(body: tk.Frame, state: FavoritesState) -> None:
     build_listbox_pagination(
         middle,
         state,
-        on_page_changed=lambda: _on_photo_page_changed(state),
+        on_page_changed=lambda: on_photo_page_changed(state),
         bg=_LIST_BG,
         btn_bg=_BTN_BG,
         btn_fg=_BTN_FG,
@@ -356,11 +339,6 @@ def _build_middle_panel(body: tk.Frame, state: FavoritesState) -> None:
 
     # Initial placeholder message.
     reset_preview(state, "Select an album")
-
-
-def _on_photo_page_changed(state: FavoritesState) -> None:
-    """Reset photo selection and preview when the photo page changes."""
-    reset_preview(state, "Select a photo")
 
 
 # ── Right panel — preview ──────────────────────────────────────────────────────

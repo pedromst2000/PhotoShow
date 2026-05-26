@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
@@ -84,144 +84,6 @@ def build_empty_state(
         btn.place(relx=0.5, rely=btn_rely, anchor=tk.CENTER)
 
 
-def build_albums_empty_state(
-    win: tk.Widget,
-    *,
-    is_own: bool = True,
-    username: Optional[str] = None,
-) -> None:
-    """
-    Render the albums empty-state block, including the sub-header label.
-
-    Args:
-        win: The parent window or frame.
-        is_own: Whether the profile belongs to the logged-in user.
-        username: The profile owner's username, used when is_own is False.
-    """
-    if is_own:
-        sub_header = "Create and manage your photo albums."
-        empty_title = "You don't have any albums yet"
-        empty_sub = "Create your first album to start sharing your photos!"
-        btn_text: Optional[str] = "  Add Album"
-
-        def _open_create() -> None:
-            from app.presentation.views.album.create import openCreateAlbum
-
-            openCreateAlbum()
-
-        btn_cmd: Optional[Callable] = _open_create
-    else:
-        name = username or "This user"
-        sub_header = f"Browse {name}'s photo albums."
-        empty_title = f"{name} doesn't have any albums yet"
-        empty_sub = "Check back later to see their albums."
-        btn_text = None
-        btn_cmd = None
-
-    tk.Label(
-        win,
-        text=sub_header,
-        font=quickSandRegular(12),
-        bg=colors["primary-50"],
-        fg=colors["secondary-500"],
-    ).place(x=40, y=60)
-
-    build_empty_state(
-        win,
-        icon="\U0001f4f7",
-        title=empty_title,
-        subtitle=empty_sub,
-        btn_text=btn_text,
-        btn_cmd=btn_cmd,
-    )
-
-
-def build_favorites_empty_state(
-    win: tk.Widget,
-    *,
-    is_own: bool = True,
-    username: Optional[str] = None,
-) -> None:
-    """
-    Render the favorites empty-state block, including the sub-header label.
-
-    Args:
-        win: The parent window or frame.
-        is_own: Whether the profile belongs to the logged-in user.
-        username: The profile owner's username, used when is_own is False.
-    """
-    if is_own:
-        sub_header = "Albums you have marked as favorites will appear here."
-        empty_title = "You haven't added any favorites yet"
-        empty_sub = "Browse albums and add them to your favorites to see them here."
-    else:
-        name = username or "This user"
-        sub_header = f"{name}'s favorite albums."
-        empty_title = f"{name} hasn't added any favorites yet"
-        empty_sub = "Check back later to see their favorite albums."
-
-    tk.Label(
-        win,
-        text=sub_header,
-        font=quickSandRegular(12),
-        bg=colors["primary-50"],
-        fg=colors["secondary-500"],
-    ).place(x=40, y=60)
-
-    build_empty_state(
-        win,
-        icon="\u2728",
-        title=empty_title,
-        subtitle=empty_sub,
-    )
-
-
-def build_contacts_empty_state(win: tk.Widget) -> None:
-    """
-    Render the contacts empty-state block, including the sub-header label.
-
-    Args:
-        win: The parent window or frame.
-    """
-    tk.Label(
-        win,
-        text="Messages sent by users will appear here for review.",
-        font=quickSandRegular(12),
-        bg=colors["primary-50"],
-        fg=colors["secondary-500"],
-    ).place(x=40, y=60)
-
-    build_empty_state(
-        win,
-        icon="\U0001f465",
-        title="No contact messages",
-        subtitle="When users send contact messages they will appear here.",
-    )
-
-
-def build_reports_empty_state(win: tk.Widget) -> None:
-    """
-    Render the reports empty-state block, including the sub-header label.
-
-    Args:
-        win: The parent window or frame.
-    """
-    tk.Label(
-        win,
-        text="Review and manage reported content submitted by users.",
-        font=quickSandRegular(12),
-        bg=colors["primary-50"],
-        fg=colors["secondary-500"],
-    ).place(x=40, y=60)
-
-    build_empty_state(
-        win,
-        icon="\U0001f6a8",
-        title="No reports to review",
-        subtitle="When users submit reports about inappropriate content they will appear here.",
-    )
-
-
 def build_profile_photos_empty_state(
     win: tk.Widget,
     *,
@@ -267,3 +129,32 @@ def build_profile_photos_empty_state(
         title_rely=title_rely,
         subtitle_rely=subtitle_rely,
     )
+
+
+def toggle_empty_content_state(state: Any, *, has_items: bool) -> None:
+    """Show the content frame or the empty-state frame based on *has_items*.
+
+    Shared by albums, favorites, contacts, and any future profile window that
+    follows the same empty-frame / content-frame convention.  Both frames must
+    be stored on *state* as ``_empty_frame`` and ``_content_frame``.
+
+    Args:
+        state: Any state object that carries ``_content_frame`` and
+               ``_empty_frame`` attributes (set by the builder helpers).
+        has_items: Pass ``True`` when there is at least one item to show
+                   (content frame visible), ``False`` to reveal the empty state.
+    """
+    content_frame = getattr(state, "_content_frame", None)
+    empty_frame = getattr(state, "_empty_frame", None)
+
+    if content_frame is not None:
+        if has_items:
+            content_frame.pack(fill="both", expand=True)
+        else:
+            content_frame.pack_forget()
+
+    if empty_frame is not None:
+        if has_items:
+            empty_frame.pack_forget()
+        else:
+            empty_frame.pack(fill="both", expand=True)

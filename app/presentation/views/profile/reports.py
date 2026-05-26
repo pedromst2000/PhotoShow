@@ -1,10 +1,8 @@
 import tkinter as tk
 
 from app.presentation.styles.colors import colors
-from app.presentation.styles.fonts import quickSandBold
-from app.presentation.views.helpers.ui.builder.empty_state import (
-    build_reports_empty_state,
-)
+from app.presentation.styles.fonts import quickSandBold, quickSandRegular
+from app.presentation.views.helpers.ui.builder import build_empty_state
 from app.presentation.widgets.window import create_toplevel
 
 
@@ -29,6 +27,19 @@ def reportsWindow() -> None:
     # TODO: Not yet implemented — the reports list is a placeholder.
     #       Replace this empty state with real report data fetched from the DB,
     #       showing submitted user reports (or a dynamic empty state if there are none).
-    build_reports_empty_state(win)
+    tk.Label(
+        win,
+        text="Review and manage reported content submitted by users.",
+        font=quickSandRegular(12),
+        bg=colors["primary-50"],
+        fg=colors["secondary-500"],
+    ).place(x=40, y=60)
+
+    build_empty_state(
+        win,
+        icon="\U0001f6a8",
+        title="No reports to review",
+        subtitle="When users submit reports about inappropriate content they will appear here.",
+    )
 
     win.grab_set()
