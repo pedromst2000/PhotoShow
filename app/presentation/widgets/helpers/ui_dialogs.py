@@ -133,17 +133,14 @@ def handle_delete_photo(state: "BasePhotoState") -> None:
 
             from app.presentation.views.explore.helpers.data.catalog import (
                 invalidate_catalog_cache,
+                load_catalog,
             )
+            from app.presentation.views.helpers.ui.preview import reset_preview
 
             invalidate_catalog_cache()
 
             state.selected_index = None
-            from app.presentation.views.helpers.ui.preview import reset_preview
-
             reset_preview(state)
-
-            from app.presentation.views.explore.helpers.data.catalog import load_catalog
-
             load_catalog(state)
 
             pagination_controller = getattr(state, "_pagination_ui_controller", None)

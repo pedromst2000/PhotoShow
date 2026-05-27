@@ -2,7 +2,7 @@ import tkinter as tk
 
 from app.presentation.styles.button import DEL_BTN_STYLE
 from app.presentation.styles.colors import colors
-from app.presentation.styles.fonts import quickSandBold, quickSandRegular
+from app.presentation.styles.fonts import quickSandBold
 from app.presentation.styles.theme import (
     BTN_BG,
     BTN_FG,
@@ -12,7 +12,8 @@ from app.presentation.styles.theme import (
     PANEL_BG,
 )
 from app.presentation.views.helpers.ui.builder import (
-    build_empty_state,
+    build_admin_window_body,
+    build_admin_window_header,
     build_listbox_pagination,
     build_preview_panel,
 )
@@ -84,33 +85,13 @@ def build_favorites_header(win: tk.Toplevel, state: FavoritesState) -> None:
         win: The favorites profile Toplevel window.
         state: Favorites state (used to adapt subtitle for owner vs. visitor).
     """
-    header = tk.Frame(win, bg=_LIST_BG, height=_HEADER_H)
-    header.pack(fill="x")
-    header.pack_propagate(False)
-
     title = "My Favorites" if state.is_own else "Favorites"
-    tk.Label(
-        header,
-        text=title,
-        font=quickSandBold(16),
-        bg=_LIST_BG,
-        fg=_HEADER_FG,
-        anchor="w",
-    ).pack(side="left", padx=(18, 6), pady=(12, 2), anchor="n")
-
     subtitle = (
         "Albums you have marked as favorites."
         if state.is_own
         else "Browse this user's favorite albums."
     )
-    tk.Label(
-        header,
-        text=subtitle,
-        font=quickSandRegular(10),
-        bg=_LIST_BG,
-        fg=colors["primary-50"],
-        anchor="w",
-    ).pack(side="left", padx=(0, 10), pady=(18, 2), anchor="n")
+    build_admin_window_header(win, title=title, subtitle=subtitle)
 
 
 # ── Body ───────────────────────────────────────────────────────────────────────
@@ -126,15 +107,6 @@ def build_favorites_body(win: tk.Toplevel, state: FavoritesState) -> None:
         win: The favorites profile Toplevel.
         state: Favorites state populated with favorite album data.
     """
-    body = tk.Frame(win, bg=_BG)
-    body.pack(fill="both", expand=True)
-    # Store so that focus-sync handler can call toggle_empty_content_state.
-    state._body_frame = body  # type: ignore[attr-defined]
-
-    # ── Empty state frame ─────────────────────────────────────────────────────
-    empty_frame = tk.Frame(body, bg=_BG)
-    state._empty_frame = empty_frame  # type: ignore[attr-defined]
-
     name = state.username or "This user"
     es_title = (
         "You haven't added any favorites yet"
@@ -147,30 +119,25 @@ def build_favorites_body(win: tk.Toplevel, state: FavoritesState) -> None:
         else "Check back later to see their favorite albums."
     )
 
-    build_empty_state(
-        empty_frame,
-        icon="\u2728",
-        title=es_title,
-        subtitle=es_subtitle,
+    def _build_content(content_frame: tk.Frame, body: tk.Frame) -> None:
+        _build_left_panel(content_frame, state, body)
+        _build_middle_panel(content_frame, state)
+        _build_right_panel(content_frame, state)
+
+    # build_admin_window_body sets state._body_frame = body automatically,
+    # which is needed by the focus-sync handler in favorites_interactions.py.
+    build_admin_window_body(
+        win,
+        state,
+        has_items=bool(state.all_favorites),
+        empty_icon="\u2728",
+        empty_title=es_title,
+        empty_subtitle=es_subtitle,
         icon_rely=0.38,
         title_rely=0.52,
         subtitle_rely=0.61,
+        build_content=_build_content,
     )
-
-    # ── Content frame (three-column layout) ───────────────────────────────────
-    content_frame = tk.Frame(body, bg=_BG)
-    state._content_frame = content_frame  # type: ignore[attr-defined]
-
-    _build_left_panel(content_frame, state, body)
-    _build_middle_panel(content_frame, state)
-    _build_right_panel(content_frame, state)
-
-    # Show the appropriate frame based on whether favorites exist.
-    has_favorites = bool(state.all_favorites)
-    if has_favorites:
-        content_frame.pack(fill="both", expand=True)
-    else:
-        empty_frame.pack(fill="both", expand=True)
 
 
 # ── Left panel — favorites album listbox ──────────────────────────────────────

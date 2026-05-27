@@ -4,6 +4,7 @@ from app.controllers.category_controller import CategoryController
 from app.core.services.catalog_service import CatalogService
 from app.presentation.views.explore.helpers.data.state import ExploreState
 from app.presentation.views.helpers.data.pagination import PaginationManager
+from app.presentation.views.helpers.data.pagination_helpers import get_page_slice
 from app.presentation.views.helpers.ui.preview import reset_preview
 
 # Mapping from OptionMenu display label → sort_by key understood by the controller
@@ -34,20 +35,6 @@ _cache_key: tuple[str, str, str | None] | None = (
 )
 
 
-def _get_catalog_cache_key(sort_by: str, category: str, username: str = None) -> tuple:
-    """
-    Generate cache key for sorted catalog.
-
-    Args:
-        sort_by: Sorting criterion (e.g., "date", "likes")
-        category: Photo category filter (e.g., "nature", "people")
-        username: Author filter (optional)
-    Returns:
-        tuple: Tuple key for caching sorted catalog
-    """
-    return (sort_by, category, username)
-
-
 def _get_filtered_photos(
     sort_key: str, category: str, author: str, is_unsigned: bool
 ) -> list:
@@ -67,7 +54,7 @@ def _get_filtered_photos(
     global _cache_key
 
     # Generate cache key for this query
-    current_key = _get_catalog_cache_key(sort_key, category, author)
+    current_key = (sort_key, category, author)
 
     # Load catalog from cache OR fetch it once and cache
     if _cache_key != current_key or current_key not in _catalog_cache:
@@ -118,9 +105,7 @@ def _get_page_data(state: ExploreState, page_num: int) -> list:
     all_filtered = _get_filtered_photos(sort_key, category, author, is_unsigned)
 
     # Extract just the page slice (no re-sorting, no re-fetching)
-    start_idx = (page_num - 1) * state.items_per_page
-    end_idx = start_idx + state.items_per_page
-    page_items = all_filtered[start_idx:end_idx]
+    page_items = get_page_slice(all_filtered, page_num, state.items_per_page)
 
     return page_items
 
@@ -132,8 +117,6 @@ def load_catalog(state: ExploreState):
     Args:
         state (ExploreState): The current state of the Explore view.
     """
-    global _cache_key
-
     # Get filter values from UI
     sort_key = "date"
     if state.sort_var and state.sort_var.get():
@@ -160,8 +143,7 @@ def load_catalog(state: ExploreState):
 
     # If any filter changed, invalidate the cache
     if old_filters != _current_filters:
-        _cache_key = None
-        _catalog_cache.clear()
+        invalidate_catalog_cache()
 
     # All users see 10 items per page, except unsigned users see top 5 only
     effective_items_per_page = MAX_UNSIGNED_PHOTOS if state.is_unsigned else 10

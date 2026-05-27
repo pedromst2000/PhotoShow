@@ -38,9 +38,12 @@ User Stories - Requirements - Features
 
 ## ADMIN USER - Manage Reports
 
-- [ ] **List Reports**: View a list of reports in a listboc widget. Each item of the list should display the type of report and the comment or photo reported (e.g., "Photo Report - Photo {photo_id} - {reason}" or "Comment Report - Comment {comment_id} - {reason}").
-- [ ] **Delete reported content**: Should be able to delete the reported photo or comment directly from the list of reports.
-- [ ] **Report details**: Should be able to see the details of the report, including the type of report, the content reported (photo or comment), the reason for the report, and any additional information provided by the user who submitted the report (description)!
+- [X] **List Reports**: View a list of reports in a listbox widget. Each item of the list should display the type of report and the comment or photo reported (e.g., "Photo Report - Photo {photo_id} - {reason}" or "Comment Report - Comment {comment_id} - {reason}").
+- [X] **Filter reports**: Filter reports by type (photo or comment) or by reason for the report.
+- [X] **Empty State No Reports**: Show empty state when there are no reports to review.
+- [X] **Delete reported content**: Should be able to delete the reported photo or comment directly from the list of reports.
+- [X] **Mark report as resolved**: Should be able to mark the report as resolved without deleting the content if the report is deemed invalid or if the issue has been addressed in another way. In this way the report is deleted from the list of reports but the content remains in the catalog or comments.
+- [X] **Report details**: Should be able to see the details of the report, including the type of report, the content reported (photo or comment), the reason for the report, and any additional information provided by the user who submitted the report (description)!
 
 
 ## ALL USERS - Profile

@@ -9,6 +9,7 @@ from app.presentation.views.comments.helpers.ui.builder import (
     build_comment_card,
 )
 from app.presentation.views.helpers.data.pagination import PaginationManager
+from app.presentation.views.helpers.data.pagination_helpers import init_list_pagination
 
 _ITEMS_PER_PAGE = 5
 
@@ -26,18 +27,7 @@ def initialize_comments_pagination(cstate, photo_id: int):
         photo_id: The ID of the photo whose comments should be paginated.
     """
     all_comments = CommentController.get_comments(photo_id)
-
-    def page_provider(page_num: int) -> list:
-        start = (page_num - 1) * _ITEMS_PER_PAGE
-        return all_comments[start : start + _ITEMS_PER_PAGE]
-
-    PaginationManager.initialize_pagination(
-        cstate,
-        items_per_page=_ITEMS_PER_PAGE,
-        data_provider=page_provider,
-        total_items=len(all_comments),
-    )
-    cstate.photos = PaginationManager.get_paginated_items(cstate)
+    init_list_pagination(cstate, all_comments, _ITEMS_PER_PAGE)
 
 
 def load_and_render(cstate, win: tk.Toplevel, img_refs: list, card_img_refs: list):

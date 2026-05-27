@@ -77,17 +77,48 @@ def on_album_page_changed(state: Any) -> None:
 def on_contacts_page_changed(state: Any) -> None:
     """Reset contact selection and the detail panel when the contacts page changes.
 
-    Shared handler for the contacts window.  Uses ``getattr`` to locate the
-    resolve button, detail frame, and placeholder frame on the state — so no
-    contacts-specific types are imported here.
+    Thin wrapper around ``on_detail_page_changed`` for backward compatibility.
 
     Args:
-        state: Contacts view state (or any state with the expected attributes).
+        state: Contacts view state.
     """
-    state.selected_contact = None
+    on_detail_page_changed(
+        state, selected_attr="selected_contact", btn_attr="resolve_btn"
+    )
+
+
+def on_reports_page_changed(state: Any) -> None:
+    """Reset report selection and the detail panel when the reports page changes.
+
+    Thin wrapper around ``on_detail_page_changed`` for backward compatibility.
+
+    Args:
+        state: Reports view state.
+    """
+    on_detail_page_changed(
+        state, selected_attr="selected_report", btn_attr="remove_btn"
+    )
+
+
+def on_detail_page_changed(state: Any, *, selected_attr: str, btn_attr: str) -> None:
+    """Reset the selected item and detail panel when a detail-view page changes.
+
+    Generic handler shared by any admin window that has a left listbox paired
+    with a right detail panel.  Uses ``getattr``/``setattr`` so no
+    window-specific types are imported here.
+
+    Args:
+        state: View state with ``selected_index``, ``_detail_frame``,
+               ``_placeholder_frame``, and the named selected / button attrs.
+        selected_attr: Name of the state attribute that holds the selected
+                       item dict (e.g. ``"selected_contact"``).
+        btn_attr: Name of the state attribute that holds the action button
+                  (e.g. ``"resolve_btn"``).
+    """
+    setattr(state, selected_attr, None)
     state.selected_index = None
 
-    btn = getattr(state, "resolve_btn", None)
+    btn = getattr(state, btn_attr, None)
     if btn is not None:
         btn.config(state=tk.DISABLED)
 

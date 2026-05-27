@@ -2,7 +2,6 @@ import tkinter as tk
 
 from app.presentation.styles.button import ACTION_BTN_STYLE, DEL_BTN_STYLE
 from app.presentation.styles.colors import colors
-from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.styles.theme import (
     BTN_BG,
     BTN_FG,
@@ -12,7 +11,8 @@ from app.presentation.styles.theme import (
     PANEL_BG,
 )
 from app.presentation.views.helpers.ui.builder import (
-    build_empty_state,
+    build_admin_window_body,
+    build_admin_window_header,
     build_listbox_pagination,
     build_preview_panel,
 )
@@ -77,33 +77,13 @@ def build_albums_header(win: tk.Toplevel, state: AlbumProfileState) -> None:
         win: The albums profile Toplevel window.
         state: Album profile state (used to conditionally show owner info).
     """
-    header = tk.Frame(win, bg=_LIST_BG, height=_HEADER_H)
-    header.pack(fill="x")
-    header.pack_propagate(False)
-
     title = "My Albums" if state.is_own else "Albums"
-    tk.Label(
-        header,
-        text=title,
-        font=quickSandBold(16),
-        bg=_LIST_BG,
-        fg=_HEADER_FG,
-        anchor="w",
-    ).pack(side="left", padx=(18, 6), pady=(12, 2), anchor="n")
-
     subtitle = (
         "Create and manage your photo albums."
         if state.is_own
         else "Browse this user's photo albums."
     )
-    tk.Label(
-        header,
-        text=subtitle,
-        font=quickSandRegular(10),
-        bg=_LIST_BG,
-        fg=colors["primary-50"],
-        anchor="w",
-    ).pack(side="left", padx=(0, 10), pady=(18, 2), anchor="n")
+    build_admin_window_header(win, title=title, subtitle=subtitle)
 
 
 # ── Body ───────────────────────────────────────────────────────────────────────
@@ -122,55 +102,43 @@ def build_albums_body(
         win: The albums profile Toplevel.
         state: Album profile state populated with album/photo data.
     """
-    body = tk.Frame(win, bg=_BG)
-    body.pack(fill="both", expand=True)
-
-    # ── Empty state frame ─────────────────────────────────────────────────────
-    empty_frame = tk.Frame(body, bg=_BG)
-    state._empty_frame = empty_frame  # type: ignore[attr-defined]
-
     if state.is_own:
         es_title = "You don't have any albums yet"
         es_subtitle = "Create your first album to start sharing your photos!"
         es_btn_text = "  Add Album"
 
         def _on_add_album() -> None:
-            on_add_album(state, body)
+            # build_admin_window_body sets state._body_frame before any
+            # callbacks are invoked, so this reference is always safe.
+            on_add_album(state, state._body_frame)  # type: ignore[attr-defined]
 
-        es_btn_cmd = _on_add_album
+        es_btn_cmd: object = _on_add_album
     else:
         es_title = "This user doesn't have any albums yet"
         es_subtitle = "Check back later to see their albums."
         es_btn_text = None
         es_btn_cmd = None
 
-    build_empty_state(
-        empty_frame,
-        icon="\U0001f4f7",
-        title=es_title,
-        subtitle=es_subtitle,
-        btn_text=es_btn_text,
-        btn_cmd=es_btn_cmd,
+    def _build_content(content_frame: tk.Frame, body: tk.Frame) -> None:
+        _build_left_panel(content_frame, state, body)
+        _build_middle_panel(content_frame, state)
+        _build_right_panel(content_frame, state)
+
+    build_admin_window_body(
+        win,
+        state,
+        has_items=bool(state.all_albums),
+        empty_icon="\U0001f4f7",
+        empty_title=es_title,
+        empty_subtitle=es_subtitle,
+        empty_btn_text=es_btn_text,
+        empty_btn_cmd=es_btn_cmd,
         icon_rely=0.38,
         title_rely=0.52,
         subtitle_rely=0.61,
         btn_rely=0.73,
+        build_content=_build_content,
     )
-
-    # ── Content frame (three-column layout) ───────────────────────────────────
-    content_frame = tk.Frame(body, bg=_BG)
-    state._content_frame = content_frame  # type: ignore[attr-defined]
-
-    _build_left_panel(content_frame, state, body)
-    _build_middle_panel(content_frame, state)
-    _build_right_panel(content_frame, state)
-
-    # Show the appropriate frame based on whether albums exist.
-    has_albums = bool(state.all_albums)
-    if has_albums:
-        content_frame.pack(fill="both", expand=True)
-    else:
-        empty_frame.pack(fill="both", expand=True)
 
 
 # ── Left panel — album listbox ─────────────────────────────────────────────────

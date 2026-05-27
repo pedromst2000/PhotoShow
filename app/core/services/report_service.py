@@ -1,6 +1,10 @@
 from typing import Optional, Tuple
 
 from app.core.db.engine import SessionLocal
+from app.core.db.models.album import AlbumModel
+from app.core.db.models.comment import CommentModel
+from app.core.db.models.photo import PhotoModel
+from app.core.db.models.photo_image import PhotoImageModel
 from app.core.db.models.report import ReportModel
 from app.core.db.models.report_reason import ReportReasonModel
 from app.core.db.models.user import UserModel
@@ -16,6 +20,102 @@ class ReportService:
     - Admins cannot submit reports.
     - Exactly one of photo_id / comment_id must be provided.
     """
+
+    @staticmethod
+    def get_all_enriched() -> list:
+        """
+        Return all reports enriched with reason label, reporter username,
+        and the content (photo description or comment text) plus creator.
+
+        Returns:
+            list[dict]: Enriched report dicts with keys:
+                ``id``, ``reason``, ``reporter_username``, ``description``,
+                ``type`` (``"photo"`` or ``"comment"``), ``photo_id``,
+                ``comment_id``, ``content``, ``content_creator``.
+        """
+        try:
+            with SessionLocal() as session:
+                reports = ReportModel.get_all(session)
+                result = []
+                for r in reports:
+                    reason_obj = (
+                        session.query(ReportReasonModel)
+                        .filter_by(id=r["reasonId"])
+                        .first()
+                    )
+                    reason_label = reason_obj.label if reason_obj else "Unknown"
+
+                    reporter = UserModel.get_by_id(session, r["reporterId"])
+                    reporter_username = reporter["username"] if reporter else "Unknown"
+
+                    enriched: dict = {
+                        "id": r["id"],
+                        "reason": reason_label,
+                        "reporter_username": reporter_username,
+                        "description": r.get("description"),
+                        "type": "photo" if r.get("photoId") else "comment",
+                        "photo_id": r.get("photoId"),
+                        "comment_id": r.get("commentId"),
+                    }
+
+                    if r.get("photoId"):
+                        photo = PhotoModel.get_by_id(session, r["photoId"])
+                        if photo:
+                            enriched["content"] = photo.get("description", "—")
+                            img_obj = PhotoImageModel.get_for_photo(
+                                session, r["photoId"]
+                            )
+                            enriched["photo_path"] = (
+                                img_obj.get("image") if img_obj else None
+                            )
+                            album = (
+                                session.query(AlbumModel)
+                                .filter_by(id=photo.get("albumId"))
+                                .first()
+                            )
+                            if album:
+                                creator = UserModel.get_by_id(session, album.creatorId)
+                                enriched["content_creator"] = (
+                                    creator["username"] if creator else "Unknown"
+                                )
+                                enriched["creator_avatar"] = (
+                                    creator.get("avatar") if creator else None
+                                )
+                            else:
+                                enriched["content_creator"] = "Unknown"
+                                enriched["creator_avatar"] = None
+                        else:
+                            enriched["content"] = "[Photo deleted]"
+                            enriched["content_creator"] = "Unknown"
+                            enriched["photo_path"] = None
+                            enriched["creator_avatar"] = None
+                    else:
+                        comment = CommentModel.get_by_id(session, r["commentId"])
+                        if comment:
+                            enriched["content"] = comment.get("comment", "—")
+                            author_id = comment.get("authorId")
+                            author = (
+                                UserModel.get_by_id(session, author_id)
+                                if author_id
+                                else None
+                            )
+                            enriched["content_creator"] = (
+                                author["username"] if author else "Unknown"
+                            )
+                            enriched["creator_avatar"] = (
+                                author.get("avatar") if author else None
+                            )
+                        else:
+                            enriched["content"] = "[Comment deleted]"
+                            enriched["content_creator"] = "Unknown"
+                            enriched["creator_avatar"] = None
+                        enriched["photo_path"] = None
+
+                    result.append(enriched)
+                return result
+        except Exception as e:
+            log_exception("report.get_all_enriched", e)
+            return []
 
     @staticmethod
     def get_reason_labels() -> list:
@@ -40,54 +140,6 @@ class ReportService:
         except Exception as e:
             log_exception("report.get_reason_labels", e)
             return []
-
-    @staticmethod
-    def get_all_reports() -> list:
-        """
-        Get all reports (admin only, but service doesn't enforce permission).
-
-        Returns:
-            list[dict]: List of report dictionaries.
-
-        Raises:
-            Exception: Any database error is caught and logged; empty list returned.
-        """
-        try:
-            with SessionLocal() as session:
-                reports = ReportModel.get_all(session)
-            log_operation(
-                "report.get_all_reports", "success", f"Retrieved {len(reports)} reports"
-            )
-            return reports
-        except Exception as e:
-            log_exception("report.get_all_reports", e)
-            return []
-
-    @staticmethod
-    def get_report(report_id: int):
-        """
-        Get a single report by ID.
-
-        Args:
-            report_id: The ID of the report to retrieve.
-
-        Returns:
-            dict or None: The report data if found, else None.
-
-        Raises:
-            Exception: Any database error is caught and logged; None returned.
-        """
-        try:
-            with SessionLocal() as session:
-                report = ReportModel.get_by_id(session, report_id)
-            if report:
-                log_operation(
-                    "report.get_report", "success", f"Retrieved report {report_id}"
-                )
-            return report
-        except Exception as e:
-            log_exception("report.get_report", e, context={"report_id": report_id})
-            return None
 
     @staticmethod
     def has_user_reported(

@@ -3,6 +3,7 @@ from typing import Optional
 from app.controllers.album_controller import AlbumController
 from app.presentation.views.album.helpers.data.state import AlbumState
 from app.presentation.views.helpers.data.pagination import PaginationManager
+from app.presentation.views.helpers.data.pagination_helpers import init_list_pagination
 from app.utils.log_utils import log_exception
 
 _ITEMS_PER_PAGE = 10
@@ -38,16 +39,7 @@ def load_album_data(
         # Capture photos in a closure — never written back to state directly.
         all_photos = details["photos"]
 
-        def page_provider(page_num: int) -> list:
-            start = (page_num - 1) * _ITEMS_PER_PAGE
-            return all_photos[start : start + _ITEMS_PER_PAGE]
-
-        PaginationManager.initialize_pagination(
-            state,
-            items_per_page=_ITEMS_PER_PAGE,
-            data_provider=page_provider,
-            total_items=len(all_photos),
-        )
+        init_list_pagination(state, all_photos, _ITEMS_PER_PAGE)
 
         if all_photos:
             # Navigate to the page that contains default_photo_id (if given).
