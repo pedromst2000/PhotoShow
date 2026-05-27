@@ -1,16 +1,67 @@
 import tkinter as tk
-from typing import Optional
+from typing import Callable, List, Optional
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
 from app.presentation.views.explore.helpers.data.catalog import (
     SORT_OPTIONS,
-    apply_filters,
     get_category_options,
+    load_catalog,
 )
 from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.icon_label import add_icon_canvas
 from app.presentation.widgets.helpers.input import on_focus_in, on_focus_out
+
+
+def build_option_filter(
+    parent: tk.Frame,
+    var: tk.StringVar,
+    options: List[str],
+    on_change: Callable,
+    *,
+    width: int = 12,
+    bg: Optional[str] = None,
+) -> tk.OptionMenu:
+    """
+    Create a styled OptionMenu and return the widget without packing it.
+
+    Shared by any view that needs a compact dropdown filter (reports window,
+    and internally by ``FilterBarWidget``).
+
+    Args:
+        parent: Parent frame to attach the OptionMenu to.
+        var: The ``StringVar`` bound to the menu selection.
+        options: List of option strings (first entry used as default).
+        on_change: Callable invoked whenever the selection changes.
+        width: Width of the menu widget in characters.
+        bg: Background colour for the menu (defaults to ``secondary-400``).
+
+    Returns:
+        tk.OptionMenu: The configured menu widget (caller must pack/place it).
+    """
+    _bg = bg or colors["secondary-400"]
+    menu = tk.OptionMenu(parent, var, *options, command=lambda _: on_change())
+    menu.config(
+        bg=_bg,
+        fg=colors["primary-50"],
+        activebackground=colors["secondary-500"],
+        activeforeground=colors["primary-50"],
+        font=quickSandBold(10),
+        borderwidth=0,
+        highlightthickness=0,
+        cursor="hand2",
+        width=width,
+        relief="flat",
+    )
+    menu["menu"].config(
+        bg=_bg,
+        fg=colors["primary-50"],
+        activebackground=colors["secondary-500"],
+        activeforeground=colors["primary-50"],
+        font=quickSandBold(10),
+        bd=0,
+    )
+    return menu
 
 
 class FilterBarWidget(tk.Frame):
@@ -110,7 +161,7 @@ class FilterBarWidget(tk.Frame):
         search_btn = make_button(
             author_section,
             "Search",
-            cmd=lambda: apply_filters(self.state),
+            cmd=lambda: load_catalog(self.state),
             font=quickSandBold(10),
             bg=self._btn_bg,
             fg=self._btn_fg,
@@ -149,31 +200,11 @@ class FilterBarWidget(tk.Frame):
         categories = get_category_options()
         cat_var = tk.StringVar(value="All")
         self.state.category_var = cat_var
-        cat_menu = tk.OptionMenu(
+        cat_menu = build_option_filter(
             category_section,
             cat_var,
-            *categories,
-            command=lambda _: apply_filters(self.state)
-        )
-        cat_menu.config(
-            bg=colors["secondary-400"],
-            fg=colors["primary-50"],
-            activebackground=colors["secondary-500"],
-            activeforeground=colors["primary-50"],
-            font=quickSandBold(10),
-            borderwidth=0,
-            highlightthickness=0,
-            cursor="hand2",
-            width=14,
-            relief="flat",
-        )
-        cat_menu["menu"].config(
-            bg=colors["secondary-400"],
-            fg=colors["primary-50"],
-            activebackground=colors["secondary-500"],
-            activeforeground=colors["primary-50"],
-            font=quickSandBold(10),
-            bd=0,
+            categories,
+            lambda: load_catalog(self.state),
         )
         cat_menu.pack(side=tk.LEFT)
         if not filters_enabled:
@@ -203,31 +234,11 @@ class FilterBarWidget(tk.Frame):
         sort_var = tk.StringVar(value="Most Recent")
         self.state.sort_var = sort_var
         sort_options = list(SORT_OPTIONS.keys())
-        sort_menu = tk.OptionMenu(
+        sort_menu = build_option_filter(
             sort_section,
             sort_var,
-            *sort_options,
-            command=lambda _: apply_filters(self.state)
-        )
-        sort_menu.config(
-            bg=colors["secondary-400"],
-            fg=colors["primary-50"],
-            activebackground=colors["secondary-500"],
-            activeforeground=colors["primary-50"],
-            font=quickSandBold(10),
-            borderwidth=0,
-            highlightthickness=0,
-            cursor="hand2",
-            width=14,
-            relief="flat",
-        )
-        sort_menu["menu"].config(
-            bg=colors["secondary-400"],
-            fg=colors["primary-50"],
-            activebackground=colors["secondary-500"],
-            activeforeground=colors["primary-50"],
-            font=quickSandBold(10),
-            bd=0,
+            sort_options,
+            lambda: load_catalog(self.state),
         )
         sort_menu.pack(side=tk.LEFT)
         if not filters_enabled:

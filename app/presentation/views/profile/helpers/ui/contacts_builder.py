@@ -12,10 +12,13 @@ from app.presentation.styles.theme import (
     PANEL_BG,
 )
 from app.presentation.views.helpers.ui.builder import (
-    build_empty_state,
+    build_admin_window_body,
+    build_admin_window_header,
+    build_detail_placeholder,
     build_listbox_pagination,
+    build_two_column_frames,
 )
-from app.presentation.views.helpers.ui.page_change import on_contacts_page_changed
+from app.presentation.views.helpers.ui.page_change import on_detail_page_changed
 from app.presentation.views.profile.helpers.data.contacts_state import ContactsState
 from app.presentation.views.profile.helpers.ui.contacts_interactions import (
     on_contact_select,
@@ -68,27 +71,11 @@ def build_contacts_header(win: tk.Toplevel, state: ContactsState) -> None:
         win: The contacts Toplevel window.
         state: Contacts state (currently unused; reserved for future adaptation).
     """
-    header = tk.Frame(win, bg=_LIST_BG, height=_HEADER_H)
-    header.pack(fill="x")
-    header.pack_propagate(False)
-
-    tk.Label(
-        header,
-        text="Contacts",
-        font=quickSandBold(16),
-        bg=_LIST_BG,
-        fg=_HEADER_FG,
-        anchor="w",
-    ).pack(side="left", padx=(18, 6), pady=(12, 2), anchor="n")
-
-    tk.Label(
-        header,
-        text="Messages sent by users \u2014 select one to preview and resolve.",
-        font=quickSandRegular(10),
-        bg=_LIST_BG,
-        fg=colors["primary-50"],
-        anchor="w",
-    ).pack(side="left", padx=(0, 10), pady=(18, 2), anchor="n")
+    build_admin_window_header(
+        win,
+        title="Contacts",
+        subtitle="Messages sent by users \u2014 select one to preview and resolve.",
+    )
 
 
 # ── Body ───────────────────────────────────────────────────────────────────────
@@ -104,55 +91,24 @@ def build_contacts_body(win: tk.Toplevel, state: ContactsState) -> None:
         win: The contacts Toplevel window.
         state: Contacts state with ``all_contacts`` already populated.
     """
-    body = tk.Frame(win, bg=_BG)
-    body.pack(fill="both", expand=True)
 
-    has_contacts = bool(state.all_contacts)
+    def _build_content(content_frame: tk.Frame, body: tk.Frame) -> None:
+        left, right = build_two_column_frames(content_frame, _LEFT_W)
+        _build_left_panel(left, state, body)
+        _build_right_panel(right, state)
 
-    # ── Empty state ────────────────────────────────────────────────────────────
-    empty_frame = tk.Frame(body, bg=_BG)
-    state._empty_frame = empty_frame
-
-    build_empty_state(
-        empty_frame,
-        icon="\U0001f4ec",
-        title="No contact messages",
-        subtitle="Messages sent by users will appear here for review.",
+    build_admin_window_body(
+        win,
+        state,
+        has_items=bool(state.all_contacts),
+        empty_icon="\U0001f4ec",
+        empty_title="No contact messages",
+        empty_subtitle="Messages sent by users will appear here for review.",
         icon_rely=0.38,
         title_rely=0.52,
         subtitle_rely=0.61,
+        build_content=_build_content,
     )
-
-    # ── Two-column content ─────────────────────────────────────────────────────
-    content_frame = tk.Frame(body, bg=_BG)
-    state._content_frame = content_frame
-
-    if has_contacts:
-        content_frame.pack(fill="both", expand=True)
-        _build_two_column_layout(content_frame, state, body)
-    else:
-        empty_frame.pack(fill="both", expand=True)
-
-
-def _build_two_column_layout(
-    parent: tk.Frame, state: ContactsState, body: tk.Widget
-) -> None:
-    """Place the left contacts list and right detail panel side-by-side.
-
-    Args:
-        parent: The content frame that contains both columns.
-        state: Contacts state.
-        body: The outer body frame (passed to callbacks for dialogs).
-    """
-    left = tk.Frame(parent, bg=_LIST_BG, width=_LEFT_W)
-    left.pack(side="left", fill="y")
-    left.pack_propagate(False)
-
-    right = tk.Frame(parent, bg=_PANEL_BG)
-    right.pack(side="left", fill="both", expand=True)
-
-    _build_left_panel(left, state, body)
-    _build_right_panel(right, state)
 
 
 # ── Left panel ─────────────────────────────────────────────────────────────────
@@ -190,7 +146,9 @@ def _build_left_panel(left: tk.Frame, state: ContactsState, body: tk.Widget) -> 
     build_listbox_pagination(
         left,
         state,
-        on_page_changed=lambda: on_contacts_page_changed(state),
+        on_page_changed=lambda: on_detail_page_changed(
+            state, selected_attr="selected_contact", btn_attr="resolve_btn"
+        ),
         bg=_LIST_BG,
         btn_bg=_BTN_BG,
         btn_fg=_BTN_FG,
@@ -246,34 +204,13 @@ def _build_right_panel(right: tk.Frame, state: ContactsState) -> None:
         right: The right-column frame.
         state: Contacts state; widget refs are set on this object.
     """
-    # ── Selection placeholder ─────────────────────────────────────────────────
-    placeholder = tk.Frame(right, bg=_PANEL_BG)
-    placeholder.pack(fill="both", expand=True)
-    state._placeholder_frame = placeholder
-
-    tk.Label(
-        placeholder,
-        text="\U0001f4cb",
-        font=quickSandBold(42),
-        bg=_PANEL_BG,
-        fg=colors["secondary-400"],
-    ).place(relx=0.5, rely=0.40, anchor=tk.CENTER)
-
-    tk.Label(
-        placeholder,
-        text="Select a message to preview",
-        font=quickSandBold(14),
-        bg=_PANEL_BG,
-        fg=colors["secondary-500"],
-    ).place(relx=0.5, rely=0.52, anchor=tk.CENTER)
-
-    tk.Label(
-        placeholder,
-        text="Click a contact from the list on the left.",
-        font=quickSandRegular(10),
-        bg=_PANEL_BG,
-        fg=colors["secondary-400"],
-    ).place(relx=0.5, rely=0.60, anchor=tk.CENTER)
+    build_detail_placeholder(
+        right,
+        state,
+        icon="\U0001f4cb",
+        title="Select a message to preview",
+        subtitle="Click a contact from the list on the left.",
+    )
 
     # ── Detail view (hidden until a contact is selected) ──────────────────────
     detail = tk.Frame(right, bg=_PANEL_BG)

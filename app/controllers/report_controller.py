@@ -161,27 +161,14 @@ class ReportController:
             return False, "Something went wrong. Please try again later."
 
     @staticmethod
-    def get_all_reports() -> List[dict]:
+    def get_all_enriched() -> list:
         """
-        Admin-only: return all reports (raw rows).
+        Return all reports enriched with reason label, reporter, and content.
 
         Returns:
-            List[dict]: List of report dicts, or empty list for non-admins.
+            list[dict]: Enriched report dicts ready for the admin UI.
         """
-        return ReportService.get_all_reports()
-
-    @staticmethod
-    def get_report(report_id: int) -> dict | None:
-        """
-        Admin-only: return a single report's raw data.
-
-        Args:
-            report_id: The ID of the report to retrieve.
-
-        Returns:
-            dict | None: The report data if found, else None.
-        """
-        return ReportService.get_report(report_id)
+        return ReportService.get_all_enriched()
 
     @staticmethod
     def resolve_report(report_id: int) -> Tuple[bool, str]:

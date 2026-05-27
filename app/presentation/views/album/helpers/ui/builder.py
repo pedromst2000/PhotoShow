@@ -19,6 +19,7 @@ from app.presentation.views.album.helpers.ui.interactions import (
     on_photo_select,
 )
 from app.presentation.views.helpers.ui.builder import (
+    build_admin_window_header,
     build_listbox_pagination,
     build_preview_panel,
 )
@@ -51,20 +52,8 @@ def build_header(win: tk.Toplevel, state: AlbumState) -> None:
         state: Album view state containing album data.
     """
     album = state.album or {}
-
-    header = tk.Frame(win, bg=_LIST_BG, height=_HEADER_H)
-    header.pack(fill="x")
-    header.pack_propagate(False)
-
     album_name = album.get("name", "Album")
-    tk.Label(
-        header,
-        text=album_name,
-        font=quickSandBold(16),
-        bg=_LIST_BG,
-        fg=_HEADER_FG,
-        anchor="w",
-    ).pack(side="left", padx=(18, 10), pady=10)
+    build_admin_window_header(win, title=album_name, height=_HEADER_H)
 
 
 def build_body(
