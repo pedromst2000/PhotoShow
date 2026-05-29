@@ -380,14 +380,23 @@ class UserService:
             ]
 
     @staticmethod
-    def filter_users(username: str, email: str) -> list:
+    def filter_users(
+        username: str,
+        email: str,
+        role: str = "",
+        status: str = "",
+    ) -> list:
         """
-        Filter users by username prefix and/or email prefix (case-insensitive).
+        Filter users by username, email, role, and/or blocked status.
         Admin users are always excluded.
 
         Args:
             username: Username prefix to filter by (empty string to skip).
             email: Email prefix to filter by (empty string to skip).
+            role: Role name to filter by, e.g. ``"regular"`` or ``"unsigned"``
+                  (empty string to skip).
+            status: ``"blocked"`` or ``"active"`` to filter by blocked state
+                    (empty string to skip).
 
         Returns:
             list: Filtered list of user dictionaries.
@@ -402,6 +411,14 @@ class UserService:
 
         if email:
             users = [u for u in users if u["email"].lower().startswith(email.lower())]
+
+        if role:
+            users = [u for u in users if u["role"] == role]
+
+        if status == "blocked":
+            users = [u for u in users if u["isBlocked"]]
+        elif status == "active":
+            users = [u for u in users if not u["isBlocked"]]
 
         return users
 

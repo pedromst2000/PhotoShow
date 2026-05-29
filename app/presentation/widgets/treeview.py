@@ -35,6 +35,8 @@ class TreeviewWidget(tk.Frame):
         description: str = "Browse and select items.",
         on_select: Optional[Callable] = None,
         on_page_changed: Optional[Callable] = None,
+        row_fn: Optional[Callable] = None,
+        empty_label: Optional[str] = None,
         width: int = 460,
         height: int = 674,
         bg: Optional[str] = None,
@@ -54,6 +56,11 @@ class TreeviewWidget(tk.Frame):
                 handler is bound.
             on_page_changed: No-arg callable invoked whenever the active page
                 changes (e.g. to reset a preview panel). If *None*, ignored.
+            row_fn: Optional callable ``(item: dict) -> tuple`` that converts a
+                data item to a tuple of column values.  When *None* the widget
+                falls back to the photo-specific format (album, author, category).
+            empty_label: Text shown in the first column when there are no items.
+                Defaults to ``"No photos found"`` when *None*.
             width: Panel pixel width.
             height: Panel pixel height.
             bg: Background colour; falls back to parent bg then theme token.
@@ -65,6 +72,8 @@ class TreeviewWidget(tk.Frame):
         self.description = description
         self.on_select = on_select
         self.on_page_changed = on_page_changed
+        self.row_fn = row_fn
+        self.empty_label = empty_label
         self.width = width
         self.height = height
 
@@ -193,6 +202,12 @@ class TreeviewWidget(tk.Frame):
         h_scrollbar.config(command=tree.xview)
 
         self.state.tree = tree
+
+        # Store custom row renderer and empty label on state for TreeViewController
+        if self.row_fn is not None:
+            self.state._tree_row_fn = self.row_fn
+        if self.empty_label is not None:
+            self.state._tree_empty_label = self.empty_label
 
         if self.on_select is not None:
             tree.bind("<<TreeviewSelect>>", self.on_select)

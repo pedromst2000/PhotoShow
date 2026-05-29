@@ -190,13 +190,21 @@ class AdminHelpers:
             return False, "Something went wrong. Please try again later."
 
     @staticmethod
-    def filter_users(username: str, email: str) -> List[dict]:
+    def filter_users(
+        username: str,
+        email: str,
+        role: str = "",
+        status: str = "",
+    ) -> List[dict]:
         """
-        Filter users by username and/or email prefix.
+        Filter users by username, email, role, and/or status.
 
         Args:
             username: Username prefix to filter by (empty string to skip).
             email: Email prefix to filter by (empty string to skip).
+            role: Role name to filter by, e.g. ``"regular"`` or ``"unsigned"``
+                  (empty string to skip).
+            status: ``"blocked"`` or ``"active"`` (empty string to skip).
 
         Returns:
             list: Filtered list of user dicts (admin users excluded).
@@ -208,15 +216,20 @@ class AdminHelpers:
             log_operation(
                 "user.filter_users",
                 "success",
-                f"Filtering by username={username}, email={email}",
+                f"Filtering by username={username!r}, email={email!r}, role={role!r}, status={status!r}",
                 user_id=session.user_id,
             )
-            return UserService.filter_users(username, email)
+            return UserService.filter_users(username, email, role, status)
         except Exception as e:
             log_exception(
                 "user.filter_users",
                 e,
                 user_id=session.user_id,
-                context={"username": username, "email": email},
+                context={
+                    "username": username,
+                    "email": email,
+                    "role": role,
+                    "status": status,
+                },
             )
-            return []  # Return empty list on error instead of propagating
+            return []

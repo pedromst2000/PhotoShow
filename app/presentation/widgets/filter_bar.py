@@ -66,32 +66,48 @@ def build_option_filter(
 
 class FilterBarWidget(tk.Frame):
     """
-    Filter bar widget with Author, Category, and Sort filters.
+    Filter bar widget.
+
+    Two modes:
+    - **Generic mode** (``rows`` provided): renders any list of row configs using
+      ``pack`` layout.  Caller packs/places the widget itself.
+    - **Explore mode** (``rows=None``): legacy Author / Category / Sort bar that
+      places content directly in ``parent`` using absolute coordinates.
     """
 
     def __init__(
         self,
         parent: tk.Toplevel,
-        state,
+        state=None,
+        rows: Optional[List[List[dict]]] = None,
         width: int = 1300,
         bg: Optional[str] = None,
         btn_bg: Optional[str] = None,
         btn_fg: Optional[str] = None,
     ):
         """
-        Create and place filter bar.
+        Create the filter bar.
 
         Args:
-            parent (tk.Toplevel): The parent window or frame to attach the filter bar to.
-            state: The shared state object that holds filter variables and other relevant data.
-            width (int): The width of the filter bar. Default is 1300 pixels.
-            bg (str, optional): Background color for the filter bar. If None, it will inherit from the parent or use a default color.
-            btn_bg (str, optional): Background color for buttons. If None, it will use a default color.
-            btn_fg (str, optional): Foreground color for buttons. If None, it will use a default color.
+            parent: Parent window or frame.
+            state: Shared state object.  In explore mode the state must expose
+                ``is_unsigned``.  In generic mode it is only used for
+                ``store_as`` refs (may be *None*).
+            rows: Generic-mode row definitions.  Each row is a list of section
+                dicts with keys ``type`` (``"entry"``, ``"option"``, or
+                ``"button"``), ``label`` (optional), ``var`` (StringVar),
+                ``entry_width`` / ``menu_width`` / ``options`` / ``on_change``
+                / ``text`` / ``cmd`` / ``store_as`` as appropriate.
+                When *None* the widget falls back to the legacy explore bar.
+            width: Width used by the legacy explore bar.
+            bg: Background colour; inherits from parent if *None*.
+            btn_bg: Button background colour.
+            btn_fg: Button foreground colour.
         """
         self.parent = parent
         self.state = state
         self.width = width
+        self._rows = rows
 
         # Color scheme (allow overriding via bg or inherit from parent)
         bg_value = bg
@@ -107,8 +123,113 @@ class FilterBarWidget(tk.Frame):
         self._btn_fg = btn_fg if btn_fg is not None else colors["secondary-500"]
         self._icon_dir = "app/assets/images/UI_Icons/"
 
-        # Build the filter bar
-        self._build_filter_bar()
+        if rows is not None:
+            # Generic mode: self IS the container Frame
+            super().__init__(parent, bg=self._page_bg)
+            self._build_custom_rows()
+        else:
+            # Legacy explore mode: places widgets in self.parent
+            self._build_filter_bar()
+
+    # ── Generic mode helpers ───────────────────────────────────────────────────
+
+    def _build_custom_rows(self) -> None:
+        """Build dynamic filter rows using pack layout.
+
+        Special single-item rows:
+        - ``{"type": "header", "text": "..."}`` — renders a subtle section title.
+        - ``{"type": "divider"}`` — renders a thin horizontal separator line.
+        """
+        assert self._rows is not None
+        for row_items in self._rows:
+            if len(row_items) == 1:
+                stype = row_items[0].get("type")
+                if stype == "header":
+                    tk.Label(
+                        self,
+                        text=row_items[0]["text"],
+                        font=quickSandBold(9),
+                        bg=self._page_bg,
+                        fg=colors["secondary-300"],
+                        anchor="w",
+                    ).pack(fill="x", padx=8, pady=(6, 0))
+                    continue
+                if stype == "divider":
+                    tk.Frame(self, bg=colors["secondary-400"], height=1).pack(
+                        fill="x", padx=8, pady=(4, 0)
+                    )
+                    continue
+            row = tk.Frame(self, bg=self._page_bg)
+            row.pack(fill="x", padx=8, pady=(4, 2))
+            for section in row_items:
+                self._build_section(row, section)
+
+    def _build_section(self, parent_row: tk.Frame, section: dict) -> None:
+        """Render one filter section (entry, option, or button) inside a row.
+
+        Args:
+            parent_row: Row frame to pack the section into.
+            section: Section config dict.
+        """
+        stype = section.get("type")
+        label = section.get("label")
+
+        if label:
+            tk.Label(
+                parent_row,
+                text=label,
+                font=quickSandBold(10),
+                bg=self._page_bg,
+                fg=colors["primary-50"],
+            ).pack(side="left", padx=(0, 4))
+
+        if stype == "entry":
+            entry = tk.Entry(
+                parent_row,
+                textvariable=section["var"],
+                width=section.get("entry_width", 14),
+                borderwidth=0,
+                font=quickSandBold(10),
+                bg=colors["secondary-400"],
+                fg=colors["primary-50"],
+                highlightthickness=0,
+                cursor="xterm",
+                insertbackground=colors["primary-50"],
+            )
+            entry.pack(side="left", padx=(0, 8))
+            entry.bind("<FocusIn>", lambda e: on_focus_in(e, entry))
+            entry.bind("<FocusOut>", lambda e: on_focus_out(e, entry))
+
+        elif stype == "option":
+            menu = build_option_filter(
+                parent_row,
+                section["var"],
+                section["options"],
+                section.get("on_change", lambda: None),
+                width=section.get("menu_width", 12),
+                bg=colors["secondary-400"],
+            )
+            menu.pack(side="left", padx=(0, 8))
+
+        elif stype == "button":
+            btn = make_button(
+                parent_row,
+                section["text"],
+                cmd=section["cmd"],
+                font=quickSandBold(10),
+                bg=self._btn_bg,
+                fg=self._btn_fg,
+                borderwidth=0,
+                highlightthickness=0,
+                cursor="hand2",
+                relief="flat",
+                padx=8,
+                pady=3,
+            )
+            btn.pack(side="left")
+            store_as = section.get("store_as")
+            if store_as and self.state is not None:
+                setattr(self.state, store_as, btn)
 
     def _build_filter_bar(self):
         """Build the Author / Category / Sort filter bar at the top."""
