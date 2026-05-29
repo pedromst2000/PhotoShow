@@ -14,34 +14,34 @@ class CategoryController:
     """
 
     @staticmethod
-    def get_categories() -> List[str]:
-        """
-        Return all available category names for dropdowns and filters.
-
-        Returns a list with "All" as the first option, followed by actual categories
-        (deduped case-insensitively). This ensures consistent dropdown behavior across
-        the UI without redundant logic in widgets.
-
-        Returns:
-            list[str]: ["All"] followed by sorted category names (no duplicates).
-        """
-        all_categories = CategoryService.get_all_categories()
-        categories = sorted(c["category"] for c in all_categories)
-        # Ensure "All" is first and remove case-insensitive duplicates
-        categories = ["All"] + [c for c in categories if c.lower() != "all"]
-        return categories
-
-    @staticmethod
     def get_all_categories() -> List[dict]:
         """
         Return all available categories as full objects with ID and name.
 
-        Used by views that need to map category names back to IDs (e.g. photo upload).
+        Used by views that need to map category names back to IDs (e.g. photo upload,
+        category management). This is the single source-of-truth fetch from the service.
 
         Returns:
             list[dict]: List of category dictionaries with 'id' and 'category' keys.
         """
         return CategoryService.get_all_categories()
+
+    @staticmethod
+    def get_categories() -> List[str]:
+        """
+        Return all available category names for dropdowns and filters.
+
+        Returns a list with "All" as the first option, followed by actual categories
+        (deduped case-insensitively). Internally reuses ``get_all_categories`` so
+        the service is called only once.
+
+        Returns:
+            list[str]: ["All"] followed by sorted category names (no duplicates).
+        """
+        all_categories = CategoryController.get_all_categories()
+        categories = sorted(c["category"] for c in all_categories)
+        # Ensure "All" is first and remove case-insensitive duplicates
+        return ["All"] + [c for c in categories if c.lower() != "all"]
 
     @staticmethod
     def add_category(category_name: str) -> Tuple[bool, str]:

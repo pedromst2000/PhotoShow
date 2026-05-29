@@ -67,7 +67,9 @@ class TreeViewController:
         """Show empty state message."""
         tree = self.state.tree
         if tree:
-            tree.insert("", "end", iid="empty", values=("No photos found", "", ""))
+            label = getattr(self.state, "_tree_empty_label", "No photos found")
+            ncols = len(tree["columns"])
+            tree.insert("", "end", iid="empty", values=(label,) + ("",) * (ncols - 1))
 
     def _populate_tree(self, paginated: list) -> None:
         """
@@ -86,21 +88,26 @@ class TreeViewController:
         # Calculate global indices for this page
         page_start_idx = (self.state.current_page - 1) * self.state.items_per_page
 
+        # Custom row renderer (set by TreeviewWidget when row_fn is provided)
+        row_fn = getattr(self.state, "_tree_row_fn", None)
+
         # Insert each item with local index as tree ID
         for local_idx, photo in enumerate(paginated):
             try:
-                album = photo.get("album_name") or "—"
-                author = photo.get("user") or "—"
-                category = photo.get("category") or "—"
+                if row_fn is not None:
+                    values = row_fn(photo)
+                else:
+                    album = photo.get("album_name") or "—"
+                    author = photo.get("user") or "—"
+                    category = photo.get("category") or "—"
+                    values = (album, author, category)
 
                 # Map local ID to global index
                 global_idx = page_start_idx + local_idx
                 self.state._tree_id_to_global_idx[str(local_idx)] = global_idx
 
                 # Use local index as tree ID (0-9 for 10 items per page)
-                tree.insert(
-                    "", "end", iid=str(local_idx), values=(album, author, category)
-                )
+                tree.insert("", "end", iid=str(local_idx), values=values)
             except Exception as e:
                 log_issue(
                     f"TreeViewController._populate_tree failed at item {local_idx}",

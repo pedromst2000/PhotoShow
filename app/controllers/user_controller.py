@@ -91,18 +91,25 @@ class UserController:
         return UserService.get_users_by_role(role)
 
     @staticmethod
-    def filter_users(username: str, email: str) -> List[dict]:
+    def filter_users(
+        username: str,
+        email: str,
+        role: str = "",
+        status: str = "",
+    ) -> List[dict]:
         """
-        Filter users by username and/or email prefix.
+        Filter users by username, email, role, and/or blocked status.
 
         Args:
             username: Username prefix to filter by (empty string to skip).
             email: Email prefix to filter by (empty string to skip).
+            role: Role name to filter by (empty string to skip).
+            status: ``"blocked"`` or ``"active"`` (empty string to skip).
 
         Returns:
             List[dict]: Filtered list of user dicts (admin users excluded).
         """
-        return AdminHelpers.filter_users(username, email)
+        return AdminHelpers.filter_users(username, email, role, status)
 
     # ========== Profile Operations ==========
 

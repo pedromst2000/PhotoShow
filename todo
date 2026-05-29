@@ -2,18 +2,17 @@ User Stories - Requirements - Features
 
 ## ADMIN USER - Manage Users
 
-- [ ] **Users list**: Dynamic list of users to manage.
-- [ ] **Filter users**: Filter by email or username.
-- [ ] **Change roles**: Promote unsigned → regular or admin.
-- [ ] **Block users**: Temporarily suspend or block users for bad behavior.
-- [ ] **Unblock users**: Restore access for previously blocked users.
-- [ ] **Manage reported content**: Admin can review and remove inappropriate photos/comments.
+- [X] **Users list**: List of all users excluding admin in a Treeview widget with the columns: username, email, role (unsigned, regular) and blocked status (blocked/active).
+- [X] **Filter users**: Filter by email or username.
+- [X] **Change roles**: Promote unsigned to regular.
+- [X] **Block users**: Temporarily suspend or block users for bad behavior.
+- [X] **Unblock users**: Restore access for previously blocked users.
 
 ## ADMIN USER - Manage Categories
 
-- [ ] **Categories list**: Dynamic categories management.
-- [ ] **Add category**: Admin can add categories.
-- [ ] **Edit category**: Admin can rename categories.
+- [X] **Categories list**: Dynamic categories management.
+- [X] **Add category**: Admin can add categories.
+- [X] **Edit category**: Admin can rename categories.
 
 ## ADMIN USER - Settings of the Notifications
 
