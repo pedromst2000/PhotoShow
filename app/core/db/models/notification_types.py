@@ -135,3 +135,25 @@ class NotificationTypeModel(Base):
             s.isEnabled = enabled
             return True
         return False
+
+    @classmethod
+    def ensure_types_seeded(
+        cls,
+        session: Session,
+        canonical: list,
+    ) -> None:
+        """
+        Insert any canonical notification types that do not yet exist in the
+        database, matching rows by their *type key* string (not by ID).
+
+        This allows the service layer to keep IDs out of the canonical list
+        and avoids ID drift between fresh installs (seeded via CSV with
+        explicit IDs) and upgraded installs (seeded here with auto-increment).
+
+        Args:
+            session: Active SQLAlchemy session.
+            canonical: List of ``(type_key, label)`` tuples to ensure exist.
+        """
+        for type_key, label in canonical:
+            if not session.query(cls).filter_by(type=type_key).first():
+                session.add(cls(type=type_key, label=label, isEnabled=True))

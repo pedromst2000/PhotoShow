@@ -7,6 +7,7 @@ from app.core.db.models.follow import FollowModel
 from app.core.db.models.photo import PhotoModel
 from app.core.db.models.role import RoleModel
 from app.core.db.models.user import UserModel
+from app.core.services.notification_service import NotificationService
 from app.utils.log_utils import log_exception, log_operation
 
 
@@ -437,12 +438,20 @@ class UserService:
         with SessionLocal() as session:
             result = FollowModel.follow(session, follower_id, followed_id)
             session.commit()
-        return result is not None
+        if result is not None:
+            NotificationService.send(
+                "new_follower",
+                "started following you",
+                user_id=followed_id,
+                sender_id=follower_id,
+            )
+            return True
+        return False
 
     @staticmethod
     def unfollow_user(follower_id: int, followed_id: int) -> bool:
         """
-        Make follower_id unfollow followed_id.
+        Make follower_id unfollow followed_id and remove the related notification.
 
         Args:
             follower_id: The ID of the user doing the unfollowing.
@@ -454,6 +463,10 @@ class UserService:
         with SessionLocal() as session:
             result = FollowModel.unfollow(session, follower_id, followed_id)
             session.commit()
+        # Remove the new_follower notification when user unfollows
+        if result:
+            NotificationService.delete_by_follow(follower_id, followed_id)
+
         return result
 
     @staticmethod

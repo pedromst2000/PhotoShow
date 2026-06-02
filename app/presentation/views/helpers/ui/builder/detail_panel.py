@@ -26,6 +26,7 @@ def build_detail_panel(
     *,  # * means all following args must be passed as kwargs, not positionally
     win: tk.Toplevel,
     img_refs: List,
+    on_delete_callback=None,
 ):
     """
     Build the photo-detail panel and pack it into *parent*.
@@ -247,11 +248,48 @@ def build_detail_panel(
         if can_delete:
             delete_icon = load_btn_icon(parent, state, _ICON_DIR + "Remove_Icon.png")
 
-            def _on_delete():
-                count_before = len(state.photos)
-                handle_delete_photo(state)
-                if len(state.photos) < count_before:
-                    win.destroy()
+            if on_delete_callback is not None:
+                # Notifications path: delete DB notifications first, then photo.
+                _pid = photo.get("id")
+
+                def _on_delete():
+                    from app.controllers.notification_controller import (
+                        NotificationController,
+                    )
+                    from app.presentation.widgets.helpers.ui_dialogs import (
+                        show_confirmation,
+                        show_error,
+                        show_info,
+                    )
+
+                    confirmed = show_confirmation(
+                        win,
+                        "Delete Photo",
+                        "Are you sure you want to delete this photo?\n\nThis action cannot be undone.",
+                    )
+                    if not confirmed:
+                        return
+
+                    # Remove DB notifications BEFORE photo deletion (FK still set).
+                    NotificationController.delete_by_photo(_pid)
+
+                    from app.controllers.photo_controller import PhotoController
+
+                    success, message = PhotoController.delete_photo(_pid)
+                    if success:
+                        show_info(win, "Success", message)
+                        on_delete_callback(_pid)
+                        win.destroy()
+                    else:
+                        show_error(win, "Error", message)
+
+            else:
+                # Explore / album path: standard catalog-aware deletion.
+                def _on_delete():
+                    count_before = len(state.photos)
+                    handle_delete_photo(state)
+                    if len(state.photos) < count_before:
+                        win.destroy()
 
             action_btn = make_icon_button(
                 row_btns,

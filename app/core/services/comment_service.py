@@ -1,8 +1,11 @@
 from typing import List, Optional, Tuple
 
 from app.core.db.engine import SessionLocal
+from app.core.db.models.album import AlbumModel
 from app.core.db.models.comment import CommentModel
+from app.core.db.models.photo import PhotoModel
 from app.core.db.models.user import UserModel
+from app.core.services.notification_service import NotificationService
 from app.utils.log_utils import log_exception, log_operation
 
 
@@ -102,6 +105,12 @@ class CommentService:
                     db, authorId=user_id, comment=clean, photoId=photo_id
                 )
                 author = UserModel.get_by_id(db, user_id)
+                # Look up photo owner for notification
+                photo = PhotoModel.get_by_id(db, photo_id)
+                owner_id: Optional[int] = None
+                if photo and photo.get("albumId"):
+                    album = AlbumModel.get_by_id(db, int(photo["albumId"]))
+                    owner_id = album.get("creatorId") if album else None
                 db.commit()
 
             enriched = {  # enrich with author info for convenience, even though the controller could do this in a batch
@@ -118,6 +127,15 @@ class CommentService:
                 f"Comment added to photo {photo_id}",
                 user_id=user_id,
             )
+            if owner_id and owner_id != user_id:
+                NotificationService.send(
+                    "comment_on_photo",
+                    "commented on your photo",
+                    user_id=owner_id,
+                    sender_id=user_id,
+                    photo_id=photo_id,
+                    comment_id=comment.get("id"),
+                )
             return True, "Comment added.", enriched
         except Exception as e:
             log_exception(
@@ -138,6 +156,7 @@ class CommentService:
         Business rules:
         - A user can only delete their own comments.
         - An admin can delete any comment.
+        - Removes the related comment_on_photo notification.
 
         Args:
             requesting_user_id: The ID of the user requesting the deletion.
@@ -157,6 +176,9 @@ class CommentService:
                     return False, "Comment not found."
                 if not is_admin and comment["authorId"] != requesting_user_id:
                     return False, "You do not have permission to delete this comment."
+                # Remove the comment_on_photo notification BEFORE deleting the comment
+                # (FK cascade sets commentId to NULL, so we must delete notification first)
+                NotificationService.delete_by_comment(comment_id)
                 CommentModel.delete(db, comment_id)
                 db.commit()
             log_operation(
@@ -165,6 +187,13 @@ class CommentService:
                 f"Comment {comment_id} deleted",
                 user_id=requesting_user_id,
             )
+            if is_admin and comment["authorId"] != requesting_user_id:
+                NotificationService.send(
+                    "admin_delete_comment",
+                    "Your comment was deleted by an admin",
+                    user_id=comment["authorId"],
+                    sender_id=requesting_user_id,
+                )
             return True, "Comment deleted."
         except Exception as e:
             log_exception(

@@ -110,19 +110,6 @@ class NotificationModel(Base):
         }
 
     @classmethod
-    def get_all(cls, session: Session) -> list:
-        """
-        Retrieve all notifications from the database.
-
-        Args:
-            session: Active SQLAlchemy session.
-
-        Returns:
-            list: A list of dictionaries, each representing a notification.
-        """
-        return [n.to_dict() for n in session.query(cls).all()]
-
-    @classmethod
     def get_by_user(cls, session: Session, user_id: int) -> list:
         """
         Retrieve all notifications for a specific user (newest first).
@@ -227,3 +214,205 @@ class NotificationModel(Base):
         session.add(obj)
         session.flush()
         return obj.to_dict()
+
+    @classmethod
+    def delete(cls, session: Session, not_id: int) -> bool:
+        """
+        Delete a notification by ID.
+
+        Args:
+            session: Active SQLAlchemy session.
+            not_id: The ID of the notification to delete.
+
+        Returns:
+            bool: True if the notification was found and deleted, False otherwise.
+        """
+        n = session.query(cls).filter_by(id=not_id).first()
+        if n:
+            session.delete(n)
+            return True
+        return False
+
+    @classmethod
+    def delete_by_photo_id(cls, session: Session, photo_id: int) -> int:
+        """Delete all notifications that reference *photo_id*.
+
+        Must be called **before** the photo row is deleted so the FK
+        ``photoId`` is still set on the notification rows.
+
+        Args:
+            session: Active SQLAlchemy session.
+            photo_id: ID of the photo whose notifications to remove.
+
+        Returns:
+            int: Number of rows deleted.
+        """
+        rows = session.query(cls).filter_by(photoId=photo_id).all()
+        for row in rows:
+            session.delete(row)
+        return len(rows)
+
+    @classmethod
+    def delete_by_album_id(cls, session: Session, album_id: int) -> int:
+        """Delete all notifications that reference *album_id*.
+
+        Used when an album is deleted to clean up album_favorited notifications.
+        Must be called **before** the album row is deleted so the FK
+        ``albumId`` is still set on the notification rows.
+
+        Args:
+            session: Active SQLAlchemy session.
+            album_id: ID of the album whose notifications to remove.
+
+        Returns:
+            int: Number of rows deleted.
+        """
+        rows = session.query(cls).filter_by(albumId=album_id).all()
+        for row in rows:
+            session.delete(row)
+        return len(rows)
+
+    @classmethod
+    def delete_by_like(cls, session: Session, user_id: int, photo_id: int) -> int:
+        """Delete like_photo notifications for a specific user unliking a photo.
+
+        When a user unlikes a photo, remove the corresponding like_photo notification
+        sent to the photo owner.
+
+        Args:
+            session: Active SQLAlchemy session.
+            user_id: The user who unliked the photo (senderId).
+            photo_id: The photo being unliked (photoId).
+
+        Returns:
+            int: Number of rows deleted.
+        """
+        from app.core.db.models.notification_types import NotificationTypeModel
+
+        type_obj = (
+            session.query(NotificationTypeModel).filter_by(type="like_photo").first()
+        )
+        if not type_obj:
+            return 0
+        type_id = type_obj.id
+
+        rows = (
+            session.query(cls)
+            .filter(
+                cls.photoId == photo_id, cls.senderId == user_id, cls.typeId == type_id
+            )
+            .all()
+        )
+        for row in rows:
+            session.delete(row)
+        return len(rows)
+
+    @classmethod
+    def delete_by_comment(cls, session: Session, comment_id: int) -> int:
+        """Delete comment_on_photo notifications for a specific comment.
+
+        When a comment is deleted, remove the corresponding comment_on_photo
+        notification sent to the photo owner.
+
+        Args:
+            session: Active SQLAlchemy session.
+            comment_id: The comment being deleted (commentId).
+
+        Returns:
+            int: Number of rows deleted.
+        """
+        from app.core.db.models.notification_types import NotificationTypeModel
+
+        type_obj = (
+            session.query(NotificationTypeModel)
+            .filter_by(type="comment_on_photo")
+            .first()
+        )
+        if not type_obj:
+            return 0
+        type_id = type_obj.id
+
+        rows = (
+            session.query(cls)
+            .filter(cls.commentId == comment_id, cls.typeId == type_id)
+            .all()
+        )
+        for row in rows:
+            session.delete(row)
+        return len(rows)
+
+    @classmethod
+    def delete_by_favorite(cls, session: Session, album_id: int, user_id: int) -> int:
+        """Delete album_favorited notifications when a user removes an album from favorites.
+
+        When a user unfavorites an album, remove the album_favorited notification
+        that was sent to the album owner.
+
+        Args:
+            session: Active SQLAlchemy session.
+            album_id: The album being unfavorited (albumId).
+            user_id: The user removing from favorites (senderId).
+
+        Returns:
+            int: Number of rows deleted.
+        """
+        from app.core.db.models.notification_types import NotificationTypeModel
+
+        type_obj = (
+            session.query(NotificationTypeModel)
+            .filter_by(type="album_favorited")
+            .first()
+        )
+        if not type_obj:
+            return 0
+        type_id = type_obj.id
+
+        rows = (
+            session.query(cls)
+            .filter(
+                cls.albumId == album_id, cls.senderId == user_id, cls.typeId == type_id
+            )
+            .all()
+        )
+        for row in rows:
+            session.delete(row)
+        return len(rows)
+
+    @classmethod
+    def delete_by_follow(
+        cls, session: Session, follower_id: int, followed_id: int
+    ) -> int:
+        """Delete new_follower notifications when a user unfollows.
+
+        When a user unfollows another user, remove the new_follower notification
+        that was sent to the followed user.
+
+        Args:
+            session: Active SQLAlchemy session.
+            follower_id: The user who unfollowed (senderId).
+            followed_id: The user being unfollowed (recipientId).
+
+        Returns:
+            int: Number of rows deleted.
+        """
+        from app.core.db.models.notification_types import NotificationTypeModel
+
+        type_obj = (
+            session.query(NotificationTypeModel).filter_by(type="new_follower").first()
+        )
+        if not type_obj:
+            return 0
+        type_id = type_obj.id
+
+        rows = (
+            session.query(cls)
+            .filter(
+                cls.senderId == follower_id,
+                cls.recipientId == followed_id,
+                cls.typeId == type_id,
+            )
+            .all()
+        )
+        for row in rows:
+            session.delete(row)
+        return len(rows)

@@ -149,19 +149,17 @@ User Stories - Requirements - Features
 
 ## ALL USERS - Notifications
 
-- [ ] **Notification system**: Users receive notifications for interactions (e.g., new comment, like, album favorited).
+- [X] **Notification system**: Users receive notifications for interactions (e.g., new comment, like, album favorited).
   - Receives notifications when:
-    - A user comments on their photo.
-    - A user likes their photo.
-    - A user adds their album to favorites.
-    - New follower.
-    - Comment or photo deleted by admin (notify with a reason provided by the removed content)
-  - Notification details should include:
-    - Type of interaction (e.g., comment, like, favorite).
-    - User who performed the interaction (e.g., username and avatar).
-    - Timestamp of the interaction.
-  - Users should be able to view their notifications in a dedicated notifications page or dropdown menu.
-  - Users should have the option to mark notifications as read or delete them from their notification list.
+    - (X) A user comments on their photo.
+    - (X) A user likes their photo.
+    - (X) A user adds their album to favorites.
+    - (X) New follower.
+    - (X) Comment or photo deleted by admin (notify with a reason provided by the removed content)
+  - [X] **Notification Details**: When pressing each item of the list, should show th details of the notification, including the type of the notification, the user who performed the interaction (username and avatar), the time of the interaction and the message of the notification (e.g., "User {username} commented on your photo: {comment content}", "User {username} liked your photo", "User {username} added your album to favorites", "User {username} started following you", "Admin deleted your comment/photo: {reason provided by admin}"). Should also include a link to the relevant content (e.g., the photo that was commented on or liked, the album that was favorited, the profile of the new follower, or the comment/photo that was deleted by admin).
+  - [X] **View Notifications**: Users should be able to view their notifications in a dedicated notifications page in a listbox widget, with the most recent notifications displayed at the top. 
+  - [X] **Delete Notifications**: Users should have the option to mark notifications as read or delete them from their notification list.
+  - [X] **Real-time Notifications**: Implement real-time notifications using WebSockets or a similar technology to ensure that users receive notifications immediately when interactions occur.
 
 ## Blocked Users
 
@@ -172,3 +170,8 @@ User Stories - Requirements - Features
 ## ALL USERS - Reporting & Moderation
 
 - [x] **Report content**: Users can report inappropriate photos or comments, providing a reason for the report ( e.g., "Inappropriate content", "Spam", "Harassment"). Reported content should be flagged for admin review. If selected other, a text input should appear to provide more details about the report. This information should be included in the report sent to the admin for review.
+
+
+## AUTO DELETE CONTENT FROM DATABASE - CRON JOB
+
+- [ ] **Auto-delete old content**: Implement a cron job scheduled to run daily that automatically checks older content (reports, contacts messages and notifications) and deletes any entries that are older than 15 days from the database to maintain optimal performance and data relevance. This cron job should be set up to run at a specific time each day (e.g., midnight) and should log its activity for monitoring purposes.

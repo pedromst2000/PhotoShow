@@ -6,12 +6,15 @@ from sqlalchemy import func
 from app.core.db.engine import SessionLocal
 from app.core.db.models.album import AlbumModel
 from app.core.db.models.category import CategoryModel
+from app.core.db.models.comment import CommentModel
 from app.core.db.models.like import LikeModel
+from app.core.db.models.notification import NotificationModel
 from app.core.db.models.photo import PhotoModel
 from app.core.db.models.photo_image import PhotoImageModel
 from app.core.db.models.rating import RatingModel
 from app.core.db.models.user import UserModel
 from app.core.services.helpers.weighted_rating import calculate_weighted_rating
+from app.core.services.notification_service import NotificationService
 from app.utils.file_utils import delete_from_latest
 from app.utils.log_utils import log_exception, log_operation
 
@@ -252,7 +255,9 @@ class PhotoService:
             return None
 
     @staticmethod
-    def delete_photo(photo_id: int) -> Tuple[bool, str]:
+    def delete_photo(
+        photo_id: int, requesting_user_id: Optional[int] = None
+    ) -> Tuple[bool, str]:
         """
         Delete a photo by ID.
 
@@ -262,6 +267,8 @@ class PhotoService:
 
         Args:
             photo_id: The ID of the photo to delete.
+            requesting_user_id: The user requesting deletion (used to send
+                admin_delete_photo notification to the owner when an admin deletes).
 
         Returns:
             Tuple[bool, str]: (success, message)
@@ -270,6 +277,7 @@ class PhotoService:
             Exception: Any database error is caught and logged; (False, message) returned.
         """
         try:
+            owner_id: Optional[int] = None
             with SessionLocal() as db:
                 if not PhotoModel.get_by_id(db, photo_id):
                     log_operation(
@@ -279,9 +287,19 @@ class PhotoService:
                     )
                     return False, "Photo not found"
 
+                # Capture owner before cascade wipes the record.
+                photo_row = PhotoModel.get_by_id(db, photo_id)
+                if photo_row and photo_row.get("albumId"):
+                    album = AlbumModel.get_by_id(db, int(photo_row["albumId"]))
+                    owner_id = album.get("creatorId") if album else None
+
                 # Capture the image path before the cascade wipes it.
                 image_record = PhotoImageModel.get_for_photo(db, photo_id)
                 stored_image_path = image_record.get("image") if image_record else None
+
+                # Delete all notifications related to this photo BEFORE deleting the photo
+                # (FK constraint requires photo to exist when notification.photoId is not NULL)
+                NotificationModel.delete_by_photo_id(db, photo_id)
 
                 PhotoModel.delete(db, photo_id)
                 db.commit()
@@ -291,6 +309,16 @@ class PhotoService:
                 delete_from_latest(stored_image_path)
 
             log_operation("photo.delete_photo", "success", f"Deleted photo {photo_id}")
+
+            # Notify owner when an admin deletes their photo.
+            if owner_id and requesting_user_id and requesting_user_id != owner_id:
+                NotificationService.send(
+                    "admin_delete_photo",
+                    "Your photo was deleted by an admin",
+                    user_id=owner_id,
+                    sender_id=requesting_user_id,
+                )
+
             return True, "Photo deleted successfully"
         except Exception as e:
             log_exception("photo.delete_photo", e, context={"photo_id": photo_id})
@@ -404,15 +432,51 @@ class PhotoService:
                 else None
             )
             owner = UserModel.get_by_id(session, album["creatorId"]) if album else None
+            image_record = PhotoImageModel.get_for_photo(session, photo_id)
+            comments = (
+                session.query(func.count())
+                .select_from(CommentModel)
+                .filter(getattr(CommentModel, "photoId") == photo_id)
+                .scalar()
+                or 0
+            )
+            avg_result = (
+                session.query(func.avg(getattr(RatingModel, "rating")))
+                .filter(getattr(RatingModel, "photoId") == photo_id)
+                .scalar()
+            )
+            count_result = (
+                session.query(func.count(getattr(RatingModel, "id")))
+                .filter(getattr(RatingModel, "photoId") == photo_id)
+                .scalar()
+            )
+            category_row = (
+                session.query(CategoryModel)
+                .filter_by(id=photo.get("categoryId"))
+                .first()
+            )
         # Return both 'username' (legacy) and 'user' (consistent across services)
         username = owner["username"] if owner else None
         owner_is_admin = owner["roleId"] == 1 if owner else False
+        owner_id = album["creatorId"] if album else None
+        owner_avatar = owner.get("avatar") if owner else None
+        image_path = image_record.get("image") if image_record else None
+        avg_rating = round(float(avg_result), 1) if avg_result is not None else 0.0
+        rating_count = int(count_result) if count_result else 0
+        category_name = category_row.category if category_row else ""
         return {
             **photo,
+            "image": image_path,
             "likes": likes,
             "has_liked": has_liked,
+            "comments": comments,
+            "avg_rating": avg_rating,
+            "rating_count": rating_count,
+            "category": category_name,
             "username": username,
             "user": username,
+            "owner_id": owner_id,
+            "owner_avatar": owner_avatar,
             "owner_is_admin": owner_is_admin,
         }
 
@@ -428,15 +492,29 @@ class PhotoService:
         Returns:
             bool: True if the like was created, False if already liked.
         """
+        owner_id: Optional[int] = None
         with SessionLocal() as session:
             result = LikeModel.like(session, user_id, photo_id) is not None
+            if result:
+                photo = PhotoModel.get_by_id(session, photo_id)
+                if photo and photo.get("albumId"):
+                    album = AlbumModel.get_by_id(session, int(photo["albumId"]))
+                    owner_id = album.get("creatorId") if album else None
             session.commit()
-            return result
+        if result and owner_id and owner_id != user_id:
+            NotificationService.send(
+                "like_photo",
+                "liked your photo",
+                user_id=owner_id,
+                sender_id=user_id,
+                photo_id=photo_id,
+            )
+        return result
 
     @staticmethod
     def unlike_photo(user_id: int, photo_id: int) -> bool:
         """
-        Unlike a photo.
+        Unlike a photo and remove the related notification.
 
         Args:
             user_id: The ID of the user unliking the photo.
@@ -448,7 +526,10 @@ class PhotoService:
         with SessionLocal() as session:
             result = LikeModel.unlike(session, user_id, photo_id)
             session.commit()
-            return result
+        # Remove the like_photo notification when user unlikes
+        if result:
+            NotificationService.delete_by_like(user_id, photo_id)
+        return result
 
     @staticmethod
     def get_photo_rating_stats(photo_id: int) -> dict:

@@ -2,6 +2,9 @@ import tkinter as tk
 from typing import Callable, Optional
 
 from app.core.state.session import session
+from app.presentation.layout.menu.helpers.notification_blinker import (
+    NotificationBlinker,
+)
 from app.presentation.views.dashboard.main import dashboardWindow
 from app.presentation.views.explore.main import exploreWindow
 from app.presentation.views.manage.main import manageWindow
@@ -13,6 +16,9 @@ from app.presentation.widgets.menu_button import create_menu_button
 from .helpers.menu_button_state import MenuButtonStateManager
 from .helpers.menu_config import MENU_IMAGES_PATHS, MENU_LAYOUT, MENU_OPTIONS
 from .helpers.menu_resources import load_menu_images
+
+# Interval (ms) between unread-notification polls.
+_POLL_INTERVAL_MS: int = 8_000
 
 
 class Menu:
@@ -52,6 +58,19 @@ class Menu:
             "dashboard": self._wrap_action(dashboardWindow),
             "signOut": self._sign_out_handler,
         }
+
+        # ── Notification blinker (ease-in pulse when unread count > 0) ──────
+        notif_btn = self.buttons_by_name.get("notifications")
+        if notif_btn is not None:
+            self._blinker: Optional[NotificationBlinker] = NotificationBlinker(
+                btn=notif_btn,
+                images_dict=self.menu_images["notifications"],
+                default_path=MENU_IMAGES_PATHS["notifications"]["default"],
+                selected_path=MENU_IMAGES_PATHS["notifications"]["selected"],
+            )
+        else:
+            self._blinker = None
+        self._poll_after_id: Optional[str] = None
 
     def _create_menu_buttons(self) -> dict[str, tk.Button]:
         """
@@ -129,6 +148,39 @@ class Menu:
             self.render_menu("admin", self.posAdminMenuX)
         elif session.is_authenticated:
             self.render_menu("regular", self.posRegularMenuX)
+        # Start real-time unread-notification polling after the menu is visible
+        self._poll_notifications()
+
+    # ── Notification polling ──────────────────────────────────────────────────
+
+    def _poll_notifications(self) -> None:
+        """Check unread notification count and start/stop the blinker accordingly.
+
+        Schedules itself to run again after _POLL_INTERVAL_MS milliseconds so
+        the button reacts to new notifications without requiring a page reload.
+        """
+        if self._blinker is None:
+            return
+        try:
+            from app.controllers.notification_controller import NotificationController
+
+            count = NotificationController.get_unread_count()
+            if count > 0:  # Unread notifications exist — ensure blinker is running.
+                if not self._blinker.is_blinking:
+                    self._blinker.start()
+            else:  # No unread notifications — ensure blinker is stopped.
+                if self._blinker.is_blinking:
+                    self._blinker.stop()
+        except Exception:
+            pass
+        # Schedule next poll
+        if self.homeWindow:
+            try:
+                self._poll_after_id = self.homeWindow.after(
+                    _POLL_INTERVAL_MS, self._poll_notifications
+                )
+            except Exception:
+                pass
 
     def handle_menu_click(
         self,
@@ -162,6 +214,10 @@ class Menu:
                 self.homeWindow.update_idletasks()
         except Exception:
             pass
+
+        # Stop notification blinker immediately when the user opens the notifications panel.
+        if btn_name == "notifications" and self._blinker and self._blinker.is_blinking:
+            self._blinker.stop()
 
         # Execute the button's action. Actions are stored in `self.actions`.
         action = self.actions.get(btn_name)
