@@ -18,18 +18,6 @@ class NotificationController:
     # ── User notifications ────────────────────────────────────────────────────
 
     @staticmethod
-    def get_my_notifications() -> List[dict]:
-        """
-        Retrieve notifications for the currently logged-in user.
-
-        Returns:
-            List[dict]: List of notification dictionaries, or empty list if not authenticated.
-        """
-        if session.user_id is None:
-            return []
-        return NotificationService.get_my_notifications(session.user_id)
-
-    @staticmethod
     def get_unread_count() -> int:
         """
         Get the count of unread notifications for the currently logged-in user.
@@ -51,29 +39,10 @@ class NotificationController:
 
         Returns:
             Tuple[bool, str]: (success, message)
-
-        Raises:
-            Exception: Any unexpected error during marking is caught and logged.
         """
-        try:
-            if NotificationService.mark_read(not_id):
-                log_operation(
-                    "notification.mark_read",
-                    "success",
-                    f"Notification {not_id} marked as read",
-                )
-                return True, "Notification marked as read"
-            log_operation(
-                "notification.mark_read",
-                "validation_error",
-                f"Notification {not_id} not found",
-            )
-            return False, "Notification not found"
-        except Exception as e:
-            log_exception(
-                "notification.mark_read", e, context={"notification_id": not_id}
-            )
-            return False, "Something went wrong. Please try again later."
+        if NotificationService.mark_read(not_id):
+            return True, "Notification marked as read"
+        return False, "Notification not found"
 
     @staticmethod
     def mark_all_read() -> Tuple[bool, str]:
@@ -82,23 +51,11 @@ class NotificationController:
 
         Returns:
             Tuple[bool, str]: (success, message)
-
-        Raises:
-            Exception: Any unexpected error during marking is caught and logged.
         """
-        assert session.user_id is not None
-        try:
-            NotificationService.mark_all_read(session.user_id)
-            log_operation(
-                "notification.mark_all_read",
-                "success",
-                "All notifications marked as read",
-                user_id=session.user_id,
-            )
-            return True, "All notifications marked as read"
-        except Exception as e:
-            log_exception("notification.mark_all_read", e, user_id=session.user_id)
-            return False, "Something went wrong. Please try again later."
+        if session.user_id is None:
+            return False, "Not authenticated"
+        NotificationService.mark_all_read(session.user_id)
+        return True, "All notifications marked as read"
 
     # ── Admin: notification settings ──────────────────────────────────────────
 
@@ -156,3 +113,91 @@ class NotificationController:
                 context={"type_key": type_key, "enabled": enabled},
             )
             return False, "Something went wrong. Please try again later."
+
+    # ── Enriched / window helpers ─────────────────────────────────────────────
+
+    @staticmethod
+    def ensure_types_seeded() -> None:
+        """Ensure all canonical notification types exist in the database."""
+        NotificationService.ensure_types_seeded()
+
+    @staticmethod
+    def get_enriched(*, unread_only: bool = False) -> List[dict]:
+        """Return enriched notifications (with sender info and type label).
+
+        Args:
+            unread_only: When True, only unread notifications are returned.
+
+        Returns:
+            List[dict]: Enriched notification dicts, newest first.
+        """
+        if session.user_id is None:
+            return []
+        return NotificationService.get_enriched_notifications(
+            session.user_id, unread_only=unread_only
+        )
+
+    @staticmethod
+    def delete_by_photo(photo_id: int) -> int:
+        """Delete all notifications referencing *photo_id* from the database.
+
+        Must be called **before** the photo is deleted so the FK is still set.
+
+        Args:
+            photo_id: ID of the photo whose notifications to remove.
+
+        Returns:
+            int: Number of notifications deleted.
+        """
+        return NotificationService.delete_by_photo_id(photo_id)
+
+    @staticmethod
+    def delete_by_like(user_id: int, photo_id: int) -> int:
+        """Delete like_photo notification when a user unlikes a photo.
+
+        Args:
+            user_id: The user who unliked the photo.
+            photo_id: The photo being unliked.
+
+        Returns:
+            int: Number of notifications deleted.
+        """
+        return NotificationService.delete_by_like(user_id, photo_id)
+
+    @staticmethod
+    def delete_by_comment(comment_id: int) -> int:
+        """Delete comment_on_photo notification when a comment is deleted.
+
+        Args:
+            comment_id: The comment being deleted.
+
+        Returns:
+            int: Number of notifications deleted.
+        """
+        return NotificationService.delete_by_comment(comment_id)
+
+    @staticmethod
+    def delete_by_favorite(album_id: int, user_id: int) -> int:
+        """Delete album_favorited notification when a user removes an album from favorites.
+
+        Args:
+            album_id: The album being unfavorited.
+            user_id: The user removing from favorites.
+
+        Returns:
+            int: Number of notifications deleted.
+        """
+        return NotificationService.delete_by_favorite(album_id, user_id)
+
+    @staticmethod
+    def delete_by_follow(follower_id: int, followed_id: int) -> int:
+        """Delete new_follower notification when a user unfollows.
+
+        Args:
+            follower_id: The user who unfollowed.
+            followed_id: The user being unfollowed.
+
+        Returns:
+            int: Number of notifications deleted.
+        """
+        return NotificationService.delete_by_follow(follower_id, followed_id)

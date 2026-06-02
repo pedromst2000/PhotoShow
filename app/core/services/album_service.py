@@ -3,9 +3,12 @@ from typing import Optional, Tuple
 from app.core.db.engine import SessionLocal
 from app.core.db.models.album import AlbumModel
 from app.core.db.models.favorite import FavoriteModel
+from app.core.db.models.notification import NotificationModel
 from app.core.db.models.photo import PhotoModel
 from app.core.db.models.photo_image import PhotoImageModel
 from app.core.db.models.user import UserModel
+from app.core.services.catalog_service import CatalogService
+from app.core.services.notification_service import NotificationService
 from app.utils.file_utils import delete_from_latest
 from app.utils.log_utils import log_exception, log_operation
 
@@ -237,6 +240,13 @@ class AlbumService:
                     if img and img.get("image"):
                         image_paths.append(img["image"])
 
+                # Delete all notifications related to this album BEFORE deleting it
+                # (for album_favorited notifications)
+                NotificationModel.delete_by_album_id(session, album_id)
+
+                # Delete all favorites for this album
+                FavoriteModel.delete_all_for_album(session, album_id)
+
                 # Deleting the album triggers the DB CASCADE which removes all
                 # associated photos, photo_image, likes, comments, ratings, and
                 # reports automatically (PRAGMA foreign_keys=ON is active).
@@ -279,9 +289,6 @@ class AlbumService:
         Returns:
             Optional[dict]: Album info, enriched photos, is_favorite.
         """
-        # Late import to avoid circular dependency
-        from app.core.services.catalog_service import CatalogService
-
         try:
             with SessionLocal() as session:
                 album = AlbumModel.get_by_id(session, album_id)
@@ -318,6 +325,8 @@ class AlbumService:
         """
         Add or remove an album from the user's favorites.
 
+        Removes related notifications when unfavoriting.
+
         Args:
             album_id: The ID of the album.
             user_id: The ID of the user.
@@ -332,6 +341,7 @@ class AlbumService:
                 if is_currently_favorite:
                     FavoriteModel.delete_for_user(session, album_id, user_id)
                     session.commit()
+                    NotificationService.delete_by_favorite(album_id, user_id)
                     log_operation(
                         "album.toggle_favorite",
                         "success",
@@ -340,6 +350,8 @@ class AlbumService:
                     )
                     return True, "Album removed from favorites.", False
                 else:
+                    album = AlbumModel.get_by_id(session, album_id)
+                    owner_id = album.get("creatorId") if album else None
                     FavoriteModel.create(session, albumId=album_id, userId=user_id)
                     session.commit()
                     log_operation(
@@ -348,6 +360,14 @@ class AlbumService:
                         f"Added album {album_id} to favorites",
                         user_id=user_id,
                     )
+                    if owner_id and owner_id != user_id:
+                        NotificationService.send(
+                            "album_favorited",
+                            "added your album to favorites",
+                            user_id=owner_id,
+                            sender_id=user_id,
+                            album_id=album_id,
+                        )
                     return True, "Album added to favorites.", True
         except Exception as e:
             log_exception(
@@ -402,7 +422,7 @@ class AlbumService:
     @staticmethod
     def remove_favorite(album_id: int, user_id: int) -> Tuple[bool, str]:
         """
-        Remove a specific album from the user's favorites.
+        Remove a specific album from the user's favorites and remove the related notification.
 
         Unlike ``toggle_favorite``, this always removes without checking the
         current state first, making it safe to call from the Favorites window.
@@ -419,6 +439,8 @@ class AlbumService:
                 deleted = FavoriteModel.delete_for_user(session, album_id, user_id)
                 session.commit()
             if deleted:
+                # Remove the album_favorited notification when user unfavorites
+                NotificationService.delete_by_favorite(album_id, user_id)
                 log_operation(
                     "album.remove_favorite",
                     "success",

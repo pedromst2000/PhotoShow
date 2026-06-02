@@ -185,7 +185,9 @@ class PhotoController:
 
         try:
             # Delegate ownership check and deletion to service (business logic)
-            success, message = PhotoService.delete_photo(photo_id)
+            success, message = PhotoService.delete_photo(
+                photo_id, requesting_user_id=session.user_id
+            )
             if success:
                 log_operation(
                     "photo.delete_photo",

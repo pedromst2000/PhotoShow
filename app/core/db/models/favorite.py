@@ -145,3 +145,24 @@ class FavoriteModel(Base):
         q = session.query(cls).filter_by(albumId=albumId, userId=userId)
         count = q.delete()
         return count > 0
+
+    @classmethod
+    def delete_all_for_album(cls, session: Session, album_id: int) -> int:
+        """
+        Delete all favorite entries for a specific album.
+
+        Used when an album is deleted to clean up all favorite references.
+
+        Args:
+            session: Active SQLAlchemy session.
+            album_id (int): The ID of the album to remove from all users' favorites.
+
+        Returns:
+            int: Number of favorite entries deleted.
+        """
+        count = (
+            session.query(cls)
+            .filter_by(albumId=album_id)
+            .delete(synchronize_session=False)
+        )
+        return count

@@ -33,7 +33,13 @@ def open_photo_details(state: BasePhotoState) -> None:
     outer = tk.Frame(win, bg=colors["primary-50"])
     outer.pack(fill=tk.BOTH, expand=True, padx=16, pady=12)
 
-    build_detail_panel(outer, state, win=win, img_refs=img_refs)
+    build_detail_panel(
+        outer,
+        state,
+        win=win,
+        img_refs=img_refs,
+        on_delete_callback=getattr(state, "_on_photo_deleted", None),
+    )
 
     # Keep image references alive for the window lifetime.
     win._img_refs = img_refs

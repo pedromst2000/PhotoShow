@@ -81,7 +81,7 @@ class LikeModel(Base):
             session.query(cls).filter_by(userId=user_id, photoId=photo_id).first()
         )
         if existing:
-            return existing.to_dict()
+            return None
         obj = cls(userId=user_id, photoId=photo_id)
         session.add(obj)
         session.flush()

@@ -1,4 +1,7 @@
 id,type,label,isEnabled
-1,daily_content,Notify when a followed user adds a new photo to an album,True
-2,comment_photos,Notify when someone comments on a photo you liked,True
-3,favorite_album,Notify when a new photo is added to a favorited album,True
+1,comment_on_photo,Someone commented on your photo,True
+2,like_photo,Someone liked your photo,True
+3,album_favorited,Someone added your album to favorites,True
+4,new_follower,Someone started following you,True
+5,admin_delete_comment,Admin deleted your comment,True
+6,admin_delete_photo,Admin deleted your photo,True

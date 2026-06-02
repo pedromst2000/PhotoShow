@@ -1,10 +1,10 @@
 ﻿id,typeId,recipientId,senderId,photoId,albumId,commentId,message,isRead
-1,1,2,1,8,1,,A user you follow added a new photo to their album!,False
-2,2,2,3,1,,1,Someone commented on a photo you liked!,False
-3,3,2,4,4,5,,A new photo was added to your favorite album!,False
-4,1,3,2,1,1,,A user you follow added a new photo to their album!,False
-5,2,3,1,1,,1,Someone commented on a photo you liked!,False
-6,3,3,2,11,2,,A new photo was added to your favorite album!,False
-7,1,1,2,9,6,,A user you follow added a new photo to their album!,False
-8,2,1,2,1,,1,Someone commented on a photo you liked!,False
-9,3,1,3,2,4,,A new photo was added to your favorite album!,False
+1,1,2,6,2,,6,commented on your photo.,False
+2,2,2,3,2,,,liked your photo.,False
+3,3,2,4,,1,,added your album to favorites.,False
+4,4,2,1,,,,started following you.,False
+5,5,2,1,,,1,Your comment was deleted by an admin.,False
+6,6,2,1,5,,,Your photo was deleted by an admin.,False
+7,1,2,7,2,,7,commented on your photo.,False
+8,2,1,3,6,,,liked your photo.,False
+9,4,1,4,,,,started following you.,False
