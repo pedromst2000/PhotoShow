@@ -2,9 +2,7 @@ MENU_OPTIONS = [
     {"name": "explore", "roles": ["regular", "admin"]},
     {"name": "profile", "roles": ["regular", "admin"]},
     {"name": "notifications", "roles": ["regular", "admin"]},
-    {"name": "dashboard", "roles": ["regular", "admin"]},
     {"name": "manage", "roles": ["admin"]},
-    {"name": "settings", "roles": ["admin"]},
     {"name": "signOut", "roles": ["regular", "admin"]},
 ]
 
@@ -23,17 +21,9 @@ MENU_IMAGES_PATHS = {
         "default": "app/assets/images/home/menu/NotificationsDefault.png",
         "selected": "app/assets/images/home/menu/notificationsSelect.png",
     },
-    "dashboard": {
-        "default": "app/assets/images/home/menu/DashboardDefault.png",
-        "selected": "app/assets/images/home/menu/dashboardSelect.png",
-    },
     "manage": {
         "default": "app/assets/images/home/menu/ManageDefault.png",
         "selected": "app/assets/images/home/menu/manageSelect.png",
-    },
-    "settings": {
-        "default": "app/assets/images/home/menu/SettingsDefault.png",
-        "selected": "app/assets/images/home/menu/settingsSelect.png",
     },
     "signOut": {
         "default": "app/assets/images/home/menu/signOutDefault.png",
