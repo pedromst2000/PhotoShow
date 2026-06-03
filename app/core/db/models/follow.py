@@ -129,30 +129,6 @@ class FollowModel(Base):
         ) is not None
 
     @classmethod
-    def get_followers(cls, session: Session, user_id: int) -> list:
-        """
-        Return all follow entries where followed_id == user_id (people who follow this user).
-
-        Returns:
-            list[dict]: FollowModel dicts with followerID field.
-        """
-        return [
-            f.to_dict() for f in session.query(cls).filter_by(followedId=user_id).all()
-        ]
-
-    @classmethod
-    def get_following(cls, session: Session, user_id: int) -> list:
-        """
-        Return all follow entries where follower_id == user_id (users this user follows).
-
-        Returns:
-            list[dict]: FollowModel dicts with followedID field.
-        """
-        return [
-            f.to_dict() for f in session.query(cls).filter_by(followerId=user_id).all()
-        ]
-
-    @classmethod
     def count_followers(cls, session: Session, user_id: int) -> int:
         """
         Return the number of users following user_id.

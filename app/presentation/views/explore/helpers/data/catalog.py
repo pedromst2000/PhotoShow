@@ -1,7 +1,7 @@
 from typing import Any
 
 from app.controllers.category_controller import CategoryController
-from app.core.services.catalog_service import CatalogService
+from app.controllers.explore_controller import ExploreController
 from app.presentation.views.explore.helpers.data.state import ExploreState
 from app.presentation.views.helpers.data.pagination import PaginationManager
 from app.presentation.views.helpers.data.pagination_helpers import get_page_slice
@@ -59,7 +59,7 @@ def _get_filtered_photos(
     # Load catalog from cache OR fetch it once and cache
     if _cache_key != current_key or current_key not in _catalog_cache:
         # Cache miss: fetch and sort the full catalog ONCE (expensive operation)
-        all_filtered = CatalogService.get_explore_catalog(
+        all_filtered = ExploreController.get_catalog(
             sort_by=sort_key,
             category=category,
             username=author,
@@ -157,7 +157,7 @@ def load_catalog(state: ExploreState):
         total_count = len(all_filtered)
     else:
         # For regular/admin users, use the full count
-        total_count = CatalogService.count_filtered_photos(
+        total_count = ExploreController.count_catalog(
             category=category,
             username=author,
         )

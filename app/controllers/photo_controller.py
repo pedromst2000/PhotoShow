@@ -12,20 +12,9 @@ class PhotoController:
 
     Coordinates between views and services for:
     - Uploading photos
-    - Listing photos
-    - Filtering photos
     - Deleting photos
+    - Fetching photo details
     """
-
-    @staticmethod
-    def get_all_photos() -> List[dict]:
-        """
-        Get all photos in the system.
-
-        Returns:
-            List[dict]: List of all photo dictionaries.
-        """
-        return PhotoService.get_all_photos()
 
     @staticmethod
     def get_photo_details(photo_id: int) -> Optional[dict]:
@@ -39,64 +28,6 @@ class PhotoController:
             Optional[dict]: Enriched photo data (includes likes, has_liked, username).
         """
         return PhotoService.get_photo_details(photo_id, session.user_id)
-
-    @staticmethod
-    def get_photos_by_album(album_id: int) -> List[dict]:
-        """
-        Get all photos in an album.
-
-        Args:
-            album_id: The album's ID.
-
-        Returns:
-            List[dict]: List of photo dictionaries in the album.
-        """
-        return PhotoService.get_photos_by_album(album_id)
-
-    @staticmethod
-    def get_photos_by_user(user_id: Optional[int] = None) -> List[dict]:
-        """
-        Get all photos uploaded by a user.
-
-        Args:
-            user_id: The user's ID. If None, uses current user.
-
-        Returns:
-            List[dict]: List of photo dictionaries.
-        """
-        target_user_id = user_id if user_id is not None else session.user_id
-        if target_user_id is None:
-            return []
-        return PhotoService.get_photos_by_user(target_user_id)
-
-    @staticmethod
-    def get_filtered_photos(
-        category: str = "all", username: Optional[str] = None
-    ) -> List[dict]:
-        """
-        Get photos filtered by category and/or username.
-
-        Args:
-            category: The category to filter by. "all" for all categories.
-            username: The username to filter by. None to not filter by user.
-
-        Returns:
-            List[dict]: List of enriched photo dictionaries.
-        """
-        return PhotoService.get_filtered_photos(category, username)
-
-    @staticmethod
-    def get_photos_by_category(category_name: str) -> List[dict]:
-        """
-        Get all photos in a category.
-
-        Args:
-            category_name: The name of the category.
-
-        Returns:
-            List[dict]: List of photo dictionaries in the category.
-        """
-        return PhotoService.get_photos_by_category(category_name)
 
     @staticmethod
     def upload_photo(
