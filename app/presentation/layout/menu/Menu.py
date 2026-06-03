@@ -5,12 +5,10 @@ from app.core.state.session import session
 from app.presentation.layout.menu.helpers.notification_blinker import (
     NotificationBlinker,
 )
-from app.presentation.views.dashboard.main import dashboardWindow
 from app.presentation.views.explore.main import exploreWindow
 from app.presentation.views.manage.main import manageWindow
 from app.presentation.views.notifications.main import notificationsWindow
 from app.presentation.views.profile.main import profileWindow
-from app.presentation.views.settings.main import settingsWindow
 from app.presentation.widgets.menu_button import create_menu_button
 
 from .helpers.menu_button_state import MenuButtonStateManager
@@ -53,9 +51,7 @@ class Menu:
             "explore": self._wrap_action(exploreWindow),
             "profile": self._wrap_action(profileWindow),
             "notifications": self._wrap_action(notificationsWindow),
-            "settings": self._wrap_action(settingsWindow),
             "manage": self._wrap_action(manageWindow),
-            "dashboard": self._wrap_action(dashboardWindow),
             "signOut": self._sign_out_handler,
         }
 
