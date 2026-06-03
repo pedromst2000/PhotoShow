@@ -164,8 +164,3 @@ User Stories - Requirements - Features
 ## ALL USERS - Reporting & Moderation
 
 - [x] **Report content**: Users can report inappropriate photos or comments, providing a reason for the report ( e.g., "Inappropriate content", "Spam", "Harassment"). Reported content should be flagged for admin review. If selected other, a text input should appear to provide more details about the report. This information should be included in the report sent to the admin for review.
-
-
-## AUTO DELETE CONTENT FROM DATABASE - CRON JOB
-
-- [ ] **Auto-delete old content**: Implement a cron job scheduled to run daily that automatically checks older content (reports, contacts messages and notifications) and deletes any entries that are older than 15 days from the database to maintain optimal performance and data relevance. This cron job should be set up to run at a specific time each day (e.g., midnight) and should log its activity for monitoring purposes.

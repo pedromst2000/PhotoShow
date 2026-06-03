@@ -47,13 +47,20 @@ PhotoShow is a local desktop application for browsing, organizing, and sharing p
 
 **:sparkles: Key Features**
 
-- Create and manage albums; upload and view photos.
-- Explore and navigate community content.
-- Like, comment on, and rate photos.
-- Add other users' albums to your favorites.
-- Follow other users and receive in-app notifications.
-- Personalize your profile and avatar; admin tools to manage users and categories.
-- Report inappropriate content for admin review.
+- 📁 Create and manage albums
+- 📸 Upload and view photos
+- 🔍 Browse community content
+- ❤️ Like and rate photos
+- 💬 Comment on photos
+- ⭐ Add albums to favorites
+- 👥 Follow other users
+- 🔔 Receive in-app notifications
+- 👤 Customize your profile
+- 🎨 Set a custom avatar
+- 🚩 Report inappropriate content
+- 👨‍💼 Admin tools for user management
+- 📋 Admin tools for category management
+- ✅ Admin review system for reports
 
 ## :clapper: Demo Video
 
