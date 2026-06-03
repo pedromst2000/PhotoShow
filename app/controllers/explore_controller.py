@@ -21,6 +21,7 @@ class ExploreController:
         sort_by: str = "date",
         category: str = "all",
         username: Optional[str] = None,
+        user_id: Optional[int] = ...,  # type: ignore[assignment]
     ) -> List[dict]:
         """
         Return the enriched photo catalog, filtered and sorted.
@@ -29,15 +30,39 @@ class ExploreController:
             sort_by: Sort key — one of "date", "likes", "rating", "comments".
             category: Category name to filter by, or "all".
             username: Author username to filter by, or None.
+            user_id: Override the session user ID. Pass ``None`` to fetch
+                     without user-specific flags (e.g. for anonymous caching).
+                     Defaults to the current session user ID.
 
         Returns:
             List[dict]: Enriched photo dicts with image, stats, and user flags.
         """
+        resolved_uid = session.user_id if user_id is ... else user_id
         return CatalogService.get_explore_catalog(
             sort_by=sort_by,
             category=category,
             username=username,
-            user_id=session.user_id,
+            user_id=resolved_uid,
+        )
+
+    @staticmethod
+    def count_catalog(
+        category: str = "all",
+        username: Optional[str] = None,
+    ) -> int:
+        """
+        Return the total number of photos matching the given filters.
+
+        Args:
+            category: Category name to filter by, or "all".
+            username: Author username to filter by, or None.
+
+        Returns:
+            int: Total count of matching photos.
+        """
+        return CatalogService.count_filtered_photos(
+            category=category,
+            username=username,
         )
 
     @staticmethod

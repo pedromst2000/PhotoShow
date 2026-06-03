@@ -14,11 +14,6 @@ User Stories - Requirements - Features
 - [X] **Add category**: Admin can add categories.
 - [X] **Edit category**: Admin can rename categories.
 
-## ADMIN USER - Settings of the Notifications
-
-- [ ] **Notification options**: Configure types and delivery.
-- [ ] **Notification types**: Enable/disable notifications for interactions (e.g., new comment, like, album favorited).
-
 ## ALL USERS - Authentication
 
 - [x] **Login page**: Sign in with email and password.
@@ -165,7 +160,6 @@ User Stories - Requirements - Features
 
 - [x] **Contact Admin**: Blocked users can contact admin to resolve issues.
 - [x] **Blocked account notice**: Show suspension notice and contact admin option.
-- [ ] **Display reason for block**: When a user is blocked, display the reason for the block (e.g., "Inappropriate content", "Spam", "Harassment") and the comment or photo reported that led to the block. This information should be visible on the blocked account notice page to provide transparency and help the user understand why they were blocked.
 
 ## ALL USERS - Reporting & Moderation
 

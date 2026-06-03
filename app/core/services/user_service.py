@@ -56,57 +56,6 @@ class UserService:
             return {"follower_count": 0, "photo_count": 0}
 
     @staticmethod
-    def get_all_users() -> list:
-        """
-        Get all users in the system.
-
-        Returns:
-            list: List of all user dictionaries.
-
-        Raises:
-            Exception: Any database error is caught and logged; empty list returned.
-        """
-        try:
-            with SessionLocal() as session:
-                users = UserModel.get_all(session)
-            log_operation(
-                "user.get_all_users", "success", f"Retrieved {len(users)} users"
-            )
-            return users
-        except Exception as e:
-            log_exception("user.get_all_users", e)
-            return []
-
-    @staticmethod
-    def delete_user(user_id: int) -> bool:
-        """
-        Delete a user by ID.
-
-        Args:
-            user_id: The ID of the user to delete.
-
-        Returns:
-            bool: True if deleted successfully, False otherwise.
-
-        Raises:
-            Exception: Any database error is caught and logged; False returned.
-        """
-        try:
-            with SessionLocal() as session:
-                result = UserModel.delete(session, user_id)
-                session.commit()
-            if result:
-                log_operation("user.delete_user", "success", f"Deleted user {user_id}")
-            else:
-                log_operation(
-                    "user.delete_user", "validation_error", f"User {user_id} not found"
-                )
-            return result
-        except Exception as e:
-            log_exception("user.delete_user", e, context={"user_id": user_id})
-            return False
-
-    @staticmethod
     def get_user_list_for_admin() -> list:
         """
         Get a filtered list of users for admin management.
@@ -347,40 +296,6 @@ class UserService:
             return False
 
     @staticmethod
-    def is_user_blocked(user_id: int) -> bool:
-        """
-        Check if a user is blocked.
-
-        Args:
-            user_id: The user's ID.
-
-        Returns:
-            bool: True if user is blocked, False otherwise.
-        """
-        with SessionLocal() as session:
-            user = UserModel.get_by_id(session, user_id)
-        return user["isBlocked"] if user else False
-
-    @staticmethod
-    def get_users_by_role(role: str) -> list:
-        """
-        Get all users with a specific role.
-
-        Args:
-            role: The role to filter by.
-
-        Returns:
-            list: List of user dictionaries with the specified role.
-        """
-        with SessionLocal() as session:
-            role_obj = RoleModel.get_by_name(session, role)
-            if not role_obj:
-                return []
-            return [
-                u for u in UserModel.get_all(session) if u["roleId"] == role_obj["id"]
-            ]
-
-    @staticmethod
     def filter_users(
         username: str,
         email: str,
@@ -482,40 +397,6 @@ class UserService:
         """
         with SessionLocal() as session:
             return FollowModel.is_following(session, follower_id, followed_id)
-
-    @staticmethod
-    def get_followers(user_id: int) -> list:
-        """
-        Return full user profiles for everyone who follows user_id.
-
-        Returns:
-            list[dict]: User dicts (from UserModel) for each follower.
-        """
-        with SessionLocal() as session:
-            follows = FollowModel.get_followers(session, user_id)
-            result = []
-            for f in follows:
-                user = UserModel.get_by_id(session, f["followerId"])
-                if user:
-                    result.append(user)
-            return result
-
-    @staticmethod
-    def get_following(user_id: int) -> list:
-        """
-        Return full user profiles for everyone that user_id follows.
-
-        Returns:
-            list[dict]: User dicts (from UserModel) for each followed user.
-        """
-        with SessionLocal() as session:
-            follows = FollowModel.get_following(session, user_id)
-            result = []
-            for f in follows:
-                user = UserModel.get_by_id(session, f["followedId"])
-                if user:
-                    result.append(user)
-            return result
 
     @staticmethod
     def get_profile(user_id: int) -> Optional[dict]:

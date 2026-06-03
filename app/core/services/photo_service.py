@@ -37,72 +37,6 @@ class PhotoService:
     """
 
     @staticmethod
-    def get_photos_by_user(user_id: int) -> list:
-        """
-        Retrieve all photos uploaded by a specific user (through their albums).
-
-        Args:
-            user_id: The ID of the user.
-
-        Returns:
-            list: A list of photo dictionaries owned by the user.
-
-        Raises:
-            Exception: Any database error is caught and logged; empty list returned.
-        """
-        try:
-            with SessionLocal() as session:
-                albums = AlbumModel.get_by_creator(session, user_id)
-                # Batch-fetch photos for all the user's albums to avoid N+1 queries
-                album_ids = [a["id"] for a in albums] if albums else []
-                if not album_ids:
-                    return []
-                photos = (
-                    session.query(PhotoModel)
-                    .filter(getattr(PhotoModel, "albumId").in_(album_ids))
-                    .all()
-                )
-            log_operation(
-                "photo.get_photos_by_user",
-                "success",
-                f"Retrieved {len(photos)} photos for user {user_id}",
-                user_id=user_id,
-            )
-            return [p.to_dict() for p in photos]
-        except Exception as e:
-            log_exception("photo.get_photos_by_user", e, user_id=user_id)
-            return []
-
-    @staticmethod
-    def get_photos_by_album(album_id: int) -> list:
-        """
-        Get all photos in a specific album.
-
-        Args:
-            album_id: The album's ID.
-
-        Returns:
-            list: List of photo dictionaries in the album.
-
-        Raises:
-            Exception: Any database error is caught and logged; empty list returned.
-        """
-        try:
-            with SessionLocal() as session:
-                photos = PhotoModel.get_by_album(session, album_id)
-            log_operation(
-                "photo.get_photos_by_album",
-                "success",
-                f"Retrieved {len(photos)} photos from album {album_id}",
-            )
-            return photos
-        except Exception as e:
-            log_exception(
-                "photo.get_photos_by_album", e, context={"album_id": album_id}
-            )
-            return []
-
-    @staticmethod
     def check_if_liked(user_id: int, photo_id: int) -> bool:
         """
         Check if a user has already liked a photo.
@@ -128,84 +62,6 @@ class PhotoService:
                 context={"photo_id": photo_id},
             )
             return False
-
-    @staticmethod
-    def get_photos_by_category(category_name: str) -> list:
-        """
-        Retrieve all photos in a specific category.
-
-        Args:
-            category_name: The name of the category.
-
-        Returns:
-            list: A list of photo dictionaries in the category.
-        """
-        with SessionLocal() as session:
-            categories = CategoryModel.get_all(session)
-            category = next(
-                (c for c in categories if c["category"] == category_name), None
-            )
-            if category:
-                return PhotoModel.get_by_category(session, category["id"])
-            return []
-
-    @staticmethod
-    def get_filtered_photos(
-        category: str = "all", username: Optional[str] = None
-    ) -> list:
-        """
-        Retrieve photos filtered by category and/or username.
-        Enriches photos with category name and username.
-
-        Args:
-            category: The category to filter by. Use "all" for all categories.
-            username: The username to filter by. None to not filter by user.
-
-        Returns:
-            list: A list of enriched photo dictionaries.
-        """
-        with SessionLocal() as session:
-            photos = PhotoModel.get_all(session)
-            categories = CategoryModel.get_all(session)
-            users = UserModel.get_all(session)
-            albums = AlbumModel.get_all(session)
-
-        # Helper to get category name for a photo
-        def get_category_name(photo: dict) -> str:
-            m: dict = next(
-                (c for c in categories if c["id"] == photo["categoryId"]), {}
-            )
-            return str(m.get("category", ""))
-
-        # Helper to get username for a photo via its album's creatorID
-        def get_username(photo: dict) -> str:
-            album = next((a for a in albums if a["id"] == photo["albumId"]), None)
-            if not album:
-                return ""
-            m: dict = next((u for u in users if u["id"] == album["creatorId"]), {})
-            return str(m.get("username", ""))
-
-        result = []
-        for photo in photos:
-            cat_name = get_category_name(photo)
-            user_name = get_username(photo)
-
-            # Filter by category
-            if category != "all" and cat_name != category:
-                continue
-
-            # Filter by username
-            if username and user_name != username:
-                continue
-
-            enriched_photo = {
-                **photo,
-                "category": cat_name,
-                "user": user_name,
-            }
-            result.append(enriched_photo)
-
-        return result
 
     @staticmethod
     def create_photo(
@@ -378,32 +234,6 @@ class PhotoService:
                 .all()
             )
             return [p.to_dict() for p in photos]
-
-    @staticmethod
-    def get_all_photos() -> list:
-        """
-        Return all photos sorted by published date, newest first.
-
-        Returns:
-            list: A list of photo dictionaries sorted by published date descending.
-
-        Raises:
-            Exception: Any database error is caught and logged; empty list returned.
-        """
-        try:
-            with SessionLocal() as session:
-                photos = PhotoModel.get_all(session)
-            log_operation(
-                "photo.get_all_photos", "success", f"Retrieved {len(photos)} photos"
-            )
-            return sorted(
-                photos,
-                key=lambda p: str(p.get("publishedDate") or ""),
-                reverse=True,
-            )
-        except Exception as e:
-            log_exception("photo.get_all_photos", e)
-            return []
 
     @staticmethod
     def get_photo_details(
