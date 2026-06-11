@@ -66,7 +66,7 @@ class ReportService:
                                 session, r["photoId"]
                             )
                             enriched["photo_path"] = (
-                                img_obj.get("image") if img_obj else None
+                                img_obj.get("provider_image_url") if img_obj else None
                             )
                             album = (
                                 session.query(AlbumModel)

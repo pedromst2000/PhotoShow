@@ -109,10 +109,12 @@ def _read_avatars() -> list:
     log_check(f"Reading avatars from {path}...")
     try:
         with open(path, "r", encoding="utf-8-sig", newline="") as f:
-            for parts in csv.reader(f):  # expected: id,userID,avatar
+            for parts in csv.reader(
+                f
+            ):  # expected: id,userId,provider_id,provider_url_avatar
                 if parts[0] == "id":
                     continue
-                if len(parts) < 3:
+                if len(parts) < 2:
                     continue
                 try:
                     row_id = int(parts[0]) if parts[0].strip() else None
@@ -122,14 +124,14 @@ def _read_avatars() -> list:
                     user_id = int(parts[1])
                 except Exception:
                     continue
-                avatar_path = parts[2].strip()
-                if not avatar_path:
-                    continue
+                provider_id = parts[2].strip() if len(parts) > 2 else ""
+                provider_url_image = parts[3].strip() if len(parts) > 3 else ""
                 data.append(
                     AvatarModel(
                         id=row_id,
                         userId=user_id,
-                        avatar=avatar_path,
+                        provider_id=provider_id,
+                        provider_url_image=provider_url_image,
                     )
                 )
         log_success(f"Loaded {len(data)} avatars from avatars.csv.")
@@ -259,16 +261,21 @@ def _read_photo_image() -> list:
     log_check(f"Reading photo images from {path}...")
     try:
         with open(path, "r", encoding="utf-8-sig", newline="") as f:
-            for parts in csv.reader(f):  # expected: id,photoID,image
+            for parts in csv.reader(
+                f
+            ):  # expected: id,photoId,provider_image_id,provider_image_url
                 if parts[0] == "id":
                     continue
-                if len(parts) < 3:
+                if len(parts) < 2:
                     continue
+                provider_image_id = parts[2].strip() if len(parts) > 2 else ""
+                provider_image_url = parts[3].strip() if len(parts) > 3 else ""
                 data.append(
                     PhotoImageModel(
                         id=int(parts[0]),
                         photoId=int(parts[1]),
-                        image=parts[2],
+                        provider_image_id=provider_image_id,
+                        provider_image_url=provider_image_url,
                     )
                 )
         log_success(f"Loaded {len(data)} photo images.")

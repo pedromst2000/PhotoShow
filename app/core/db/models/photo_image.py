@@ -17,7 +17,7 @@ from app.core.db.engine import Base
 
 class PhotoImageModel(Base):
     """
-    PhotoImageModel represents an image associated with a photo in the database
+    PhotoImageModel stores the Cloudinary asset data for a photo.
     """
 
     __tablename__ = "photo_image"
@@ -28,16 +28,14 @@ class PhotoImageModel(Base):
         CheckConstraint(
             "photoId > 0 AND photoId < 10000000", name="ck_photo_image_photoId_range"
         ),
-        CheckConstraint(
-            "length(trim(image)) > 0", name="ck_photo_image_image_not_empty"
-        ),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     photoId: int = Column(
         Integer, ForeignKey("photos.id", ondelete="CASCADE"), nullable=False
     )
-    image: str = Column(String(255), nullable=False)
+    provider_image_id: str = Column(String(512), nullable=True)
+    provider_image_url: str = Column(String(1024), nullable=True)
     createdAt: DateTime = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -48,33 +46,34 @@ class PhotoImageModel(Base):
     )
 
     def to_dict(self) -> dict:
-        """
-        Convert the PhotoImageModel instance to a dictionary.
-
-        Returns:
-            dict: A dictionary representation of the PhotoImageModel instance.
-        """
-
         return {
             "id": self.id,
             "photoId": self.photoId,
-            "image": self.image,
+            "provider_image_id": self.provider_image_id,
+            "provider_image_url": self.provider_image_url,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
         }
 
     @classmethod
-    def create(cls, session: Session, photo_id: int, image: str) -> dict:
+    def create(
+        cls,
+        session: Session,
+        photo_id: int,
+        provider_image_id: str,
+        provider_image_url: str,
+    ) -> dict:
         """
-        Create or update a PhotoImageModel record.
+        Create or update the Cloudinary image record for a photo.
 
         Args:
-            session: Active SQLAlchemy session.
-            photo_id (int): The ID of the photo to which this image belongs.
-            image (str): The file path or URL of the image (pre-validated).
+            session:           Active SQLAlchemy session.
+            photo_id:          The photo this image belongs to.
+            provider_image_id: Cloudinary public_id.
+            provider_image_url: Cloudinary secure_url.
 
         Returns:
-            dict: A dictionary representation of the created/updated PhotoImageModel instance.
+            dict representation of the created / updated record.
         """
         existing = (
             session.query(cls)
@@ -83,11 +82,16 @@ class PhotoImageModel(Base):
             .first()
         )
         if existing:
-            existing.image = image
+            existing.provider_image_id = provider_image_id
+            existing.provider_image_url = provider_image_url
             session.flush()
             return existing.to_dict()
 
-        obj = cls(photoId=photo_id, image=image)
+        obj = cls(
+            photoId=photo_id,
+            provider_image_id=provider_image_id,
+            provider_image_url=provider_image_url,
+        )
         session.add(obj)
         session.flush()
         return obj.to_dict()
@@ -98,8 +102,8 @@ class PhotoImageModel(Base):
         Return the single image record for a photo as a dict, or None.
 
         Args:
-            session: Active SQLAlchemy session.
-            photo_id (int): The ID of the photo for which to retrieve the image.
+            session:  Active SQLAlchemy session.
+            photo_id: The ID of the photo for which to retrieve the image.
 
         Returns:
             dict | None: A dictionary representation of the image record, or None if not found.
@@ -115,14 +119,14 @@ class PhotoImageModel(Base):
     @classmethod
     def get_primary_for_photo(cls, session: Session, photo_id: int) -> str | None:
         """
-        Return the primary image path for a photo, or None.
+        Return the Cloudinary secure_url for a photo, or None.
 
         Args:
-            session: Active SQLAlchemy session.
-            photo_id (int): The ID of the photo for which to retrieve the primary image.
+            session:  Active SQLAlchemy session.
+            photo_id: The ID of the photo.
 
         Returns:
-            str | None: The file path or URL of the primary image, or None if not found.
+            str | None: The Cloudinary URL of the primary image, or None if not found.
         """
         row = (
             session.query(cls)
@@ -131,5 +135,5 @@ class PhotoImageModel(Base):
             .first()
         )
         if row:
-            return row.image
+            return row.provider_image_url
         return None

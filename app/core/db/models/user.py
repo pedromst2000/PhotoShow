@@ -89,25 +89,23 @@ class UserModel(Base):
         Returns:
             dict: A dictionary representation of the UserModel instance.
         """
-        avatar_path = None
+        avatar_url = None
         try:
             if getattr(self, "avatar_rel", None) is not None:
-                from app.utils.file_utils import resolve_avatar_path
-
-                avatar_path = resolve_avatar_path(self.avatar_rel.avatar)
+                avatar_url = self.avatar_rel.provider_url_image
         except Exception:
             pass
-        if avatar_path is None:
-            from app.utils.file_utils import _DEFAULT_AVATAR
+        if not avatar_url:
+            from app.config.cloudinary_config import DEFAULT_AVATAR_URL
 
-            avatar_path = _DEFAULT_AVATAR
+            avatar_url = DEFAULT_AVATAR_URL or ""
 
         return {
             "id": self.id,
             "username": self.username,
             "email": self.email,
             "password": self.password,
-            "avatar": avatar_path,
+            "avatar": avatar_url,
             "role": self.role,
             "roleId": self.roleId,
             "isBlocked": self.isBlocked,

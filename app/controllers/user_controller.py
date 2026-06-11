@@ -289,30 +289,35 @@ class UserController:
             return {"follower_count": 0, "photo_count": 0}
 
     @staticmethod
-    def update_avatar(avatar_filename: str) -> Tuple[bool, str]:
+    def update_avatar(provider_id: str, provider_url_image: str) -> Tuple[bool, str]:
         """
-        Update the current user's avatar.
+        Update the current user's avatar Cloudinary reference.
+
+        The image must already be uploaded to Cloudinary before calling this
+        method.  Pass the public_id and secure_url from CloudinaryService.
 
         Args:
-            avatar_filename: The new avatar filename.
+            provider_id:        Cloudinary public_id of the new avatar.
+            provider_url_image: Cloudinary secure_url of the new avatar.
 
         Returns:
             Tuple[bool, str]: (success, message)
         """
-        if not avatar_filename:
+        if not provider_url_image:
             log_operation(
                 "profile.update_avatar",
                 "validation_error",
-                "Avatar filename is required",
+                "Avatar URL is required",
             )
             return False, "Please select an avatar"
 
         try:
             assert session.user_id is not None
 
-            if UserService.update_avatar(session.user_id, avatar_filename):
-                new_avatar_path = f"assets/images/local_cloud_media/latest/profile_avatars/{avatar_filename}"
-                session.update_user_data({"avatar": new_avatar_path})
+            if UserService.update_avatar(
+                session.user_id, provider_id, provider_url_image
+            ):
+                session.update_user_data({"avatar": provider_url_image})
                 log_operation(
                     "profile.update_avatar",
                     "success",
@@ -333,7 +338,7 @@ class UserController:
                 "profile.update_avatar",
                 e,
                 user_id=session.user_id,
-                context={"avatar_filename": avatar_filename},
+                context={"provider_id": provider_id},
             )
             return False, "Something went wrong. Please try again later."
 

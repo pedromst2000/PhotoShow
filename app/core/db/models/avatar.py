@@ -17,7 +17,7 @@ from app.core.db.engine import Base
 
 class AvatarModel(Base):
     """
-    AvatarModel represents a user avatar in the database.
+    AvatarModel stores the Cloudinary asset data for a user's avatar.
     """
 
     __tablename__ = "avatars"
@@ -28,14 +28,14 @@ class AvatarModel(Base):
         CheckConstraint(
             "userId > 0 AND userId < 10000000", name="ck_avatars_userId_range"
         ),
-        CheckConstraint("length(trim(avatar)) > 0", name="ck_avatars_avatar_not_empty"),
     )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     userId: int = Column(
         Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
-    avatar: str = Column(String(255), nullable=False)
+    provider_id: str = Column(String(512), nullable=True)
+    provider_url_image: str = Column(String(1024), nullable=True)
     createdAt: DateTime = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -46,48 +46,60 @@ class AvatarModel(Base):
     )
 
     def to_dict(self) -> dict:
-        """
-        Convert the AvatarModel instance to a dictionary.
-
-        Returns:
-            dict: A dictionary representation of the AvatarModel instance.
-        """
-
         return {
             "id": self.id,
             "userId": self.userId,
-            "avatar": self.avatar,
+            "provider_id": self.provider_id,
+            "provider_url_image": self.provider_url_image,
             "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
         }
 
     @classmethod
-    def create(cls, session: Session, user_id: int, avatar_path: str) -> dict:
+    def create(
+        cls,
+        session: Session,
+        user_id: int,
+        provider_id: str,
+        provider_url_image: str,
+    ) -> dict:
         """
-        Create a new avatar for a user.
+        Create a new avatar record for a user.
 
         Args:
-            session: Active SQLAlchemy session.
-            user_id (int): ID of the user owning the avatar.
-            avatar_path (str): File path or URL of the avatar image (pre-validated).
+            session:            Active SQLAlchemy session.
+            user_id:            ID of the user owning the avatar.
+            provider_id:        Cloudinary public_id.
+            provider_url_image: Cloudinary secure_url.
 
         Returns:
             dict: The created avatar row as a dictionary.
         """
-        obj = cls(userId=user_id, avatar=avatar_path)
+        obj = cls(
+            userId=user_id,
+            provider_id=provider_id,
+            provider_url_image=provider_url_image,
+        )
         session.add(obj)
-        session.flush()  # Flush to assign an ID before returning
+        session.flush()
         return obj.to_dict()
 
     @classmethod
-    def update(cls, session: Session, user_id: int, avatar_path: str) -> dict | None:
+    def update(
+        cls,
+        session: Session,
+        user_id: int,
+        provider_id: str,
+        provider_url_image: str,
+    ) -> dict | None:
         """
         Update the avatar for an existing user.
 
         Args:
-            session: Active SQLAlchemy session.
-            user_id (int): ID of the user whose avatar should be updated.
-            avatar_path (str): File path or URL of the avatar image (pre-validated).
+            session:            Active SQLAlchemy session.
+            user_id:            ID of the user whose avatar should be updated.
+            provider_id:        New Cloudinary public_id.
+            provider_url_image: New Cloudinary secure_url.
 
         Returns:
             dict | None: The updated avatar row as a dictionary, or None if not found.
@@ -98,9 +110,10 @@ class AvatarModel(Base):
             .order_by(desc(cls.createdAt))
             .first()
         )
-        if existing:  # Only update if an existing avatar is found for the user
-            existing.avatar = avatar_path
-            session.flush()  # Flush to apply the update before returning
+        if existing:
+            existing.provider_id = provider_id
+            existing.provider_url_image = provider_url_image
+            session.flush()
             return existing.to_dict()
         return None
 
@@ -111,7 +124,7 @@ class AvatarModel(Base):
 
         Args:
             session: Active SQLAlchemy session.
-            user_id (int): The ID of the user whose avatar is to be retrieved.
+            user_id: The ID of the user whose avatar is to be retrieved.
 
         Returns:
             dict or None: The primary avatar as returned by `to_dict()`, or None.
@@ -120,7 +133,7 @@ class AvatarModel(Base):
             session.query(cls)
             .filter_by(userId=user_id)
             .order_by(desc(cls.createdAt))
-            .first()  # Get the most recently created avatar for the user, which is considered the active one
+            .first()
         )
         if row:
             return row.to_dict()

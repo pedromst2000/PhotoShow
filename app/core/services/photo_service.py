@@ -15,7 +15,6 @@ from app.core.db.models.rating import RatingModel
 from app.core.db.models.user import UserModel
 from app.core.services.helpers.weighted_rating import calculate_weighted_rating
 from app.core.services.notification_service import NotificationService
-from app.utils.file_utils import delete_from_latest
 from app.utils.log_utils import log_exception, log_operation
 
 
@@ -65,27 +64,72 @@ class PhotoService:
 
     @staticmethod
     def create_photo(
-        image_path: str,
+        photo_id: int,
+        provider_image_id: str,
+        provider_image_url: str,
+    ) -> bool:
+        """
+        Link Cloudinary image data to an existing photo record.
+
+        The photo record must already exist in the database. This method
+        creates the associated PhotoImageModel record.
+
+        Args:
+            photo_id:           The ID of the existing photo.
+            provider_image_id:  Cloudinary public_id of the uploaded image.
+            provider_image_url: Cloudinary secure_url of the uploaded image.
+
+        Returns:
+            bool: True if the image record was created successfully.
+
+        Raises:
+            Exception: Any database error is caught and logged; False returned.
+        """
+        try:
+            with SessionLocal() as session:
+                PhotoImageModel.create(
+                    session,
+                    photo_id=photo_id,
+                    provider_image_id=provider_image_id,
+                    provider_image_url=provider_image_url,
+                )
+                session.commit()
+            log_operation(
+                "photo.create_photo", "success", f"Linked image for photo {photo_id}"
+            )
+            return True
+        except Exception as e:
+            log_exception(
+                "photo.create_photo",
+                e,
+                context={
+                    "photo_id": photo_id,
+                    "provider_image_id": provider_image_id,
+                },
+            )
+            return False
+
+    @staticmethod
+    def create_photo_record(
         album_id: int,
         category_id: Optional[int] = None,
         description: str = "",
         published_date=None,
     ) -> Optional[dict]:
         """
-        Create a new photo entry in the database together with its image row.
+        Create a photo record in the database (without image data).
+
+        Used before uploading to Cloudinary so we have a photo_id to use
+        in the Cloudinary public_id naming.
 
         Args:
-            image_path: The file path of the photo image.
-            album_id: The ID of the album to associate with the photo (mandatory).
-            category_id: The ID of the category to associate with the photo.
-            description: A description for the photo.
+            album_id:       The ID of the album to associate with the photo (mandatory).
+            category_id:    The ID of the category to associate with the photo.
+            description:    A description for the photo.
             published_date: The date/time when the photo was published.
 
         Returns:
-            dict: The created photo as a dictionary.
-
-        Raises:
-            Exception: Any database error is caught and logged; None returned.
+            dict: The created photo as a dictionary, or None on error.
         """
         try:
             with SessionLocal() as session:
@@ -96,46 +140,92 @@ class PhotoService:
                     categoryId=category_id,
                     albumId=album_id,
                 )
-                PhotoImageModel.create(session, photo_id=photo["id"], image=image_path)
                 session.commit()
             log_operation(
-                "photo.create_photo", "success", f"Created photo in album {album_id}"
+                "photo.create_photo_record",
+                "success",
+                f"Created photo record in album {album_id}",
             )
             return photo
         except Exception as e:
             log_exception(
-                "photo.create_photo",
+                "photo.create_photo_record",
                 e,
-                context={"album_id": album_id, "image_path": image_path},
+                context={"album_id": album_id},
             )
             return None
+
+    @staticmethod
+    def delete_photo_record(photo_id: int) -> bool:
+        """
+        Delete a photo record from the database (used for rollback on upload failure).
+
+        Args:
+            photo_id: The ID of the photo to delete.
+
+        Returns:
+            bool: True if deleted, False otherwise.
+        """
+        try:
+            with SessionLocal() as db:
+                # Delete notifications first (FK constraint).
+                NotificationModel.delete_by_photo_id(db, photo_id)
+                db.flush()  # Ensure notifications are deleted
+
+                # Delete the photo and verify it was deleted
+                deleted = PhotoModel.delete(db, photo_id)
+                if not deleted:
+                    log_operation(
+                        "photo.delete_photo_record",
+                        "validation_error",
+                        f"Photo record {photo_id} not found for deletion",
+                    )
+                    return False
+
+                db.flush()  # Ensure photo is marked for deletion
+                db.commit()  # Persist all changes to database
+            log_operation(
+                "photo.delete_photo_record",
+                "success",
+                f"Deleted photo record {photo_id}",
+            )
+            return True
+        except Exception as e:
+            log_exception(
+                "photo.delete_photo_record", e, context={"photo_id": photo_id}
+            )
+            return False
 
     @staticmethod
     def delete_photo(
         photo_id: int, requesting_user_id: Optional[int] = None
     ) -> Tuple[bool, str]:
         """
-        Delete a photo by ID.
+        Delete a photo by ID, removing it from both the database and Cloudinary.
 
-        Fetches the stored image path before deletion so the corresponding
-        file can be removed from the latest media tier after the database
-        cascade completes.  Default-tier files are never touched.
+        Fetches the stored Cloudinary public_id before DB deletion so the cloud
+        asset can be removed after the database cascade completes.
+
+        IMPORTANT: Only deletes from PROD folder (user uploads). Dev folder assets
+        (hardcoded seed data) are never deleted from the cloud.
 
         Args:
-            photo_id: The ID of the photo to delete.
-            requesting_user_id: The user requesting deletion (used to send
-                admin_delete_photo notification to the owner when an admin deletes).
+            photo_id:            The ID of the photo to delete.
+            requesting_user_id:  The user requesting deletion (used to send
+                                 admin_delete_photo notification to the owner
+                                 when an admin deletes).
 
         Returns:
             Tuple[bool, str]: (success, message)
-
-        Raises:
-            Exception: Any database error is caught and logged; (False, message) returned.
         """
         try:
             owner_id: Optional[int] = None
+            provider_image_id: Optional[str] = None
+
             with SessionLocal() as db:
-                if not PhotoModel.get_by_id(db, photo_id):
+                # Verify photo exists
+                photo_check = PhotoModel.get_by_id(db, photo_id)
+                if not photo_check:
                     log_operation(
                         "photo.delete_photo",
                         "validation_error",
@@ -143,30 +233,44 @@ class PhotoService:
                     )
                     return False, "Photo not found"
 
-                # Capture owner before cascade wipes the record.
                 photo_row = PhotoModel.get_by_id(db, photo_id)
                 if photo_row and photo_row.get("albumId"):
                     album = AlbumModel.get_by_id(db, int(photo_row["albumId"]))
                     owner_id = album.get("creatorId") if album else None
 
-                # Capture the image path before the cascade wipes it.
+                # Capture the Cloudinary public_id before the cascade wipes it.
                 image_record = PhotoImageModel.get_for_photo(db, photo_id)
-                stored_image_path = image_record.get("image") if image_record else None
+                provider_image_id = (
+                    image_record.get("provider_image_id") if image_record else None
+                )
 
-                # Delete all notifications related to this photo BEFORE deleting the photo
-                # (FK constraint requires photo to exist when notification.photoId is not NULL)
+                # Delete notifications first (FK constraint).
                 NotificationModel.delete_by_photo_id(db, photo_id)
+                db.flush()  # Ensure notifications are deleted before cascading
 
-                PhotoModel.delete(db, photo_id)
-                db.commit()
+                # Delete the photo
+                deleted = PhotoModel.delete(db, photo_id)
+                if not deleted:
+                    return False, "Photo could not be deleted"
 
-            # Remove from latest tier only — default-tier files are preserved.
-            if stored_image_path:
-                delete_from_latest(stored_image_path)
+                db.flush()  # Ensure photo is marked for deletion
+                db.commit()  # Persist all changes to database
+
+                log_operation(
+                    "photo.delete_photo",
+                    "success",
+                    f"Database deletion committed for photo {photo_id}",
+                )
+
+            # Remove the asset from Cloudinary ONLY if it's in prod folder
+            # Dev folder assets (seed data) are never deleted
+            if provider_image_id and "photo-show/prod/" in provider_image_id:
+                from app.core.services.cloudinary_service import CloudinaryService
+
+                CloudinaryService.delete_image(provider_image_id)
 
             log_operation("photo.delete_photo", "success", f"Deleted photo {photo_id}")
 
-            # Notify owner when an admin deletes their photo.
             if owner_id and requesting_user_id and requesting_user_id != owner_id:
                 NotificationService.send(
                     "admin_delete_photo",
@@ -290,7 +394,7 @@ class PhotoService:
         owner_is_admin = owner["roleId"] == 1 if owner else False
         owner_id = album["creatorId"] if album else None
         owner_avatar = owner.get("avatar") if owner else None
-        image_path = image_record.get("image") if image_record else None
+        image_path = image_record.get("provider_image_url") if image_record else None
         avg_rating = round(float(avg_result), 1) if avg_result is not None else 0.0
         rating_count = int(count_result) if count_result else 0
         category_name = category_row.category if category_row else ""

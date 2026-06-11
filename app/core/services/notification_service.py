@@ -258,7 +258,7 @@ class NotificationService:
                     .all()
                 }
                 avatars_map = {
-                    a.userId: a.avatar
+                    a.userId: a.provider_url_image
                     for a in session.query(AvatarModel)
                     .filter(AvatarModel.userId.in_(sender_ids))  # type: ignore
                     .all()
