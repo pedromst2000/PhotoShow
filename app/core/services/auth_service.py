@@ -3,15 +3,12 @@ from typing import Optional, Tuple
 
 import bcrypt
 
+from app.config.cloudinary_config import DEFAULT_AVATAR_PUBLIC_ID, DEFAULT_AVATAR_URL
 from app.core.db.engine import SessionLocal
 from app.core.db.models.avatar import AvatarModel
 from app.core.db.models.role import RoleModel
 from app.core.db.models.user import UserModel
 from app.utils.log_utils import log_exception, log_operation
-
-_DEFAULT_AVATAR = (
-    "assets/images/local_cloud_media/default/profile_avatars/default_avatar.png"
-)
 
 
 class AuthService:
@@ -114,8 +111,13 @@ class AuthService:
                     roleId=unsigned_role["id"] if unsigned_role else None,
                     isBlocked=False,
                 )
-                # Create default avatar (was previously inside UserModel.create)
-                AvatarModel.create(session, user["id"], _DEFAULT_AVATAR)
+                # Create default avatar using configured Cloudinary default
+                AvatarModel.create(
+                    session,
+                    user["id"],
+                    provider_id=DEFAULT_AVATAR_PUBLIC_ID,
+                    provider_url_image=DEFAULT_AVATAR_URL,
+                )
                 session.commit()
                 # Re-fetch after commit so the returned dict includes the avatar
                 result = UserModel.get_by_id(session, user["id"])  # type: ignore[return-value]

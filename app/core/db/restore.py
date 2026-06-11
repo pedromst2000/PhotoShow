@@ -22,7 +22,7 @@ from app.core.db.models import (
     RoleModel,
     UserModel,
 )
-from app.utils.file_utils import clear_latest_media
+from app.core.services.cloudinary_service import CloudinaryService
 from app.utils.log_utils import log_check, log_issue, log_success
 
 # ── Table restore order (must respect FK dependencies) ────────────────────────
@@ -197,6 +197,7 @@ def restore_db_from_backup(backup_dir: str | None = None) -> None:
     If `backup_dir` is not provided, the latest folder in `backups/` is used
     automatically. Drops and recreates all tables before inserting, so this
     is a full restore — it replaces whatever is currently in the DB.
+    Also deletes all Cloudinary assets to keep the database and cloud in sync.
 
     Args:
         backup_dir: Optional path to a specific backup folder within `backups/`. If None, the latest backup folder is used.
@@ -224,6 +225,47 @@ def restore_db_from_backup(backup_dir: str | None = None) -> None:
         source = available[0]
         log_check(f"[restoreDB] No path given — using latest: {source}")
 
+    # Delete only PROD folder assets from Cloudinary to keep in sync
+    # Keep DEV folder assets (hardcoded seed data) untouched
+    log_check(
+        "[restoreDB] Deleting user-uploaded assets from prod folder to sync DB and cloud..."
+    )
+    try:
+        with SessionLocal() as session:
+            # Delete avatars ONLY from prod folder
+            avatars = session.query(AvatarModel).all()
+            prod_avatars_deleted = 0
+            for avatar in avatars:
+                if avatar.provider_id and "photo-show/prod/" in avatar.provider_id:
+                    CloudinaryService.delete_image(avatar.provider_id)
+                    prod_avatars_deleted += 1
+            if prod_avatars_deleted > 0:
+                log_check(
+                    f"  Deleted {prod_avatars_deleted} user avatars from prod folder"
+                )
+
+            # Delete photo images ONLY from prod folder
+            photo_images = session.query(PhotoImageModel).all()
+            prod_photos_deleted = 0
+            for photo_image in photo_images:
+                if (
+                    photo_image.provider_image_id
+                    and "photo-show/prod/" in photo_image.provider_image_id
+                ):
+                    CloudinaryService.delete_image(photo_image.provider_image_id)
+                    prod_photos_deleted += 1
+            if prod_photos_deleted > 0:
+                log_check(
+                    f"  Deleted {prod_photos_deleted} user photos from prod folder"
+                )
+
+            log_check("  Dev folder assets (hardcoded seed data) kept in cloud ✓")
+    except Exception as e:
+        log_issue(
+            "[restoreDB] Error deleting prod folder assets — continuing with restore",
+            exc=e,
+        )
+
     # Delete the DB file entirely — avoids FK-ordering issues from stale schema
     log_check("[restoreDB] Dropping all tables...")
     try:
@@ -231,10 +273,6 @@ def restore_db_from_backup(backup_dir: str | None = None) -> None:
     except Exception as e:
         log_issue("[restoreDB] Failed to drop tables — aborting restore", exc=e)
         return
-
-    log_check("[restoreDB] Clearing latest media files...")
-    clear_latest_media()
-    log_success("[restoreDB] Latest media cleared.")
 
     log_check("[restoreDB] Recreating schema...")
     init_db()

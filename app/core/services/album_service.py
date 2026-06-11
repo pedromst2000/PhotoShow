@@ -9,7 +9,6 @@ from app.core.db.models.photo_image import PhotoImageModel
 from app.core.db.models.user import UserModel
 from app.core.services.catalog_service import CatalogService
 from app.core.services.notification_service import NotificationService
-from app.utils.file_utils import delete_from_latest
 from app.utils.log_utils import log_exception, log_operation
 
 
@@ -200,6 +199,9 @@ class AlbumService:
         """
         Delete an album after verifying ownership.
 
+        Only deletes photos from PROD folder (user uploads). Dev folder assets
+        (hardcoded seed data) are never deleted from the cloud.
+
         Args:
             user_id: The ID of the requesting user.
             album_id: The ID of the album to delete.
@@ -232,30 +234,50 @@ class AlbumService:
                     )
                     raise ValueError("You can only delete your own albums")
 
-                # Collect image paths for disk cleanup before the cascade wipes them.
+                # Collect Cloudinary public_ids for cloud cleanup before the cascade wipes them.
+                # Only collect PROD folder assets (user uploads), not dev folder (seed data)
                 photos_in_album = PhotoModel.get_by_album(session, album_id)
-                image_paths = []
+                provider_ids = []
                 for p in photos_in_album:
                     img = PhotoImageModel.get_for_photo(session, p["id"])
-                    if img and img.get("image"):
-                        image_paths.append(img["image"])
+                    if (
+                        img
+                        and img.get("provider_image_id")
+                        and "photo-show/prod/" in img["provider_image_id"]
+                    ):
+                        provider_ids.append(img["provider_image_id"])
 
                 # Delete all notifications related to this album BEFORE deleting it
                 # (for album_favorited notifications)
                 NotificationModel.delete_by_album_id(session, album_id)
+                session.flush()  # Ensure notifications are deleted
 
                 # Delete all favorites for this album
                 FavoriteModel.delete_all_for_album(session, album_id)
+                session.flush()  # Ensure favorites are deleted
 
                 # Deleting the album triggers the DB CASCADE which removes all
                 # associated photos, photo_image, likes, comments, ratings, and
                 # reports automatically (PRAGMA foreign_keys=ON is active).
                 result = AlbumModel.delete(session, album_id)
-                session.commit()
+                if not result:
+                    log_operation(
+                        "album.delete_album_for_user",
+                        "validation_error",
+                        f"Album {album_id} could not be deleted",
+                        user_id=user_id,
+                    )
+                    return False
 
-            # Remove latest-tier image files from disk (default-tier files are skipped).
-            for img_path in image_paths:
-                delete_from_latest(img_path)
+                session.flush()  # Ensure album is marked for deletion
+                session.commit()  # Persist all changes to database
+
+            # Remove PROD folder photo assets from Cloudinary after successful DB cascade.
+            if provider_ids:
+                from app.core.services.cloudinary_service import CloudinaryService
+
+                for pid in provider_ids:
+                    CloudinaryService.delete_image(pid)
 
             log_operation(
                 "album.delete_album_for_user",
@@ -263,7 +285,7 @@ class AlbumService:
                 f"Deleted album {album_id}",
                 user_id=user_id,
             )
-            return result
+            return True
         except ValueError:
             raise
         except Exception as e:

@@ -1,8 +1,8 @@
 from typing import List, Optional, Tuple
 
+from app.core.services.cloudinary_service import CloudinaryService
 from app.core.services.photo_service import PhotoService
 from app.core.state.session import session
-from app.utils.file_utils import copy_to_latest_photos, delete_from_latest
 from app.utils.log_utils import log_exception, log_operation
 
 
@@ -38,62 +38,83 @@ class PhotoController:
         published_date=None,
     ) -> Tuple[bool, str]:
         """
-        Upload a new photo.
+        Upload a new photo to Cloudinary and record it in the database.
 
-        Copies the source file into the latest media tier, then records the
-        stored path in the database.  If the database write fails the copied
-        file is removed so the two stores remain in sync.
+        Flow:
+        1. Create a photo record (gets photo_id).
+        2. Upload the local file to Cloudinary using Photo_<photo_id> as public_id.
+        3. Create the photo_image record linking the Cloudinary data.
+        4. On any failure, rollback the photo record and Cloudinary upload.
 
         Args:
-            image_path: Full path to the source image chosen by the user.
-            album_id: Optional album ID to associate with the photo.
-            category_id: Optional category ID to associate with the photo.
-            description: Optional description of the photo.
-            published_date: Optional published date for the photo.
+            image_path:    Full path to the source image chosen by the user.
+            album_id:      Album ID to associate with the photo.
+            category_id:   Optional category ID.
+            description:   Optional description.
+            published_date: Optional published date.
 
         Returns:
-            Tuple[bool, str]: Tuple of (success, message)
+            Tuple[bool, str]: (success, message)
         """
         if not image_path:
             return False, "Image path is required"
         if album_id is None:
             return False, "Album ID is required"
 
-        # Copy file to latest tier before touching the DB.
-        try:
-            stored_path = copy_to_latest_photos(image_path)
-        except ValueError as e:
-            return False, str(e)
-        except OSError as e:
-            return False, f"Failed to save photo file: {str(e)}"
+        # Step 1: Create photo record (no image yet).
+        photo = PhotoService.create_photo_record(
+            album_id=album_id,
+            category_id=category_id,
+            description=description,
+            published_date=published_date,
+        )
+        if photo is None:
+            return False, "Failed to initialize photo record"
 
+        photo_id = photo.get("id")
+        if not photo_id:
+            return False, "Failed to get photo ID"
+
+        # Step 2: Upload to Cloudinary with photo_id in public_id.
+        upload_result = CloudinaryService.upload_photo(image_path, photo_id)
+        if upload_result is None:
+            # Rollback photo record.
+            PhotoService.delete_photo_record(photo_id)
+            return False, "Failed to upload image to cloud storage"
+
+        provider_image_id = upload_result["public_id"]
+        provider_image_url = upload_result["url"]
+
+        # Step 3: Create photo_image record linking to Cloudinary.
         try:
-            PhotoService.create_photo(
-                image_path=stored_path,
-                album_id=album_id,
-                category_id=category_id,
-                description=description,
-                published_date=published_date,
-            )
+            if not PhotoService.create_photo(
+                photo_id=photo_id,
+                provider_image_id=provider_image_id,
+                provider_image_url=provider_image_url,
+            ):
+                # Rollback photo record and Cloudinary upload.
+                CloudinaryService.delete_image(provider_image_id)
+                PhotoService.delete_photo_record(photo_id)
+                return False, "Failed to save photo metadata"
+
             log_operation(
                 "photo.upload_photo",
                 "success",
                 "Photo uploaded successfully",
-                user_id=session.user_id,
             )
             return True, "Photo uploaded successfully"
         except Exception as e:
-            # Rollback: remove the file we copied if the DB write failed.
-            delete_from_latest(stored_path)
+            # Rollback on unexpected exception.
+            CloudinaryService.delete_image(provider_image_id)
+            PhotoService.delete_photo_record(photo_id)
             log_exception(
                 "photo.upload_photo",
                 e,
-                user_id=session.user_id,
                 context={
                     "image_path": image_path,
-                    "stored_path": stored_path,
                     "album_id": album_id,
-                    "category_id": category_id,
+                    "photo_id": photo_id,
+                    "provider_image_id": provider_image_id,
                 },
             )
             return False, f"Failed to upload photo: {str(e)}"

@@ -1,3 +1,12 @@
+# Load environment variables FIRST, before any other imports
+# This ensures Cloudinary credentials are available when cloudinary_service is imported
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed; rely on OS environment variables
+
 import tkinter as tk
 from typing import Optional
 

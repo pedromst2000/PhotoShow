@@ -1,14 +1,14 @@
 import os
 import tkinter as tk
 import tkinter.filedialog as filedialog
-from pathlib import Path
 from typing import Optional
 
 from app.controllers.user_controller import UserController
+from app.core.services.cloudinary_service import CloudinaryService
+from app.core.services.user_service import UserService
 from app.core.state.session import session
 from app.presentation.widgets.helpers.images import load_image
 from app.presentation.widgets.helpers.ui_dialogs import show_error
-from app.utils.file_utils import replace_avatar_in_latest
 
 
 def handle_upload_avatar(
@@ -32,7 +32,6 @@ def handle_upload_avatar(
     Returns:
         Optional[str]: Full path to selected image file, or None if cancelled.
     """
-    # Open file dialog to select image
     filename: str = filedialog.askopenfilename(
         initialdir="/",
         title="Select an image",
@@ -47,13 +46,11 @@ def handle_upload_avatar(
         return None
 
     try:
-        # Load and display image preview
         photo_image = load_image(
             filename, size=(200, 200), canvas=canvas_avatar, x=0, y=0
         )
         canvas_avatar.image = photo_image  # type: ignore
 
-        # Enable save button
         btn_save_avatar["state"] = "normal"
         btn_save_avatar["cursor"] = "hand2"
 
@@ -69,8 +66,11 @@ def handle_save_avatar(
     user_id: Optional[int] = None,
 ) -> tuple[bool, str]:
     """
-    Handle avatar save: replace any existing avatar for the user in the latest
-    tier (regardless of extension), update the database, and refresh the session.
+    Handle avatar save: delete old avatar, upload new image to Cloudinary, update database.
+
+    Ensures no duplicate avatars are left in the cloud by always deleting the old avatar
+    before uploading the new one. Uses a deterministic Cloudinary public_id
+    (<username>_avatar) for consistency.
 
     Args:
         source_image_path: Full path to source avatar image (from file dialog).
@@ -93,27 +93,28 @@ def handle_save_avatar(
         if not username:
             return False, "Unable to identify username"
 
-        # Copy to latest tier, removing any prior avatar (any extension) for this user.
-        try:
-            stored_path = replace_avatar_in_latest(username, source_image_path)
-        except ValueError as e:
-            return False, str(e)
-        except OSError as e:
-            return False, f"Failed to save avatar file: {str(e)}"
+        # Step 1: Get and delete the OLD avatar from PROD folder ONLY (if exists)
+        # This prevents duplicate avatars from accumulating in the prod folder.
+        # Dev folder avatars (hardcoded seed data) are never deleted.
+        old_public_id = UserService.get_current_avatar_provider_id(user_id)
+        if old_public_id and "photo-show/prod/" in old_public_id:
+            # Only delete if it's from prod folder (user upload), not dev folder (seed data)
+            CloudinaryService.delete_image(old_public_id)
 
-        # stored_path is "assets/images/local_cloud_media/latest/profile_avatars/{filename}"
-        # UserController.update_avatar expects just the filename.
-        avatar_filename = Path(stored_path).name
+        # Step 2: Upload the NEW avatar to Cloudinary
+        # Uses deterministic public_id: photo-show/profile_avatars/<username>_avatar
+        upload_result = CloudinaryService.upload_avatar(source_image_path, username)
+        if upload_result is None:
+            return False, "Failed to upload avatar to cloud storage"
 
-        # Update database via UserController
-        success, message = UserController.update_avatar(avatar_filename)
+        provider_id = upload_result["public_id"]
+        provider_url_image = upload_result["url"]
+
+        # Step 3: Update database via UserController
+        success, message = UserController.update_avatar(provider_id, provider_url_image)
 
         if not success:
-            # Rollback: remove the file we just copied.
-            from app.utils.file_utils import delete_from_latest
-
-            delete_from_latest(stored_path)
-            return False, f"Failed to save avatar to database: {message}"
+            return False, f"Failed to save avatar: {message}"
 
         # Refresh session data to reflect changes
         UserController.refresh_session_data()

@@ -140,17 +140,22 @@ class PhotoModel(Base):
         return obj.to_dict()
 
     @classmethod
-    def delete(cls, session: Session, photoID: int) -> None:
+    def delete(cls, session: Session, photoID: int) -> bool:
         """
         Delete a photo from the database by its ID.
 
         Args:
             session: Active SQLAlchemy session.
             photoID (int): The ID of the photo to delete.
+
+        Returns:
+            bool: True if a photo was deleted, False if photo was not found.
         """
         p = session.query(cls).filter_by(id=photoID).first()
         if p:
             session.delete(p)
+            return True
+        return False
 
     @classmethod
     def delete_many(cls, session: Session, *photoIDs: int) -> None:

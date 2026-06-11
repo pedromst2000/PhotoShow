@@ -64,12 +64,12 @@ class CatalogService:
                 users = {u["id"]: u for u in UserModel.get_all(session)}
                 cats = {c["id"]: c["category"] for c in CategoryModel.get_all(session)}
 
-                # Batch-fetch image paths (photo_image has a unique constraint per photo)
+                # Batch-fetch image URLs from Cloudinary (photo_image has a unique constraint per photo)
                 all_images: dict = {
                     row[0]: row[1]
                     for row in session.query(
                         getattr(PhotoImageModel, "photoId"),
-                        getattr(PhotoImageModel, "image"),
+                        getattr(PhotoImageModel, "provider_image_url"),
                     ).all()
                 }
 

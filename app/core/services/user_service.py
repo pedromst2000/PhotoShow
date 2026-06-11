@@ -92,13 +92,29 @@ class UserService:
             return []
 
     @staticmethod
-    def update_avatar(user_id: int, avatar_filename: str) -> bool:
+    def get_current_avatar_provider_id(user_id: int) -> Optional[str]:
         """
-        Update a user's avatar.
+        Return the Cloudinary public_id of the user's current avatar, or None.
+
+        Used by the controller before updating so the old cloud asset can be
+        deleted when it is not a deterministic/overwrite-style upload.
+        """
+        try:
+            with SessionLocal() as session:
+                avatar = AvatarModel.get_for_user(session, user_id)
+                return avatar.get("provider_id") if avatar else None
+        except Exception:
+            return None
+
+    @staticmethod
+    def update_avatar(user_id: int, provider_id: str, provider_url_image: str) -> bool:
+        """
+        Update a user's avatar Cloudinary reference in the database.
 
         Args:
-            user_id: The user's ID.
-            avatar_filename: The new avatar filename (not full path).
+            user_id:            The user's ID.
+            provider_id:        Cloudinary public_id of the new avatar.
+            provider_url_image: Cloudinary secure_url of the new avatar.
 
         Returns:
             bool: True if updated successfully, False otherwise.
@@ -107,9 +123,10 @@ class UserService:
             Exception: Any database error is caught and logged; False returned.
         """
         try:
-            avatar_path = f"assets/images/local_cloud_media/latest/profile_avatars/{avatar_filename}"
             with SessionLocal() as session:
-                result = AvatarModel.update(session, user_id, avatar_path)
+                result = AvatarModel.update(
+                    session, user_id, provider_id, provider_url_image
+                )
                 session.commit()
             if result:
                 log_operation(
@@ -122,7 +139,7 @@ class UserService:
                 log_operation(
                     "user.update_avatar",
                     "validation_error",
-                    f"Avatar not found for user {user_id}",
+                    f"Avatar record not found for user {user_id}",
                     user_id=user_id,
                 )
             return result is not None
@@ -131,9 +148,7 @@ class UserService:
                 "user.update_avatar",
                 e,
                 user_id=user_id,
-                context={
-                    "filename": avatar_filename
-                },  # Log the filename for debugging purposes
+                context={"provider_id": provider_id},
             )
             return False
 

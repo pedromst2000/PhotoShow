@@ -8,6 +8,7 @@ from PIL import Image, ImageTk
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.widgets.helpers.button import make_button
+from app.presentation.widgets.helpers.images import load_image
 from app.utils.file_utils import resolve_image_path
 
 _ARROW_ICON = "app/assets/images/UI_Icons/arrow_right.png"
@@ -209,21 +210,17 @@ class PhotoCarouselWidget(tk.Frame):
         try:
             logging.debug(f"Attempting to load image from: {resolved_path}")
 
-            # Open and process the image
-            pil_img = Image.open(resolved_path)
-
-            # Convert to RGBA if needed, but handle different modes
-            if pil_img.mode != "RGBA":
-                pil_img = pil_img.convert("RGBA")
-
-            # Resize image to exact canvas dimensions to ensure uniform size
-            # This will fill the canvas regardless of original aspect ratio
-            pil_img = pil_img.resize(
-                (self._canvas_width, self._canvas_height), Image.LANCZOS
+            # Load image with loading placeholder for remote URLs (Cloudinary)
+            # load_image() handles: loading placeholder, canvas display, resizing
+            photo = load_image(
+                resolved_path,
+                size=(self._canvas_width, self._canvas_height),
+                canvas=self._canvas,
+                x=self._canvas_width // 2,
+                y=self._canvas_height // 2,
+                anchor="center",
+                show_loading=True,
             )
-
-            # Convert to PhotoImage
-            photo = ImageTk.PhotoImage(pil_img)
 
             # Store in LRU cache with eviction of oldest if cache exceeds max size
             self._image_cache[resolved_path] = photo
@@ -236,11 +233,6 @@ class PhotoCarouselWidget(tk.Frame):
                 )
 
             self._image_ref = photo
-
-            # Display on canvas centered
-            cx = self._canvas_width // 2
-            cy = self._canvas_height // 2
-            self._canvas.create_image(cx, cy, image=photo, anchor="center")
 
             logging.debug(f"Successfully loaded image: {resolved_path}")
 
