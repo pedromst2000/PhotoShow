@@ -32,6 +32,13 @@
   - [:clipboard: Prerequisites](#clipboard-prerequisites)
   - [:inbox_tray: Quick Start](#inbox_tray-quick-start)
   - [:floppy_disk: Database Setup](#floppy_disk-database-setup)
+  - [:cloud: Cloudinary Setup (Developers/Production)](#cloud-cloudinary-setup-developersproduction)
+    - [Step 1: Create a Cloudinary Account](#step-1-create-a-cloudinary-account)
+    - [Step 2: Configure Environment Variables](#step-2-configure-environment-variables)
+    - [Step 3: Create Folder Structure](#step-3-create-folder-structure-in-cloudinary)
+    - [Step 4: Populate Dev Folder](#step-4-populate-your-dev-folder)
+    - [Step 5: Folder Separation](#step-5-folder-separation)
+    - [Troubleshooting](#troubleshooting)
 - [:test_tube: Linting & Formatting](#test_tube-linting--formatting)
 - [:hammer_and_wrench: Standalone Executable](#hammer_and_wrench-standalone-executable)
 - [:handshake: Contributing](#handshake-contributing)
@@ -234,6 +241,87 @@ python main.py
 - **`--restoreDB`** - brings back a previous state after a reset or data loss; defaults to the newest backup
 
 > :warning: Backups may contain sensitive data (e.g., emails, password hashes). Keep the `backups/` folder local and out of version control - it is already listed in `.gitignore`.
+
+### :cloud: Cloudinary Setup (Developers/Production)
+
+**PhotoShow** uses [Cloudinary](https://cloudinary.com/) to store and manage media assets. The **Project Owner** maintains the main cloud account with production assets, while each **developer/contributor** creates their own Cloudinary account as a local development copy.
+
+**Cloud Architecture:**
+- **Owner's Cloud:** Main account for the project owner/maintainer with all production assets
+- **Developer's Cloud:** Individual copy for each contributor, mirroring the owner's structure for isolated development
+
+#### Step 1: Create a Cloudinary Account
+
+1. Sign up for a free account at [cloudinary.com](https://cloudinary.com/)
+2. From your **Dashboard**, note your credentials:
+   - **Cloud Name**
+   - **API Key**
+   - **API Secret**
+
+#### Step 2: Configure Environment Variables
+
+Copy [`.env.example`](.env.example) to `.env` and fill in your Cloudinary credentials:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your values from the Cloudinary dashboard.
+
+> :warning: **Never commit `.env` to git.** It is listed in `.gitignore` for security.
+
+#### Step 3: Create Folder Structure and Populate with Seed Data
+
+In your Cloudinary **Media Library**, create the same folder structure and populate it with seed assets from the Owner's Cloud.
+
+**GUI Path:** `Media Library > Folders > Home` → Create folder `photo-show`
+
+**Reference Image (Owner's Cloud structure):**
+
+<div align="center">
+  <img src="./docs/images/Cloudinary_GUI_Layout_Assets.png" alt="Cloudinary folder structure" width="600" />
+</div>
+
+**Folder structure to create:**
+
+```
+photo-show/
+├── dev/                         # [CRITICAL: Mirror from Owner's Cloud]
+│   ├── profile_avatars/         # Seed avatars (download from owner's CSV)
+│   └── photos_gallery/          # Seed photos (download from owner's CSV)
+└── prod/                        # [Your uploads only]
+    ├── profile_avatars/         # Your avatar uploads (empty initially)
+    └── photos_gallery/          # Your photo uploads (empty initially)
+```
+
+**Populate your `dev/` folders:**
+
+1. Open `app/files/avatars.csv` or `app/files/photo_image.csv`
+2. These CSV files reference the **Owner's Cloud** seed images
+3. For each image URL in the `provider_url_image` column:
+   - Open the URL in your browser
+   - **Right-click** → **"Guardar imagem como..."** (Save image as...)
+   - Save locally
+   - Upload to your Cloudinary `photo-show/dev/profile_avatars/` or `photo-show/dev/photos_gallery/`
+
+**Folder Behavior:**
+
+| Folder | Purpose | Reset Behavior | Modified By |
+|--------|---------|---|---|
+| `dev/profile_avatars` | Seed avatars (mirrored from owner) | **Preserved** ✓ | App reads from CSV |
+| `dev/photos_gallery` | Seed photos (mirrored from owner) | **Preserved** ✓ | App reads from CSV |
+| `prod/profile_avatars` | Your avatar uploads | **Cleared** 🗑️ | App auto-manages |
+| `prod/photos_gallery` | Your photo uploads | **Cleared** 🗑️ | App auto-manages |
+
+> :bulb: **Key Point:** `dev/` folders are your local copy of the owner's seed data and survive `--resetDB`. `prod/` folders are cleared during reset to return to initial development state.
+
+#### Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `ValueError: Must supply api_key` | Add missing variables to `.env` from `.env.example` |
+| Images show as broken links | Verify images are in your Cloudinary `dev/` folders and `.env` has correct credentials |
+| Database reset deletes my uploads | Expected behavior—`prod/` folders are cleared. Run `python main.py --backupDB` first if you want to preserve data |
 
 <br>
 
