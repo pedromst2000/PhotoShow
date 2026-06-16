@@ -21,6 +21,7 @@ from app.core.db.models import (
     UserModel,
 )
 from app.core.db.models.report_reason import ReportReasonModel
+from app.utils.file_utils import resolve_resource_path
 from app.utils.hash_utils import hash_password
 from app.utils.log_utils import log_check, log_issue, log_success
 
@@ -35,7 +36,7 @@ def _read_roles() -> list:
         list: A list of RoleModel instances read from the CSV file.
     """
 
-    path = "app/files/roles.csv"
+    path = resolve_resource_path("app/files/roles.csv")
     data = []
     log_check(f"Reading roles from {path}...")
     try:
@@ -62,7 +63,7 @@ def _read_users() -> list:
         list: A list of UserModel instances read from the CSV file.
     """
 
-    path = "app/files/users.csv"
+    path = resolve_resource_path("app/files/users.csv")
     data = []
     log_check(f"Reading users from {path}...")
     try:
@@ -104,7 +105,7 @@ def _read_avatars() -> list:
     Returns:
         list: A list of AvatarModel instances read from the CSV file.
     """
-    path = "app/files/avatars.csv"
+    path = resolve_resource_path("app/files/avatars.csv")
     data = []
     log_check(f"Reading avatars from {path}...")
     try:
@@ -152,7 +153,7 @@ def _read_categories() -> list:
         list: A list of CategoryModel instances read from the CSV file.
     """
 
-    path = "app/files/categories.csv"
+    path = resolve_resource_path("app/files/categories.csv")
     data = []
     log_check(f"Reading categories from {path}...")
     try:
@@ -181,7 +182,7 @@ def _read_albums() -> list:
         list: A list of AlbumModel instances read from the CSV file.
     """
 
-    path = "app/files/albuns.csv"
+    path = resolve_resource_path("app/files/albuns.csv")
     data = []
     log_check(f"Reading albums from {path}...")
     try:
@@ -210,7 +211,7 @@ def _read_photos() -> list:
         list: A list of PhotoModel instances read from the CSV file.
     """
 
-    path = "app/files/photos.csv"
+    path = resolve_resource_path("app/files/photos.csv")
     data = []
     log_check(f"Reading photos from {path}...")
     try:
@@ -256,14 +257,14 @@ def _read_photo_image() -> list:
         list: A list of PhotoImageModel instances read from the CSV file.
     """
 
-    path = "app/files/photo_image.csv"
+    path = resolve_resource_path("app/files/photo_image.csv")
     data = []
     log_check(f"Reading photo images from {path}...")
     try:
         with open(path, "r", encoding="utf-8-sig", newline="") as f:
             for parts in csv.reader(
                 f
-            ):  # expected: id,photoId,provider_image_id,provider_image_url
+            ):  # expected: id,photoId,provider_image_id,provider_url_image
                 if parts[0] == "id":
                     continue
                 if len(parts) < 2:
@@ -294,7 +295,7 @@ def _read_ratings() -> list:
         list: A list of RatingModel instances read from the CSV file.
     """
 
-    path = "app/files/ratings.csv"
+    path = resolve_resource_path("app/files/ratings.csv")
     data = []
     log_check(f"Reading ratings from {path}...")
     try:
@@ -328,7 +329,7 @@ def _read_likes() -> list:
         list: A list of LikeModel instances read from the CSV file.
     """
 
-    path = "app/files/likes.csv"
+    path = resolve_resource_path("app/files/likes.csv")
     data = []
     log_check(f"Reading likes from {path}...")
     try:
@@ -361,7 +362,7 @@ def _read_follows() -> list:
         list: A list of FollowModel instances read from the CSV file.
     """
 
-    path = "app/files/follows.csv"
+    path = resolve_resource_path("app/files/follows.csv")
     data = []
     log_check(f"Reading follows from {path}...")
     try:
@@ -396,7 +397,7 @@ def _read_notifications() -> list:
         list: A list of NotificationModel instances read from the CSV file.
     """
 
-    path = "app/files/notifications.csv"
+    path = resolve_resource_path("app/files/notifications.csv")
     data = []
     log_check(f"Reading notifications from {path}...")
     try:
@@ -441,7 +442,7 @@ def _read_comments(valid_photo_ids: set) -> list:
     Returns:
         list: A list of CommentModel instances read from the CSV file.
     """
-    path = "app/files/comments.csv"
+    path = resolve_resource_path("app/files/comments.csv")
     data = []
     log_check(f"Reading comments from {path}...")
     try:
@@ -487,7 +488,7 @@ def _read_favorites() -> list:
     Returns:
         list: A list of FavoriteModel instances read from the CSV file.
     """
-    path = "app/files/favorites.csv"
+    path = resolve_resource_path("app/files/favorites.csv")
     data = []
     log_check(f"Reading favorites from {path}...")
     try:
@@ -521,7 +522,7 @@ def _read_contacts() -> list:
     Returns:
         list: A list of ContactModel instances read from the CSV file.
     """
-    path = "app/files/contacts.csv"
+    path = resolve_resource_path("app/files/contacts.csv")
     data = []
     log_check(f"Reading contacts from {path}...")
     try:
@@ -556,7 +557,7 @@ def _read_notification_types() -> list:
     Returns:
         list: A list of NotificationTypeModel instances read from the CSV file.
     """
-    path = "app/files/notification_types.csv"
+    path = resolve_resource_path("app/files/notification_types.csv")
     data = []
     log_check(f"Reading notification types from {path}...")
     try:
@@ -593,7 +594,7 @@ def _read_report_reasons() -> list:
     Returns:
         list: A list of ReportReasonModel instances read from the CSV file.
     """
-    path = "app/files/report_reasons.csv"
+    path = resolve_resource_path("app/files/report_reasons.csv")
     data = []
     log_check(f"Reading report reasons from {path}...")
     try:
@@ -623,7 +624,7 @@ def _read_reports() -> list:
     Returns:
         list: A list of ReportModel instances read from the CSV file.
     """
-    path = "app/files/reports.csv"
+    path = resolve_resource_path("app/files/reports.csv")
     data = []
     log_check(f"Reading reports from {path}...")
     try:

@@ -18,6 +18,13 @@ __pycache__/
 
 
 ########################################
+# PyInstaller build artifacts
+########################################
+dist/
+build/
+PhotoShow.spec
+
+########################################
 # Local/personal files (add as needed)
 ########################################
 settings.json

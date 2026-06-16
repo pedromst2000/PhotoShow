@@ -1,6 +1,8 @@
 import tkinter as tk
 from typing import Optional
 
+from app.utils.file_utils import resolve_resource_path
+
 # Module-level storage for the current main window (for use as parent when creating Toplevels)
 _current_main_window: Optional[tk.Tk] = None
 
@@ -79,7 +81,7 @@ def create_toplevel(
     win.title(title)
     if icon_path:
         try:
-            win.iconbitmap(icon_path)
+            win.iconbitmap(resolve_resource_path(icon_path))
         except Exception:
             # icon may not be available on all platforms or path could be wrong
             pass
@@ -120,7 +122,7 @@ def create_main_window(
     root.title(title)
     if icon_path:
         try:
-            root.iconbitmap(icon_path)
+            root.iconbitmap(resolve_resource_path(icon_path))
         except Exception:
             # icon may not be available on all platforms or path could be wrong
             pass

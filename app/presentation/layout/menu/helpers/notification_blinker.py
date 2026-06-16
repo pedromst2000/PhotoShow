@@ -21,6 +21,8 @@ from typing import Dict, List, Optional
 
 from PIL import Image, ImageTk
 
+from app.utils.file_utils import resolve_resource_path
+
 
 class NotificationBlinker:
     """Blinks the notifications menu button when unread notifications exist.
@@ -109,8 +111,8 @@ class NotificationBlinker:
         Returns:
             List[ImageTk.PhotoImage]: A list of PhotoImage frames for the blink animation.
         """
-        img_a = Image.open(default_path).convert("RGBA")
-        img_b = Image.open(selected_path).convert("RGBA")
+        img_a = Image.open(resolve_resource_path(default_path)).convert("RGBA")
+        img_b = Image.open(resolve_resource_path(selected_path)).convert("RGBA")
         if img_a.size != img_b.size:
             img_b = img_b.resize(img_a.size, Image.LANCZOS)
         frames: List[ImageTk.PhotoImage] = []

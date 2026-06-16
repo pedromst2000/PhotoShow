@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 
 from app.presentation.styles.colors import colors
 from app.presentation.widgets.helpers.icon_label import add_icon_canvas
+from app.utils.file_utils import resolve_resource_path
 
 _STAR_DEFAULT_PATH = "app/assets/images/UI_Icons/Star_Icon_Default.png"
 _STAR_SELECTED_PATH = "app/assets/images/UI_Icons/Star_Icon_Selected.png"
@@ -177,6 +178,8 @@ class StarRatingWidget(tk.Frame):
         Returns:
             ImageTk.PhotoImage: The loaded and resized star icon as a PhotoImage object.
         """
+        # Resolve resource path for bundled app support
+        resolved_path = resolve_resource_path(path)
         # Create an invisible holder frame for the icon canvas (like add_icon_canvas pattern)
         icon_holder = tk.Frame(self)  # Hidden, won't be packed
 
@@ -185,7 +188,7 @@ class StarRatingWidget(tk.Frame):
             star_canvas = add_icon_canvas(
                 f"star_{id(path)}",
                 icon_holder,
-                path,
+                resolved_path,
                 icon_pos=(0, 0),
                 icon_size=(size, size),
                 canvas_size=(size, size),

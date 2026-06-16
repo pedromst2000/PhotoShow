@@ -9,7 +9,7 @@ from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandRegular
 from app.presentation.widgets.helpers.button import make_button
 from app.presentation.widgets.helpers.images import load_image
-from app.utils.file_utils import resolve_image_path
+from app.utils.file_utils import resolve_image_path, resolve_resource_path
 
 _ARROW_ICON = "app/assets/images/UI_Icons/arrow_right.png"
 
@@ -90,7 +90,7 @@ class PhotoCarouselWidget(tk.Frame):
 
         # Build prev arrow icon (flipped) — increase size for better visibility
         try:
-            prev_img = Image.open(_ARROW_ICON).convert("RGBA")
+            prev_img = Image.open(resolve_resource_path(_ARROW_ICON)).convert("RGBA")
             prev_img = prev_img.resize((24, 24), Image.LANCZOS)
             prev_img = prev_img.transpose(Image.FLIP_LEFT_RIGHT)
             self._prev_icon_ref = ImageTk.PhotoImage(prev_img)
@@ -101,7 +101,7 @@ class PhotoCarouselWidget(tk.Frame):
 
         # Build next arrow icon — increase size for better visibility
         try:
-            next_img = Image.open(_ARROW_ICON).convert("RGBA")
+            next_img = Image.open(resolve_resource_path(_ARROW_ICON)).convert("RGBA")
             next_img = next_img.resize((24, 24), Image.LANCZOS)
             self._next_icon_ref = ImageTk.PhotoImage(next_img)
         except Exception:

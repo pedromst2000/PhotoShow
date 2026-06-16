@@ -6,6 +6,8 @@ from typing import Optional, Tuple
 
 from PIL import Image, ImageTk
 
+from app.utils.file_utils import resolve_resource_path
+
 
 def create_loading_placeholder(
     size: Tuple[int, int] = (200, 200)
@@ -166,7 +168,7 @@ def load_image(
                 img_data = response.read()
             pil_img = Image.open(io.BytesIO(img_data)).convert("RGBA")
         else:
-            pil_img = Image.open(path).convert("RGBA")
+            pil_img = Image.open(resolve_resource_path(path)).convert("RGBA")
 
         if size:
             pil_img = pil_img.resize(size)

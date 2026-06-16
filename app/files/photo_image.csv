@@ -1,4 +1,4 @@
-﻿id,photoId,provider_image_id,provider_image_url
+﻿id,photoId,provider_image_id,provider_url_image
 1,1,Photo_01_gqokcm,https://res.cloudinary.com/dcpiuvmay/image/upload/v1781015953/Photo_01_gqokcm.jpg
 2,2,Photo_02_vmkypx,https://res.cloudinary.com/dcpiuvmay/image/upload/v1781015921/Photo_02_vmkypx.jpg
 3,3,Photo_03_pdp2ei,https://res.cloudinary.com/dcpiuvmay/image/upload/v1781015922/Photo_03_pdp2ei.jpg
