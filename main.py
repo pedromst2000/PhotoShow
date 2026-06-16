@@ -1,9 +1,17 @@
-# Load environment variables FIRST, before any other imports
-# This ensures Cloudinary credentials are available when cloudinary_service is imported
+import sys
+from pathlib import Path
+
+# Load environment variables FIRST, before any other imports.
+# In a frozen build, the .env file lives beside the executable, not inside _internal.
 try:
     from dotenv import load_dotenv
 
-    load_dotenv()
+    _env_dir = (
+        Path(sys.executable).resolve().parent
+        if getattr(sys, "frozen", False)
+        else Path(__file__).resolve().parent
+    )
+    load_dotenv(_env_dir / ".env")
 except ImportError:
     pass  # python-dotenv not installed; rely on OS environment variables
 
@@ -196,6 +204,16 @@ if __name__ == "__main__":
         log_success("Database initialized")
     except Exception as e:
         log_issue("Database initialization failed", exc=e)
+        sys.exit(1)
+
+    log_check("Syncing static data from CSV files...")
+    try:
+        from app.core.db.migration import sync_static_data
+
+        sync_static_data()
+        log_success("Static data synced")
+    except Exception as e:
+        log_issue("Static data sync failed", exc=e)
         sys.exit(1)
 
     log_check("Verifying database connection...")

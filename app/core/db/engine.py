@@ -1,5 +1,7 @@
 import sqlite3
+import sys
 import threading
+from pathlib import Path
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
@@ -7,13 +9,16 @@ from sqlalchemy.pool import NullPool
 
 from app.utils.log_utils import log_issue, log_success
 
-# SQLite database file at project root
-DATABASE_URL: str = "sqlite:///photoshow.db"
-DB_PATH: str = "photoshow.db"
+# Local SQLite database
+_APP_DIR = (
+    Path(sys.executable).resolve().parent
+    if getattr(sys, "frozen", False)
+    else Path(__file__).resolve().parents[3]
+)
+DB_PATH: Path = _APP_DIR / "photoshow.db"
+DATABASE_URL: str = f"sqlite:///{DB_PATH.as_posix()}"
 
-# NullPool ensures each `with SessionLocal()` block gets a fresh connection that is
-# fully released on exit — no pooled connections retain implicit SQLite locks.
-# timeout=5: wait up to 5 seconds for any lock to clear (needed for PRAGMA operations).
+# SQLite engine configuration with NullPool (fresh connections, prevents "database is locked")
 engine = create_engine(
     DATABASE_URL,
     echo=False,
@@ -22,10 +27,10 @@ engine = create_engine(
 )
 
 
-# SQLite pragmas applied on every new connection
+# Enable foreign key constraints and other pragmas on each new connection
 @event.listens_for(engine, "connect")
 def _set_sqlite_pragma(dbapi_connection, _connection_record):
-    """Apply SQLite pragmas on each new connection (called by SQLAlchemy event system)."""
+    """Apply SQLite pragmas on each new connection."""
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
@@ -37,17 +42,16 @@ SessionLocal: sessionmaker = sessionmaker(
 
 
 class Base(DeclarativeBase):
-    pass  # Base class for ORM models to inherit from (provides metadata and common functionality)
+    pass
 
 
 def _setup_wal_mode() -> None:
     """
-    Enable WAL mode synchronously. Must run before app logic touches the database.
+    Enable WAL mode synchronously.
     WAL persists once enabled, so subsequent calls are instant (no-op).
-    This is critical for preventing "database is locked" errors in concurrent access.
+    Critical for preventing "database is locked" errors in concurrent access.
     """
-
-    db_file = DATABASE_URL.replace("sqlite:///", "")
+    db_file = DB_PATH
     try:
         con = sqlite3.connect(db_file, timeout=5)
         cur = con.cursor()
@@ -61,26 +65,22 @@ def _setup_wal_mode() -> None:
             con.close()
             return
 
-        # First-time setup: enable WAL (takes ~5.5s on fresh database)
+        # Enable WAL
         cur.execute("PRAGMA journal_mode=WAL")
-        con.commit()  # Critical: must commit to persist WAL mode
+        con.commit()
         cur.close()
         con.close()
         log_success("WAL mode enabled for database")
     except Exception as e:
-        log_issue("Failed to enable WAL mode (will use fallback lock handling)", exc=e)
+        log_issue("Failed to enable WAL mode", exc=e)
 
 
 def _setup_wal_mode_async() -> None:
-    """
-    Enable WAL mode asynchronously (after app startup).
-    WAL persists once enabled, so this doesn't need to block initialization.
-    """
+    """Enable WAL mode asynchronously (runs in background thread)."""
 
     def _enable_wal():
         try:
-            db_file = DATABASE_URL.replace("sqlite:///", "")
-            con = sqlite3.connect(db_file)
+            con = sqlite3.connect(DB_PATH)
             con.execute("PRAGMA journal_mode=WAL")
             con.close()
         except Exception:
@@ -94,13 +94,11 @@ def _setup_wal_mode_async() -> None:
 def _apply_schema_migrations() -> None:
     """
     Add any columns present in ORM models but missing in the live database.
-    Uses raw sqlite3 to bypass SQLAlchemy transaction management for DDL.
+    Uses raw sqlite3 for DDL to bypass SQLAlchemy transaction management.
     Called automatically by init_db() after create_all().
-    Optimized: skips I/O if no migrations needed.
     """
-
-    db_file = DATABASE_URL.replace("sqlite:///", "")
-    con = sqlite3.connect(db_file, timeout=5)  # Add timeout for lock handling
+    db_file = DB_PATH
+    con = sqlite3.connect(db_file, timeout=5)
     cur = con.cursor()
     migrations_needed = False
 
@@ -120,10 +118,9 @@ def _apply_schema_migrations() -> None:
                 if migrations_needed:
                     break
             except sqlite3.OperationalError:
-                # Table doesn't exist — create_all will handle it
                 continue
 
-        # If no migrations needed, return early (avoid slow PRAGMA iteration)
+        # If no migrations needed, return early
         if not migrations_needed:
             return
 
@@ -149,9 +146,9 @@ def _apply_schema_migrations() -> None:
                         )
                     except sqlite3.OperationalError as e:
                         log_issue(
-                            f"Schema migration failed: could not add '{col.name}' to '{table.name}'",
+                            f"Schema migration failed for '{col.name}' in '{table.name}'",
                             exc=e,
-                            path=db_file,
+                            path=str(db_file),
                         )
             except sqlite3.OperationalError:
                 continue
@@ -189,12 +186,11 @@ def check_db() -> tuple:
 
 def drop_all_tables_raw() -> None:
     """
-    Drop every table in the SQLite database using a raw sqlite3 connection.
-    Disables FK constraints first so no ordering issues arise from stale
-    FK columns that no longer appear in the SQLAlchemy metadata.
+    Drop every table in the SQLite database using raw sqlite3.
+    Disables foreign key constraints temporarily to allow cascade deletion.
     """
+    engine.dispose()  # Return all pooled connections before dropping
 
-    engine.dispose()  # return all pooled connections before we take the file
     con = sqlite3.connect(DB_PATH)
     try:
         cur = con.cursor()
@@ -204,7 +200,7 @@ def drop_all_tables_raw() -> None:
         for table in tables:
             cur.execute(f'DROP TABLE IF EXISTS "{table}"')
         con.commit()
-        # Explicitly flush WAL and checkpoint to ensure changes are persisted to disk
+        # Flush WAL and checkpoint to ensure changes are persisted to disk
         con.execute("PRAGMA wal_checkpoint(RESTART)")
         con.close()
     finally:

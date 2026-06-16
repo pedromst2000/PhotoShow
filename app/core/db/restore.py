@@ -23,6 +23,7 @@ from app.core.db.models import (
     UserModel,
 )
 from app.core.services.cloudinary_service import CloudinaryService
+from app.utils.file_utils import resolve_resource_path
 from app.utils.log_utils import log_check, log_issue, log_success
 
 # ── Table restore order (must respect FK dependencies) ────────────────────────
@@ -299,7 +300,7 @@ def restore_db_from_backup(backup_dir: str | None = None) -> None:
                             log_check(
                                 f"[restoreDB] {csv_file.name} missing in backup — using seed file: {fallback}"
                             )
-                            csv_file = Path(fallback)
+                            csv_file = Path(resolve_resource_path(fallback))
                         else:
                             log_check(
                                 f"[restoreDB] {csv_file.name} missing in backup — skipping"

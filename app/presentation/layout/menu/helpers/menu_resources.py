@@ -3,6 +3,7 @@ from typing import Dict
 from PIL import ImageTk
 
 from app.presentation.widgets.helpers.images import load_image
+from app.utils.file_utils import resolve_resource_path
 
 
 def load_menu_images(
@@ -19,7 +20,7 @@ def load_menu_images(
 
     images: Dict[str, Dict[str, ImageTk.PhotoImage]] = {}
     for name, paths in menu_images_paths.items():
-        default = load_image(paths.get("default"))
-        selected = load_image(paths.get("selected"))
+        default = load_image(resolve_resource_path(paths.get("default")))
+        selected = load_image(resolve_resource_path(paths.get("selected")))
         images[name] = {"default": default, "selected": selected}
     return images
