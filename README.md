@@ -1,12 +1,12 @@
 <a name="top"></a>
 
- <p align="center">
+<p align="center">
     <a href="https://github.com/pedromst2000/PhotoShow/actions/workflows/code-quality.yml">
       <img src="https://github.com/pedromst2000/PhotoShow/actions/workflows/code-quality.yml/badge.svg" alt="Code Quality" />
     </a>
   </p>
 
-<div align="center" id="top">
+  <div align="center" id="top">
   <p>
     <img src="docs/images/Logo.png" alt="PhotoShow logo" width="450">
   </p>
@@ -31,16 +31,12 @@
 - [:rocket: Getting Started](#rocket-getting-started)
   - [:clipboard: Prerequisites](#clipboard-prerequisites)
   - [:inbox_tray: Quick Start](#inbox_tray-quick-start)
-  - [:floppy_disk: Database Setup](#floppy_disk-database-setup)
-  - [:cloud: Cloudinary Setup (Developers/Production)](#cloud-cloudinary-setup-developersproduction)
-    - [Step 1: Create a Cloudinary Account](#step-1-create-a-cloudinary-account)
-    - [Step 2: Configure Environment Variables](#step-2-configure-environment-variables)
-    - [Step 3: Create Folder Structure](#step-3-create-folder-structure-in-cloudinary)
-    - [Step 4: Populate Dev Folder](#step-4-populate-your-dev-folder)
-    - [Step 5: Folder Separation](#step-5-folder-separation)
-    - [Troubleshooting](#troubleshooting)
+- [:floppy_disk: Database Setup](#floppy_disk-database-setup)
+- [:cloud: Cloudinary Setup](#cloud-cloudinary-setup)
 - [:test_tube: Linting & Formatting](#test_tube-linting--formatting)
 - [:hammer_and_wrench: Standalone Executable](#hammer_and_wrench-standalone-executable)
+  - [Using the Executable](#using-the-executable)
+  - [Database Location](#database-location)
 - [:handshake: Contributing](#handshake-contributing)
   - [:memo: Naming Conventions](#memo-naming-conventions)
   - [:arrows_counterclockwise: Contribution Workflow](#arrows_counterclockwise-contribution-workflow)
@@ -62,8 +58,6 @@ PhotoShow is a local desktop application for browsing, organizing, and sharing p
 - ⭐ Add albums to favorites
 - 👥 Follow other users
 - 🔔 Receive in-app notifications
-- 👤 Customize your profile
-- 🎨 Set a custom avatar
 - 🚩 Report inappropriate content
 - 👨‍💼 Admin tools for user management
 - 📋 Admin tools for category management
@@ -90,6 +84,11 @@ A demo video for PhotoShow will be added soon.
 - [SQLAlchemy](https://www.sqlalchemy.org/) - ORM and database toolkit.
 - [bcrypt](https://github.com/pyca/bcrypt) - Password hashing.
 
+**Cloud Storage**
+
+- [Cloudinary](https://cloudinary.com/) - Image hosting and management.
+- [python-cloudinary](https://github.com/cloudinary/cloudinary_python) - Cloudinary SDK.
+
 **Code Quality & Linting**
 
 - [Black](https://black.readthedocs.io/en/stable/) - Code formatter.
@@ -103,7 +102,6 @@ A demo video for PhotoShow will be added soon.
 - [pytest](https://docs.pytest.org/en/stable/) - Testing framework.
 - [pytest-mock](https://github.com/pytest-dev/pytest-mock) - Mocking in tests.
 - [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) - Coverage reporting.
-- [codecov](https://about.codecov.io/) - Code coverage reporting service.
 
 **Packaging**
 
@@ -149,10 +147,11 @@ ORM models live in `app/core/db/models/` and are implemented with `SQLAlchemy`. 
 
 ### :clipboard: Prerequisites
 
-- **Python 3.14.3** — Main programming language ([download](https://www.python.org/downloads/))
+- **Python 3.14+** — Main programming language ([download](https://www.python.org/downloads/))
 - **pip** — comes with Python
 - **Git** — for cloning ([download](https://git-scm.com/downloads))
 - (Recommended) Virtual environment support: `python -m venv`
+- **DB Browser for SQLite** — For viewing and debugging the local database ([download](https://sqlitebrowser.org/))
 
 > Verify your tools are available in the PATH:
 >
@@ -164,164 +163,152 @@ ORM models live in `app/core/db/models/` and are implemented with `SQLAlchemy`. 
 
 ### :inbox_tray: Quick Start
 
-#### Clone the repository
+1. **Clone the repository:**
 
-```bash
-git clone https://github.com/pedromst2000/PhotoShow.git
-```
+   ```bash
+   git clone https://github.com/pedromst2000/PhotoShow.git
+   ```
 
-#### Navigate to the project directory
+2. **Navigate to the project directory:**
 
-```bash
-cd PhotoShow
-```
+   ```bash
+   cd PhotoShow
+   ```
 
-> :bulb: **Tip:** Can't find the project directory? Open the folder in your code editor and use the integrated terminal.
+3. **Create and activate a virtual environment:**
 
-#### Create and activate a virtual environment
+   Create:
 
-Create the virtual environment:
+   ```bash
+   python -m venv .venv
+   ```
 
-```bash
-python -m venv .venv
-```
+   Activate on **Windows PowerShell**:
 
-Activate it on **Windows PowerShell**:
+   ```powershell
+   .venv\Scripts\Activate
+   ```
 
-```powershell
-.venv\Scripts\Activate
-```
+   Activate on **macOS/Linux**:
 
-Activate it on **macOS/Linux**:
+   ```bash
+   source .venv/bin/activate
+   ```
 
-```bash
-source .venv/bin/activate
-```
+   > To deactivate: `deactivate`
 
-> **To deactivate the virtual environment:**
->
-> - On any OS, simply run:
+4. **Install dependencies:**
 
-```bash
-deactivate
-```
+   ```bash
+   python -m pip install --upgrade pip
+   pip install --upgrade -r dev-requirements.txt
+   ```
 
-This will return you to your system's default Python environment.
+5. **Set up environment variables:**
 
-> **Note:** Some dependencies may only work correctly inside the `.venv` virtual environment. It is highly recommended to use the virtual environment for all development and testing.
+   ```bash
+   cp .env.example .env
+   ```
 
-#### Install dependencies
+   Then edit `.env` with your Cloudinary credentials (see [Cloudinary Setup](#cloud-cloudinary-setup) below).
 
-```bash
-python -m pip install --upgrade pip
-pip install --upgrade -r dev-requirements.txt
-```
+6. **Run the app:**
+   ```bash
+   python main.py
+   ```
 
-#### Run the app
+<br>
 
-```bash
-python main.py
-```
+## :floppy_disk: Database Setup
 
-### :floppy_disk: Database Setup
+PhotoShow uses **SQLite** for local data storage. The database file (`photoshow.db`) is created automatically at the project root on first run.
 
-`photoshow.db` is created automatically at the project root on first run. Use the commands below to manage the database state.
+### Database Commands
 
-| Command | Description |
-|---|---|
-| `python main.py --backupDB` | Snapshot the current live DB to `backups/<timestamp>/` |
-| `python main.py --resetDB` | Auto-backup, then wipe and reseed from seed CSV files |
-| `python main.py --restoreDB` | Restore DB from the latest backup |
-| `python main.py --restoreDB backups/<folder>` | Restore DB from a specific backup snapshot |
+| Command                                       | Description                                     |
+| --------------------------------------------- | ----------------------------------------------- |
+| `python main.py --backupDB`                   | Backup the database to `backups/<timestamp>/`   |
+| `python main.py --resetDB`                    | Reset to initial seed data (auto-backups first) |
+| `python main.py --restoreDB`                  | Restore from latest backup                      |
+| `python main.py --restoreDB backups/<folder>` | Restore from specific backup                    |
 
-**When to use each:**
+**When to use:**
 
-- **`--backupDB`** - before making risky changes or testing destructive operations; saves the current live state
-- **`--resetDB`** - returns the app to the initial dummy-data state (useful for local feature testing); always auto-backups first
-- **`--restoreDB`** - brings back a previous state after a reset or data loss; defaults to the newest backup
+- **`--backupDB`** — Before making risky changes
+- **`--resetDB`** — Return to initial state for testing
+- **`--restoreDB`** — Recover from a previous backup
 
-> :warning: Backups may contain sensitive data (e.g., emails, password hashes). Keep the `backups/` folder local and out of version control - it is already listed in `.gitignore`.
+### Viewing Database Content
 
-### :cloud: Cloudinary Setup (Developers/Production)
+For detailed instructions on viewing the database in both development and distribution modes, see [Database Location](#database-location) in the [Standalone Executable](#hammer_and_wrench-standalone-executable) section.
 
-**PhotoShow** uses [Cloudinary](https://cloudinary.com/) to store and manage media assets. The **Project Owner** maintains the main cloud account with production assets, while each **developer/contributor** creates their own Cloudinary account as a local development copy.
+> :warning: **Backups:** The `backups/` folder may contain sensitive data. Keep it local and out of version control (listed in `.gitignore`).
 
-**Cloud Architecture:**
-- **Owner's Cloud:** Main account for the project owner/maintainer with all production assets
-- **Developer's Cloud:** Individual copy for each contributor, mirroring the owner's structure for isolated development
+<br>
 
-#### Step 1: Create a Cloudinary Account
+## :cloud: Cloudinary Setup
+
+PhotoShow uses [Cloudinary](https://cloudinary.com/) to store photos and avatars. Each developer creates their own free Cloudinary account.
+
+### Step 1: Create a Cloudinary Account
 
 1. Sign up for a free account at [cloudinary.com](https://cloudinary.com/)
-2. From your **Dashboard**, note your credentials:
+2. From your **Dashboard**, copy these credentials:
    - **Cloud Name**
    - **API Key**
    - **API Secret**
 
-#### Step 2: Configure Environment Variables
+### Step 2: Configure Environment Variables
 
-Copy [`.env.example`](.env.example) to `.env` and fill in your Cloudinary credentials:
+1. If you haven't already, copy [`.env.example`](.env.example) to `.env` (see [Quick Start — Step 5](#inbox_tray-quick-start)):
 
-```bash
-cp .env.example .env
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` with your Cloudinary credentials from the dashboard
+
+> :warning: **Never commit `.env` to git.** It's in `.gitignore` for security.
+
+### Step 3: Create Folder Structure in Cloudinary
+
+In your Cloudinary **Media Library**, create this folder structure:
+
+```
+photo-show/
+├── dev/                    # Seed data (reference images)
+│   ├── profile_avatars/
+│   └── photos_gallery/
+└── prod/                   # Your uploads
+    ├── profile_avatars/
+    └── photos_gallery/
 ```
 
-Then edit `.env` with your values from the Cloudinary dashboard.
-
-> :warning: **Never commit `.env` to git.** It is listed in `.gitignore` for security.
-
-#### Step 3: Create Folder Structure and Populate with Seed Data
-
-In your Cloudinary **Media Library**, create the same folder structure and populate it with seed assets from the Owner's Cloud.
-
-**GUI Path:** `Media Library > Folders > Home` → Create folder `photo-show`
-
-**Reference Image (Owner's Cloud structure):**
+**GUI Path:** Media Library → Folders → Home → Create `photo-show` folder
 
 <div align="center">
   <img src="./docs/images/Cloudinary_GUI_Layout_Assets.png" alt="Cloudinary folder structure" width="600" />
 </div>
 
-**Folder structure to create:**
+### Step 4: Populate Seed Data (Optional)
 
-```
-photo-show/
-├── dev/                         # [CRITICAL: Mirror from Owner's Cloud]
-│   ├── profile_avatars/         # Seed avatars (download from owner's CSV)
-│   └── photos_gallery/          # Seed photos (download from owner's CSV)
-└── prod/                        # [Your uploads only]
-    ├── profile_avatars/         # Your avatar uploads (empty initially)
-    └── photos_gallery/          # Your photo uploads (empty initially)
-```
+To add reference images to your `dev/` folders:
 
-**Populate your `dev/` folders:**
-
-1. Open `app/files/avatars.csv` or `app/files/photo_image.csv`
-2. These CSV files reference the **Owner's Cloud** seed images
-3. For each image URL in the `provider_url_image` column:
-   - Open the URL in your browser
-   - **Right-click** → **"Guardar imagem como..."** (Save image as...)
-   - Save locally
+1. Open [avatars.csv](app/files/avatars.csv) or [photo_image.csv](app/files/photo_image.csv)
+2. For each image URL in the `provider_url_image` column:
+   - Click the URL link to open it in your browser
+   - Right-click → Save image locally
    - Upload to your Cloudinary `photo-show/dev/profile_avatars/` or `photo-show/dev/photos_gallery/`
 
-**Folder Behavior:**
+> :bulb: **Tip:** The `dev/` folder preserves seed data during `--resetDB`. The `prod/` folder stores your uploads and is cleared on reset.
 
-| Folder | Purpose | Reset Behavior | Modified By |
-|--------|---------|---|---|
-| `dev/profile_avatars` | Seed avatars (mirrored from owner) | **Preserved** ✓ | App reads from CSV |
-| `dev/photos_gallery` | Seed photos (mirrored from owner) | **Preserved** ✓ | App reads from CSV |
-| `prod/profile_avatars` | Your avatar uploads | **Cleared** 🗑️ | App auto-manages |
-| `prod/photos_gallery` | Your photo uploads | **Cleared** 🗑️ | App auto-manages |
+### Troubleshooting
 
-> :bulb: **Key Point:** `dev/` folders are your local copy of the owner's seed data and survive `--resetDB`. `prod/` folders are cleared during reset to return to initial development state.
-
-#### Troubleshooting
-
-| Problem | Fix |
-|---------|-----|
-| `ValueError: Must supply api_key` | Add missing variables to `.env` from `.env.example` |
-| Images show as broken links | Verify images are in your Cloudinary `dev/` folders and `.env` has correct credentials |
-| Database reset deletes my uploads | Expected behavior—`prod/` folders are cleared. Run `python main.py --backupDB` first if you want to preserve data |
+| Problem                            | Fix                                                                          |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| `ValueError: Must supply api_key`  | Check `.env` has correct `CLOUDINARY_*` credentials                          |
+| Images show broken links           | Verify folders exist in Cloudinary Media Library with correct names          |
+| Images disappear after `--resetDB` | Expected — `prod/` folder is cleared. Use `--backupDB` to save uploads first |
 
 <br>
 
@@ -329,96 +316,147 @@ photo-show/
 
 Run these checks locally before committing to keep the codebase consistent and avoid CI failures.
 
-#### Lint CSV data files
+#### Format Python code
 
-Checks CSV seed data files for structural and formatting issues.
-
-```bash
-python app/scripts/lint_csv.py
-```
-
-#### Format CSV data files
-
-Auto-formats CSV seed data files to conform to project standards.
+Auto-formats all Python files using Black:
 
 ```bash
-python app/scripts/format_csv.py
-```
-
-#### Check Python imports
-
-Checks that Python imports are correctly ordered according to `isort` conventions.
-
-```bash
-python app/scripts/check_imports.py
-```
-
-#### Format Python imports
-
-Auto-formats Python imports to match `isort` ordering conventions.
-
-```bash
-python app/scripts/format_imports.py
+python -m black app tests main.py
 ```
 
 #### Lint Python files
 
-Checks Python files for style violations and errors (`PEP 8` compliance).
+Checks Python files for style violations and errors (PEP 8 compliance):
 
 ```bash
 python -m flake8 .
 ```
 
-#### Format Python files
-
-Auto-formats all Python files using the `Black` code formatter.
-
-```bash
-python -m black .
-```
-
 #### Check Python types
 
-Runs static type checks on `app/` and `main.py` using `mypy`.
+Runs static type checks on `app/` and `main.py` using mypy:
 
 ```bash
 python -m mypy app main.py
 ```
 
-> Configuration is managed via [`mypy.ini`](mypy.ini) at the project root.
-
 #### Lint YAML files
 
-Checks YAML configuration files for syntax and formatting issues.
+Checks YAML configuration files for syntax and formatting issues:
 
 ```bash
 python -m yamllint .
 ```
 
-#### Validate staged files before committing
+#### Lint CSV data files
 
-Before committing, run the check on your staged changes and (if needed) auto-fix style issues:
-
-Run the check:
+Checks CSV seed data files for structural and formatting issues:
 
 ```bash
-python app/scripts/check_changed_files.py
+python app/scripts/lint_csv.py
 ```
 
-To auto-fix style-only problems (formatting, imports, CSV structure):
+#### Run tests
+
+Executes the test suite:
 
 ```bash
-python app/scripts/check_changed_files.py --fix
+python -m pytest
 ```
-
-Note: `--fix` only addresses style issues. Re-run the first command after fixes to confirm everything is clean before committing.
 
 <br>
 
 ## :hammer_and_wrench: Standalone Executable
 
-Standalone executable instructions will be added soon.
+You can compile PhotoShow into a self-contained application folder using `PyInstaller`, which bundles everything needed to run it. However, please note:
 
+> ⚠️ **Warning:** The generated executable is intended for use on your own machine. Running the executable on remote or other machines may trigger antivirus false positives or fail due to environment differences. Distribution is not recommended.
+
+To compile locally, follow these steps:
+
+1. **Set up your environment and dependencies** (see [Getting Started](#rocket-getting-started) above).
+2. **Activate your virtual environment** (see [Getting Started](#rocket-getting-started) above).
+3. **Install PyInstaller in your virtual environment**:
+   ```bash
+   pip install pyinstaller
+   ```
+4. **Compile the application** (in your activated virtual environment):
+
+   > ⚠️ **Before rebuilding:** If `PhotoShow.exe` is already running, **close it first**. Windows locks DLLs of running processes and PyInstaller will fail with a `PermissionError` if the exe is open.
+
+   **Using the updated spec file (recommended):**
+
+   ```bash
+   pyinstaller PhotoShow.spec --clean --noconfirm
+   ```
+
+   **Or, manual full compilation on Windows:**
+
+   ```cmd
+   pyinstaller main.py --onedir --noconsole --icon "app/assets/PhotoShowIcon.ico" --add-data "app/assets;app/assets" --add-data "app/files;app/files" --distpath dist --workpath build --specpath . --name PhotoShow --clean --noconfirm
+   ```
+
+   **Or, on Linux/macOS:**
+
+   ```bash
+   pyinstaller main.py --onedir --noconsole --icon "app/assets/PhotoShowIcon.ico" --add-data "app/assets:app/assets" --add-data "app/files:app/files" --distpath dist --workpath build --specpath . --name PhotoShow --clean --noconfirm
+   ```
+
+   > ⚠️ **Antivirus false positives — IMPORTANT:** PyInstaller bundles Python DLLs (e.g. `ucrtbase.dll`, `python313.dll`, `msvcrt.dll`) into the `_internal/` folder.
+   >
+   > **To resolve:**
+   > - Add `dist/PhotoShow/` folder and all its contents to your antivirus **exclusion list**
+   > - Or **allow/verify** the exe when your antivirus prompts you (click "Run anyway" or "Allow")
+   > - If antivirus blocks DLL access: `PermissionError: [Errno 13] Permission denied: '..._internal\ucrtbase.dll'` → exclude the entire `dist/PhotoShow/_internal/` folder from real-time scanning
+
+   > After building, a `dist/PhotoShow` folder is created. Open it and run `PhotoShow.exe` — no Python required. Keep the entire folder together (do not remove `_internal` or other support files). The executable is platform-specific; rebuild separately on Windows, macOS, or Linux.
+
+   > You can move the `dist/PhotoShow` folder to your desktop or another location and run the executable from there. Just keep the entire folder together.
+
+### Using the Executable
+
+1. **Copy your `.env` file into the executable folder:**
+
+   ```bash
+   copy .env dist/PhotoShow/.env
+   ```
+
+   > PhotoShow reads `.env` from its folder to access your Cloudinary credentials.
+
+2. **Run `PhotoShow.exe`:**
+   - Double-click `dist/PhotoShow/PhotoShow.exe` like any desktop app
+   - On first run: Creates `photoshow.db` in the same folder (`dist/PhotoShow/photoshow.db`)
+   - All photo uploads go to **your Cloudinary account** (from `.env`)
+   - All data stored locally in `photoshow.db`
+
+### Database Location
+
+> ⚠️ **CRITICAL:** The database location is **DIFFERENT** depending on how you run PhotoShow. Opening the wrong database file in SQLite Browser will make data changes appear out of sync!
+
+**The database location differs between development and distribution modes:**
+
+| Mode | Database Location | When to use |
+|------|------|----------|
+| **Development (source)** | `C:\Users\User\Desktop\PhotoShow\photoshow.db` (root folder) | Running `python main.py` from the repo |
+| **Distribution (exe)** | `C:\Users\User\Desktop\PhotoShow\dist\PhotoShow\photoshow.db` (dist folder) | Running `dist/PhotoShow/PhotoShow.exe` |
+
+**Always verify which `photoshow.db` you're opening in SQLite Browser:**
+- **Dev mode** → Open from **project root**
+- **Distribution mode** → Open from **dist/PhotoShow/** folder
+
+#### Viewing Database Content
+
+1. Open **DB Browser for SQLite**
+2. **File** → **Open Database**
+3. Select the correct database file based on your mode:
+   - **Dev mode:** `photoshow.db` at project root
+   - **Distribution mode:** `dist/PhotoShow/photoshow.db`
+
+**In development mode:** You'll see real-time changes from the app running via `python main.py`.
+
+**In distribution mode:** You'll see data from the packaged executable. If changes aren't appearing, verify you opened the correct file in `dist/PhotoShow/` folder, not the project root.
+
+> ⚠️ **Do NOT mix them up** — opening the wrong file makes it appear data isn't syncing.
 <br>
 
 ## :handshake: Contributing
@@ -430,8 +468,6 @@ Your contributions help improve PhotoShow! Whether you're fixing a bug, improvin
 - Ready to code? Follow the workflow below
 
 ### :memo: Naming Conventions
-
-Follow these conventions for branches and commit messages:
 
 | Type       | Purpose            | Branch Example           | Commit Example                    |
 | ---------- | ------------------ | ------------------------ | --------------------------------- |
@@ -463,12 +499,12 @@ Follow these conventions for branches and commit messages:
 
 **PR checklist:**
 
-- :white_check_mark: Title follows naming conventions
-- :white_check_mark: Description explains changes clearly
-- :white_check_mark: Passes all linting and formatting checks
-- :white_check_mark: No merge conflicts
+- ✅ Branch name follows naming conventions ( See [above](#memo-naming-conventions) )
+- ✅ Description explains changes clearly
+- ✅ Passes all CI checks. See [GitHub Actions](https://github.com/pedromst2000/PhotoShow/actions) tab for details
+- ✅ No merge conflicts
 
-Thanks for contributing! :tada:
+Thanks for contributing! 🎉
 
 ## :page_facing_up: License
 
