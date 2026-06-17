@@ -95,7 +95,7 @@ class PhotoModel(Base):
         }
 
     @classmethod
-    def get_all(cls, session: Session) -> list:
+    def get_all(cls, session: Session) -> list[dict]:
         """
         Retrieve all photos from the database.
 
@@ -103,7 +103,7 @@ class PhotoModel(Base):
             session: Active SQLAlchemy session.
 
         Returns:
-            list: A list of dictionaries, each representing a photo.
+            list[dict]: A list of dictionaries, each representing a photo.
         """
         return [photo.to_dict() for photo in session.query(cls).all()]
 
@@ -189,7 +189,7 @@ class PhotoModel(Base):
         return p.to_dict()
 
     @classmethod
-    def get_by_album(cls, session: Session, album_id: int) -> list:
+    def get_by_album(cls, session: Session, album_id: int) -> list[dict]:
         """
         Retrieve all photos in a specific album.
 
@@ -198,7 +198,7 @@ class PhotoModel(Base):
             album_id (int): The ID of the album.
 
         Returns:
-            list: A list of dictionaries representing photos in the album.
+            list[dict]: A list of dictionaries representing photos in the album.
         """
         return [
             photo.to_dict()
@@ -206,7 +206,7 @@ class PhotoModel(Base):
         ]
 
     @classmethod
-    def get_by_category(cls, session: Session, category_id: int) -> list:
+    def get_by_category(cls, session: Session, category_id: int) -> list[dict]:
         """
         Retrieve all photos in a specific category.
 
@@ -215,7 +215,7 @@ class PhotoModel(Base):
             category_id (int): The ID of the category.
 
         Returns:
-            list: A list of dictionaries representing photos in the category.
+            list[dict]: A list of dictionaries representing photos in the category.
         """
         return [
             photo.to_dict()

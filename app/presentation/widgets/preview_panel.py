@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold, quickSandBoldUnderline
@@ -39,7 +39,7 @@ class PreviewPanelWidget(tk.Frame):
         on_next: Optional[Callable] = None,
         on_username_click: Optional[Callable] = None,
         on_rate: Optional[Callable] = None,
-        buttons: Optional[List[dict]] = None,
+        buttons: Optional[list[dict]] = None,
         x_pos: int = 545,
         width: int = 755,
         height: int = 674,
@@ -265,8 +265,9 @@ class PreviewPanelWidget(tk.Frame):
 
             # Bind username / avatar click
             if self._on_username_click is not None:
-                username_lbl.bind("<Button-1>", lambda e: self._on_username_click())
-                avatar_canvas.bind("<Button-1>", lambda e: self._on_username_click())
+                _on_click = self._on_username_click  # capture for mypy type narrowing
+                username_lbl.bind("<Button-1>", lambda e: _on_click())
+                avatar_canvas.bind("<Button-1>", lambda e: _on_click())
 
         # ── Action buttons ───────────────────────────────────────────────
         if self.buttons:

@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Tuple
 
 from app.core.services.notification_service import NotificationService
 from app.core.state.session import session
@@ -60,7 +60,7 @@ class NotificationController:
     # ── Admin: notification settings ──────────────────────────────────────────
 
     @staticmethod
-    def get_types() -> List[dict]:
+    def get_types() -> list[dict]:
         """
         Retrieve all notification types (admin only).
 
@@ -122,7 +122,7 @@ class NotificationController:
         NotificationService.ensure_types_seeded()
 
     @staticmethod
-    def get_enriched(*, unread_only: bool = False) -> List[dict]:
+    def get_enriched(*, unread_only: bool = False) -> list[dict]:
         """Return enriched notifications (with sender info and type label).
 
         Args:

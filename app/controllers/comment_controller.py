@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from app.core.services.comment_service import CommentService
 from app.core.state.session import session
@@ -16,7 +16,7 @@ class CommentController:
     """
 
     @staticmethod
-    def get_comments(photo_id: int) -> List[dict]:
+    def get_comments(photo_id: int) -> list[dict]:
         """
         Return all enriched comments for a photo.
 

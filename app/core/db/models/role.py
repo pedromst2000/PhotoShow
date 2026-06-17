@@ -45,15 +45,15 @@ class RoleModel(Base):
         }
 
     @classmethod
-    def get_all(cls, session: Session) -> list:
+    def get_all(cls, session: Session) -> list[dict]:
         """
-        Retrieve all roles from the database and return them as a list of dictionaries.
+        Retrieve all roles from the database.
 
         Args:
             session: Active SQLAlchemy session.
 
         Returns:
-            list: A list of dictionaries, each representing a role.
+            list[dict]: A list of dictionaries, each representing a role.
         """
         return [r.to_dict() for r in session.query(cls).all()]
 

@@ -70,7 +70,7 @@ class AlbumModel(Base):
         }
 
     @classmethod
-    def get_all(cls, session: Session) -> list:
+    def get_all(cls, session: Session) -> list[dict]:
         """
         Retrieve all albums from the database.
 
@@ -78,7 +78,7 @@ class AlbumModel(Base):
             session: Active SQLAlchemy session.
 
         Returns:
-            list: A list of dictionaries, each representing an album.
+            list[dict]: A list of dictionaries, each representing an album.
         """
         return [a.to_dict() for a in session.query(cls).all()]
 
@@ -133,7 +133,7 @@ class AlbumModel(Base):
         return a.to_dict() if a else None
 
     @classmethod
-    def get_by_creator(cls, session: Session, creator_id: int) -> list:
+    def get_by_creator(cls, session: Session, creator_id: int) -> list[dict]:
         """
         Retrieve all albums created by a specific user.
 

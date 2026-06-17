@@ -91,7 +91,7 @@ class CommentModel(Base):
         return obj.to_dict() if obj else None
 
     @classmethod
-    def get_all(cls, session: Session) -> list:
+    def get_all(cls, session: Session) -> list[dict]:
         """
         Retrieve all comments from the database.
 
@@ -99,7 +99,7 @@ class CommentModel(Base):
             session: Active SQLAlchemy session.
 
         Returns:
-            list: A list of dictionaries, each representing a comment.
+            list[dict]: A list of dictionaries, each representing a comment.
         """
         return [c.to_dict() for c in session.query(cls).all()]
 

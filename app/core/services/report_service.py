@@ -22,7 +22,7 @@ class ReportService:
     """
 
     @staticmethod
-    def get_all_enriched() -> list:
+    def get_all_enriched() -> list[dict]:
         """
         Return all reports enriched with reason label, reporter username,
         and the content (photo description or comment text) plus creator.
@@ -118,7 +118,7 @@ class ReportService:
             return []
 
     @staticmethod
-    def get_reason_labels() -> list:
+    def get_reason_labels() -> list[str]:
         """
         Return the list of valid report-reason labels.
 

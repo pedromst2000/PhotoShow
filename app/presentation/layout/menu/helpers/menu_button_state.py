@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import Dict
+from typing import Any, Dict
 
 
 class MenuButtonStateManager:
@@ -11,30 +11,31 @@ class MenuButtonStateManager:
     """
 
     def __init__(self) -> None:
-        self.button_images: Dict[str, Dict[str, tk.PhotoImage]] = {}
+        # Values are `Any` to accept both `tk.PhotoImage` and `PIL.ImageTk.PhotoImage`
+        self.button_images: Dict[str, Dict[str, Any]] = {}
         self.button_states: Dict[str, str] = {}
         self.active_button: str | None = None
 
-    def register_button_images(
-        self, button_name: str, images: Dict[str, tk.PhotoImage]
-    ) -> None:
+    def register_button_images(self, button_name: str, images: Dict[str, Any]) -> None:
         """
         Register the default and selected images for a menu button.
         Args:
             button_name (str): The unique name of the button (e.g., "explore").
-            images (Dict[str, tk.PhotoImage]): A dictionary with keys "default" and "selected"
-                containing the corresponding PhotoImage objects.
+            images (Dict[str, Any]): A dictionary with keys "default" and "selected"
+                containing the corresponding PhotoImage objects (tk.PhotoImage or
+                PIL.ImageTk.PhotoImage).
         """
 
         self.button_images[button_name] = images
         self.button_states[button_name] = "default"
 
-    def register_images(self, images: Dict[str, Dict[str, tk.PhotoImage]]) -> None:
+    def register_images(self, images: Dict[str, Dict[str, Any]]) -> None:
         """
         Batch register images for multiple buttons.
 
         Args:
-            images (Dict[str, Dict[str, tk.PhotoImage]]): A dictionary mapping button names to their default and selected PhotoImage objects.
+            images (Dict[str, Dict[str, Any]]): A dictionary mapping button names to their
+                default and selected PhotoImage objects (tk.PhotoImage or PIL.ImageTk.PhotoImage).
         """
 
         for name, imgs in images.items():

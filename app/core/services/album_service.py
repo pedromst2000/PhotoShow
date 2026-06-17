@@ -26,7 +26,7 @@ class AlbumService:
     """
 
     @staticmethod
-    def get_user_albums(user_id: int) -> list:
+    def get_user_albums(user_id: int) -> list[dict]:
         """
         Get all albums for a specific user.
 
@@ -34,7 +34,7 @@ class AlbumService:
             user_id: The ID of the user.
 
         Returns:
-            list: List of album dictionaries.
+            list[dict]: List of album dictionaries.
 
         Raises:
             Exception: Any database error is caught and logged; empty list returned.

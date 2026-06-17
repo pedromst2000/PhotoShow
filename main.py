@@ -132,9 +132,9 @@ class main:
             cursor="hand2",
         )
         self.signInButton.place(x=600, y=500)
-        self.signInButton.bind(
-            "<Button-1>", lambda event: loginWindow(event, self.window)
-        )
+        assert self.window is not None  # always set by create_main_window above
+        _win = self.window
+        self.signInButton.bind("<Button-1>", lambda event: loginWindow(event, _win))
 
         # Keep PhotoImage references alive to prevent Tk garbage collection
         self._images = (self._main_image, self._logo_image)

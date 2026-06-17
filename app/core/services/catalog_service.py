@@ -36,7 +36,7 @@ class CatalogService:
         username: Optional[str] = None,
         user_id: Optional[int] = None,
         album_id: Optional[int] = None,
-    ) -> list:
+    ) -> list[dict]:
         """
         Return a fully enriched photo list for the Explore view.
 
@@ -52,7 +52,7 @@ class CatalogService:
             album_id: Album ID to restrict results to, or None for all albums.
 
         Returns:
-            list: Sorted and filtered list of enriched photo dicts.
+            list[dict]: Sorted and filtered list of enriched photo dicts.
 
         Raises:
             Exception: Any database error is caught and logged; empty list returned.

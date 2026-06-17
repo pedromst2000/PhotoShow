@@ -110,6 +110,83 @@ class PhotoService:
             return False
 
     @staticmethod
+    def upload(
+        image_path: str,
+        album_id: int,
+        category_id: Optional[int] = None,
+        description: str = "",
+        published_date=None,
+    ) -> Tuple[bool, str]:
+        """
+        Full photo upload flow: create DB record → upload to Cloudinary → link image.
+
+        Encapsulates the multi-step transaction so controllers only need one call.
+        Rolls back the DB record and Cloudinary asset on any failure.
+
+        Args:
+            image_path:     Full path to the source image file.
+            album_id:       Album ID to associate with the photo (mandatory).
+            category_id:    Optional category ID.
+            description:    Optional description text.
+            published_date: Optional published datetime (defaults to now).
+
+        Returns:
+            Tuple[bool, str]: (success, message)
+        """
+        from app.core.services.cloudinary_service import CloudinaryService
+
+        # Step 1: Create photo record to obtain a photo_id.
+        photo = PhotoService.create_photo_record(
+            album_id=album_id,
+            category_id=category_id,
+            description=description,
+            published_date=published_date,
+        )
+        if photo is None:
+            return False, "Failed to initialize photo record"
+
+        photo_id = photo.get("id")
+        if not photo_id:
+            return False, "Failed to get photo ID"
+
+        # Step 2: Upload image to Cloudinary using photo_id in the public_id.
+        upload_result = CloudinaryService.upload_photo(image_path, photo_id)
+        if upload_result is None:
+            PhotoService.delete_photo_record(photo_id)
+            return False, "Failed to upload image to cloud storage"
+
+        provider_image_id = upload_result["public_id"]
+        provider_image_url = upload_result["url"]
+
+        # Step 3: Link the Cloudinary image to the DB photo record.
+        try:
+            if not PhotoService.create_photo(
+                photo_id=photo_id,
+                provider_image_id=provider_image_id,
+                provider_image_url=provider_image_url,
+            ):
+                CloudinaryService.delete_image(provider_image_id)
+                PhotoService.delete_photo_record(photo_id)
+                return False, "Failed to save photo metadata"
+
+            log_operation("photo.upload", "success", "Photo uploaded successfully")
+            return True, "Photo uploaded successfully"
+        except Exception as e:
+            CloudinaryService.delete_image(provider_image_id)
+            PhotoService.delete_photo_record(photo_id)
+            log_exception(
+                "photo.upload",
+                e,
+                context={
+                    "image_path": image_path,
+                    "album_id": album_id,
+                    "photo_id": photo_id,
+                    "provider_image_id": provider_image_id,
+                },
+            )
+            return False, f"Failed to upload photo: {str(e)}"
+
+    @staticmethod
     def create_photo_record(
         album_id: int,
         category_id: Optional[int] = None,
@@ -315,14 +392,14 @@ class PhotoService:
             return False
 
     @staticmethod
-    def get_liked_photos(user_id: int) -> list:
+    def get_liked_photos(user_id: int) -> list[dict]:
         """
         Get all photos liked by a specific user.
 
         Args:
             user_id: The ID of the user to get liked photos for.
         Returns:
-            list: A list of photo dictionaries that the user has liked.
+            list[dict]: A list of photo dictionaries that the user has liked.
         """
         with SessionLocal() as session:
             # Fetch like rows first, then batch fetch photos by id to avoid N+1

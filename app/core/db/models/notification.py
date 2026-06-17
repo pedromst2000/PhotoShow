@@ -110,7 +110,7 @@ class NotificationModel(Base):
         }
 
     @classmethod
-    def get_by_user(cls, session: Session, user_id: int) -> list:
+    def get_by_user(cls, session: Session, user_id: int) -> list[dict]:
         """
         Retrieve all notifications for a specific user (newest first).
 
@@ -119,7 +119,7 @@ class NotificationModel(Base):
             user_id (int): The recipient user ID.
 
         Returns:
-            list: A list of notification dicts.
+            list[dict]: A list of notification dicts.
         """
         return [
             n.to_dict()

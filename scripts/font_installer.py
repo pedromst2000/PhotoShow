@@ -62,7 +62,7 @@ def get_app_fonts_directory():
     # Fallback for PyInstaller bundle
     if getattr(sys, "frozen", False):
         # Running as PyInstaller bundle
-        base_path = Path(sys._MEIPASS)
+        base_path = Path(sys._MEIPASS)  # type: ignore[attr-defined]
         app_fonts = base_path / "app" / "assets" / "fonts"
         if app_fonts.exists():
             return app_fonts

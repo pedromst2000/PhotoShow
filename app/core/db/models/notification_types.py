@@ -59,14 +59,14 @@ class NotificationTypeModel(Base):
         }
 
     @classmethod
-    def get_all(cls, session: Session) -> list:
+    def get_all(cls, session: Session) -> list[dict]:
         """
         Retrieve all notification types from the database and return them as a list of dictionaries.
 
         Args:
             session: Active SQLAlchemy session.
         Returns:
-            list: A list of dictionaries, each representing a notification type.
+            list[dict]: A list of dictionaries, each representing a notification type.
         """
 
         return [s.to_dict() for s in session.query(cls).order_by(cls.id).all()]

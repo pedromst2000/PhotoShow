@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from app.core.services.report_service import ReportService
 from app.core.state.session import session
@@ -17,7 +17,7 @@ class ReportController:
     """
 
     @staticmethod
-    def get_reason_labels() -> List[str]:
+    def get_reason_labels() -> list[str]:
         """
         Return the list of valid report-reason labels for dropdown population.
 
@@ -161,7 +161,7 @@ class ReportController:
             return False, "Something went wrong. Please try again later."
 
     @staticmethod
-    def get_all_enriched() -> list:
+    def get_all_enriched() -> list[dict]:
         """
         Return all reports enriched with reason label, reporter, and content.
 

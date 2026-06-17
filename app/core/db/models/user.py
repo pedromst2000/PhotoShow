@@ -114,7 +114,7 @@ class UserModel(Base):
         }
 
     @classmethod
-    def get_all(cls, session: Session) -> list:
+    def get_all(cls, session: Session) -> list[dict]:
         """
         Retrieve all users from the database.
 
@@ -122,12 +122,12 @@ class UserModel(Base):
             session: Active SQLAlchemy session.
 
         Returns:
-            list: A list of dictionaries, each representing a user.
+            list[dict]: A list of dictionaries, each representing a user.
         """
         return [u.to_dict() for u in session.query(cls).all()]
 
     @classmethod
-    def get_password_hashes(cls, session: Session) -> list:
+    def get_password_hashes(cls, session: Session) -> list[str]:
         """
         Retrieve only the password column for all users.
 
@@ -135,7 +135,7 @@ class UserModel(Base):
             session: Active SQLAlchemy session.
 
         Returns:
-            list: A list of password strings.
+            list[str]: A list of password strings.
         """
         rows = session.query(cls.password).all()  # type: ignore[call-overload]
         return [r[0] for r in rows if r and r[0] is not None]
@@ -284,7 +284,7 @@ class UserModel(Base):
         return session.query(cls).filter(cls.username.ilike(username)).count() > 0
 
     @classmethod
-    def get_blocked_users(cls, session: Session) -> list:
+    def get_blocked_users(cls, session: Session) -> list[dict]:
         """
         Retrieve all blocked users.
 
@@ -292,7 +292,7 @@ class UserModel(Base):
             session: Active SQLAlchemy session.
 
         Returns:
-            list: A list of dictionaries representing blocked users.
+            list[dict]: A list of dictionaries representing blocked users.
         """
         return [u.to_dict() for u in session.query(cls).filter_by(isBlocked=True).all()]
 

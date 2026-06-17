@@ -1,6 +1,5 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
-from app.core.services.cloudinary_service import CloudinaryService
 from app.core.services.photo_service import PhotoService
 from app.core.state.session import session
 from app.utils.log_utils import log_exception, log_operation
@@ -40,17 +39,14 @@ class PhotoController:
         """
         Upload a new photo to Cloudinary and record it in the database.
 
-        Flow:
-        1. Create a photo record (gets photo_id).
-        2. Upload the local file to Cloudinary using Photo_<photo_id> as public_id.
-        3. Create the photo_image record linking the Cloudinary data.
-        4. On any failure, rollback the photo record and Cloudinary upload.
+        Delegates the full upload flow (create record → upload to Cloudinary →
+        link image with rollback on failure) to PhotoService.upload().
 
         Args:
-            image_path:    Full path to the source image chosen by the user.
-            album_id:      Album ID to associate with the photo.
-            category_id:   Optional category ID.
-            description:   Optional description.
+            image_path:     Full path to the source image chosen by the user.
+            album_id:       Album ID to associate with the photo.
+            category_id:    Optional category ID.
+            description:    Optional description.
             published_date: Optional published date.
 
         Returns:
@@ -61,63 +57,28 @@ class PhotoController:
         if album_id is None:
             return False, "Album ID is required"
 
-        # Step 1: Create photo record (no image yet).
-        photo = PhotoService.create_photo_record(
-            album_id=album_id,
-            category_id=category_id,
-            description=description,
-            published_date=published_date,
-        )
-        if photo is None:
-            return False, "Failed to initialize photo record"
-
-        photo_id = photo.get("id")
-        if not photo_id:
-            return False, "Failed to get photo ID"
-
-        # Step 2: Upload to Cloudinary with photo_id in public_id.
-        upload_result = CloudinaryService.upload_photo(image_path, photo_id)
-        if upload_result is None:
-            # Rollback photo record.
-            PhotoService.delete_photo_record(photo_id)
-            return False, "Failed to upload image to cloud storage"
-
-        provider_image_id = upload_result["public_id"]
-        provider_image_url = upload_result["url"]
-
-        # Step 3: Create photo_image record linking to Cloudinary.
         try:
-            if not PhotoService.create_photo(
-                photo_id=photo_id,
-                provider_image_id=provider_image_id,
-                provider_image_url=provider_image_url,
-            ):
-                # Rollback photo record and Cloudinary upload.
-                CloudinaryService.delete_image(provider_image_id)
-                PhotoService.delete_photo_record(photo_id)
-                return False, "Failed to save photo metadata"
-
-            log_operation(
-                "photo.upload_photo",
-                "success",
-                "Photo uploaded successfully",
+            success, message = PhotoService.upload(
+                image_path=image_path,
+                album_id=album_id,
+                category_id=category_id,
+                description=description,
+                published_date=published_date,
             )
-            return True, "Photo uploaded successfully"
+            if success:
+                log_operation(
+                    "photo.upload_photo",
+                    "success",
+                    "Photo uploaded successfully",
+                )
+            return success, message
         except Exception as e:
-            # Rollback on unexpected exception.
-            CloudinaryService.delete_image(provider_image_id)
-            PhotoService.delete_photo_record(photo_id)
             log_exception(
                 "photo.upload_photo",
                 e,
-                context={
-                    "image_path": image_path,
-                    "album_id": album_id,
-                    "photo_id": photo_id,
-                    "provider_image_id": provider_image_id,
-                },
+                context={"image_path": image_path, "album_id": album_id},
             )
-            return False, f"Failed to upload photo: {str(e)}"
+            return False, "Something went wrong. Please try again later."
 
     @staticmethod
     def delete_photo(photo_id: int) -> Tuple[bool, str]:
@@ -309,7 +270,7 @@ class PhotoController:
             return False, f"Failed to submit rating: {e}"
 
     @staticmethod
-    def get_liked_photos(user_id: Optional[int] = None) -> List[dict]:
+    def get_liked_photos(user_id: Optional[int] = None) -> list[dict]:
         """
         Get all photos liked by a user.
 
