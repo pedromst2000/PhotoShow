@@ -10,6 +10,9 @@ from app.core.db.models.user import UserModel
 from app.core.services.notification_service import NotificationService
 from app.utils.log_utils import log_exception, log_operation
 
+# Valid assignable roles (excludes 'admin' which is system-only)
+_VALID_ROLES: tuple[str, ...] = ("regular", "unsigned")
+
 
 class UserService:
     """
@@ -27,7 +30,7 @@ class UserService:
     """
 
     @staticmethod
-    def get_profile_stats(user_id: int) -> dict:
+    def get_profile_stats(user_id: int) -> dict[str, int]:
         """
         Get profile statistics combining follower count and photo count.
 
@@ -56,13 +59,13 @@ class UserService:
             return {"follower_count": 0, "photo_count": 0}
 
     @staticmethod
-    def get_user_list_for_admin() -> list:
+    def get_user_list_for_admin() -> list[dict]:
         """
         Get a filtered list of users for admin management.
         Excludes admin users and returns only essential fields.
 
         Returns:
-            list: List of user dicts with userID, username, email, role, avatar, isBlocked.
+            list[dict]: List of user dicts with userID, username, email, role, avatar, isBlocked.
 
         Raises:
             Exception: Any database error is caught and logged; empty list returned.
@@ -169,13 +172,12 @@ class UserService:
             Exception: Any database error is caught and logged; False returned.
         """
         try:
-            VALID_ROLES = ["regular", "unsigned"]
-            if new_role not in VALID_ROLES:
+            if new_role not in _VALID_ROLES:
                 log_operation(
                     "user.change_role", "validation_error", f"Invalid role: {new_role}"
                 )
                 raise ValueError(
-                    f"Invalid role. Must be one of: {', '.join(VALID_ROLES)}"
+                    f"Invalid role. Must be one of: {', '.join(_VALID_ROLES)}"
                 )
 
             with SessionLocal() as session:
@@ -316,7 +318,7 @@ class UserService:
         email: str,
         role: str = "",
         status: str = "",
-    ) -> list:
+    ) -> list[dict]:
         """
         Filter users by username, email, role, and/or blocked status.
         Admin users are always excluded.
@@ -330,7 +332,7 @@ class UserService:
                     (empty string to skip).
 
         Returns:
-            list: Filtered list of user dictionaries.
+            list[dict]: Filtered list of user dictionaries.
         """
         with SessionLocal() as session:
             users = [u for u in UserModel.get_all(session) if u["role"] != "admin"]

@@ -66,7 +66,7 @@ class CategoryModel(Base):
         return obj.to_dict() if obj else None
 
     @classmethod
-    def get_all(cls, session: Session) -> list:
+    def get_all(cls, session: Session) -> list[dict]:
         """
         Retrieve all categories from the database.
 
@@ -74,7 +74,7 @@ class CategoryModel(Base):
             session: Active SQLAlchemy session.
 
         Returns:
-            list: A list of dictionaries, each representing a category.
+            list[dict]: A list of dictionaries, each representing a category.
         """
         return [c.to_dict() for c in session.query(cls).all()]
 

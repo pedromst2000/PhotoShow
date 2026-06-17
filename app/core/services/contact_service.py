@@ -17,7 +17,7 @@ class ContactService:
     """
 
     @staticmethod
-    def get_all_enriched() -> list:
+    def get_all_enriched() -> list[dict]:
         """
         Retrieve all contact messages enriched with the author's username.
 
@@ -25,7 +25,7 @@ class ContactService:
         ``userId``, and ``username`` for direct use by the view layer.
 
         Returns:
-            list: Enriched contact dicts, ordered by insertion (DB default).
+            list[dict]: Enriched contact dicts, ordered by insertion (DB default).
         """
         try:
             with SessionLocal() as session:

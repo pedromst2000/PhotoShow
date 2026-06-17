@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from app.core.db.engine import SessionLocal
 from app.core.db.models.avatar import AvatarModel
@@ -187,7 +187,7 @@ class NotificationService:
     # Canonical notification types: only the triggers defined in the requirements.
     # Format: (type_key, label)  — IDs are NOT stored here; the CSV/migration
     # handles IDs for fresh installs and ensure_types_seeded inserts by type key.
-    _CANONICAL_TYPES: List[tuple] = [
+    _CANONICAL_TYPES: list[tuple] = [
         ("comment_on_photo", "commented on your photo"),
         ("like_photo", "liked your photo"),
         ("album_favorited", "added your album to favorites"),
@@ -226,7 +226,7 @@ class NotificationService:
     @staticmethod
     def get_enriched_notifications(
         user_id: int, *, unread_only: bool = False
-    ) -> List[dict]:
+    ) -> list[dict]:
         """Return notifications enriched with sender username/avatar and type info.
 
         All sender users and their avatars are fetched in a single batch query
@@ -265,7 +265,7 @@ class NotificationService:
                 }
 
                 # ── Enrich each notification dict ──────────────────────────────
-                enriched: List[dict] = []
+                enriched: list[dict] = []
                 for n in raw:
                     item = dict(n)
                     type_info = types_map.get(n["typeId"], {})

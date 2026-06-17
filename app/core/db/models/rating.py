@@ -98,7 +98,7 @@ class RatingModel(Base):
         return obj.to_dict()
 
     @classmethod
-    def get_for_photo(cls, session: Session, photo_id: int) -> list:
+    def get_for_photo(cls, session: Session, photo_id: int) -> list[dict]:
         """
         Retrieve all ratings for a given photo.
 
@@ -107,7 +107,7 @@ class RatingModel(Base):
             photo_id (int): The ID of the photo for which to retrieve ratings.
 
         Returns:
-            list: A list of dictionaries, each representing a rating for the photo.
+            list[dict]: A list of dictionaries, each representing a rating for the photo.
         """
         return [
             r.to_dict() for r in session.query(cls).filter_by(photoId=photo_id).all()

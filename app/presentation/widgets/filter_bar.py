@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 from app.presentation.styles.colors import colors
 from app.presentation.styles.fonts import quickSandBold
@@ -16,7 +16,7 @@ from app.presentation.widgets.helpers.input import on_focus_in, on_focus_out
 def build_option_filter(
     parent: tk.Frame,
     var: tk.StringVar,
-    options: List[str],
+    options: list[str],
     on_change: Callable,
     *,
     width: int = 12,
@@ -79,7 +79,7 @@ class FilterBarWidget(tk.Frame):
         self,
         parent: tk.Toplevel,
         state=None,
-        rows: Optional[List[List[dict]]] = None,
+        rows: Optional[list[list[dict]]] = None,
         width: int = 1300,
         bg: Optional[str] = None,
         btn_bg: Optional[str] = None,

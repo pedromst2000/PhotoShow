@@ -68,7 +68,7 @@ class ContactModel(Base):
         }
 
     @classmethod
-    def get_all(cls, session: Session) -> list:
+    def get_all(cls, session: Session) -> list[dict]:
         """
         Retrieve all contact messages from the database.
 
@@ -76,7 +76,7 @@ class ContactModel(Base):
             session: Active SQLAlchemy session.
 
         Returns:
-            list: A list of dictionaries, each representing a contact message.
+            list[dict]: A list of dictionaries, each representing a contact message.
         """
         return [c.to_dict() for c in session.query(cls).all()]
 

@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from app.core.services.album_service import AlbumService
 from app.core.state.session import session
@@ -17,7 +17,7 @@ class AlbumController:
     """
 
     @staticmethod
-    def get_user_albums(user_id: Optional[int] = None) -> List[dict]:
+    def get_user_albums(user_id: Optional[int] = None) -> list[dict]:
         """
         Get albums for a user.
 
@@ -221,7 +221,7 @@ class AlbumController:
         return AlbumService.toggle_favorite(album_id, session.user_id)
 
     @staticmethod
-    def get_enriched_favorite_albums(user_id: Optional[int] = None) -> List[dict]:
+    def get_enriched_favorite_albums(user_id: Optional[int] = None) -> list[dict]:
         """
         Get favorite albums for a user, enriched with creator username.
 

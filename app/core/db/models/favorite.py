@@ -67,7 +67,7 @@ class FavoriteModel(Base):
         }
 
     @classmethod
-    def get_all(cls, session: Session) -> list:
+    def get_all(cls, session: Session) -> list[dict]:
         """
         Retrieve all favorite album entries from the database.
 
@@ -75,7 +75,7 @@ class FavoriteModel(Base):
             session: Active SQLAlchemy session.
 
         Returns:
-            list: A list of dictionaries, each representing a favorite album entry.
+            list[dict]: A list of dictionaries, each representing a favorite album entry.
         """
         return [f.to_dict() for f in session.query(cls).all()]
 
@@ -101,7 +101,7 @@ class FavoriteModel(Base):
         return obj.to_dict()
 
     @classmethod
-    def get_users_by_album(cls, session: Session, albumId: int) -> list:
+    def get_users_by_album(cls, session: Session, albumId: int) -> list[int]:
         """
         Return the IDs of all users who have favorited a given album.
 
@@ -116,7 +116,7 @@ class FavoriteModel(Base):
         return [row.userId for row in rows]
 
     @classmethod
-    def get_by_user(cls, session: Session, userId: int) -> list:
+    def get_by_user(cls, session: Session, userId: int) -> list[dict]:
         """Return favorite rows for a user as dicts.
 
         Args:

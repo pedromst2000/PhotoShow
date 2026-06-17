@@ -16,12 +16,12 @@ class CategoryService:
     """
 
     @staticmethod
-    def get_all_categories() -> list:
+    def get_all_categories() -> list[dict]:
         """
         Retrieve all categories from the database.
 
         Returns:
-            list: A list of category dictionaries.
+            list[dict]: A list of category dictionaries.
 
         Raises:
             Exception: Any database error is caught and logged; empty list returned.

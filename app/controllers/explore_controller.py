@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from app.core.services.catalog_service import CatalogService
 from app.core.services.photo_service import PhotoService
@@ -22,7 +22,7 @@ class ExploreController:
         category: str = "all",
         username: Optional[str] = None,
         user_id: Optional[int] = ...,  # type: ignore[assignment]
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Return the enriched photo catalog, filtered and sorted.
 

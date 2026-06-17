@@ -15,7 +15,7 @@ class ContactController:
     """
 
     @staticmethod
-    def get_all_enriched() -> list:
+    def get_all_enriched() -> list[dict]:
         """
         Return all contact messages enriched with the author's username.
 

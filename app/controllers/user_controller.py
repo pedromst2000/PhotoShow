@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from app.core.services.auth_service import AuthService
 from app.core.services.user_service import UserService
@@ -20,7 +20,7 @@ class UserController:
     """
 
     @staticmethod
-    def get_manageable_users() -> List[dict]:
+    def get_manageable_users() -> list[dict]:
         """
         Get list of users that can be managed by admin.
         Excludes admin users.
@@ -202,7 +202,7 @@ class UserController:
         email: str,
         role: str = "",
         status: str = "",
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Filter users by username, email, role, and/or blocked status.
 
@@ -266,7 +266,7 @@ class UserController:
             return None
 
     @staticmethod
-    def get_profile_stats(user_id: int) -> dict:
+    def get_profile_stats(user_id: int) -> dict[str, int]:
         """
         Get profile statistics (follower count, photo count) for a user.
 

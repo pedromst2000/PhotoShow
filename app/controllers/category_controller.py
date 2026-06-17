@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Tuple
 
 from app.core.services.category_service import CategoryService
 from app.utils.log_utils import log_exception, log_operation
@@ -14,7 +14,7 @@ class CategoryController:
     """
 
     @staticmethod
-    def get_all_categories() -> List[dict]:
+    def get_all_categories() -> list[dict]:
         """
         Return all available categories as full objects with ID and name.
 
@@ -27,7 +27,7 @@ class CategoryController:
         return CategoryService.get_all_categories()
 
     @staticmethod
-    def get_categories() -> List[str]:
+    def get_categories() -> list[str]:
         """
         Return all available category names for dropdowns and filters.
 

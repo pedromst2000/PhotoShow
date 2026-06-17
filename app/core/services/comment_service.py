@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from app.core.db.engine import SessionLocal
 from app.core.db.models.album import AlbumModel
@@ -21,7 +21,7 @@ class CommentService:
     _MAX_LEN = 255
 
     @staticmethod
-    def get_comments_for_photo(photo_id: int) -> List[dict]:
+    def get_comments_for_photo(photo_id: int) -> list[dict]:
         """
         Return all comments for a photo, enriched with author username and avatar.
 
