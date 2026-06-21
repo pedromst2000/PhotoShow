@@ -18,6 +18,7 @@ import importlib
 import pytest
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 # All service modules that access the database through SessionLocal
 _SERVICE_MODULES = [
@@ -71,6 +72,7 @@ def integration_db(monkeypatch):
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
     )
 
     @event.listens_for(engine, "connect")
@@ -140,6 +142,7 @@ def integration_db(monkeypatch):
 
     yield TestSession
 
+    # Cleanup: dispose the engine — with StaticPool this closes the single connection
     engine.dispose()
 
 

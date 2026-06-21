@@ -6,7 +6,7 @@ Focuses on album management, user profiles, and follow operations.
 
 import pytest
 
-from app.core.db.engine import SessionLocal
+from app.core.db import engine as db_engine
 from app.core.db.models.follow import FollowModel
 from app.core.services.album_service import AlbumService
 from app.core.services.auth_service import AuthService
@@ -70,26 +70,26 @@ class TestUserFollowOperations:
         user2 = AuthService.register_user("nancy", "nancy@example.com", "password")
 
         # Follow user2
-        with SessionLocal() as session:
+        with db_engine.SessionLocal() as session:
             FollowModel.follow(
                 session, follower_id=user1["id"], followed_id=user2["id"]
             )
             session.commit()
 
         # Verify following
-        with SessionLocal() as session:
+        with db_engine.SessionLocal() as session:
             is_following = FollowModel.is_following(session, user1["id"], user2["id"])
 
         assert is_following is True
 
         # Check follower count
-        with SessionLocal() as session:
+        with db_engine.SessionLocal() as session:
             count = FollowModel.count_followers(session, user2["id"])
 
         assert count >= 1
 
         # Unfollow
-        with SessionLocal() as session:
+        with db_engine.SessionLocal() as session:
             result = FollowModel.unfollow(session, user1["id"], user2["id"])
             session.commit()
 
@@ -102,7 +102,7 @@ class TestUserFollowOperations:
         user3 = AuthService.register_user("quinn", "quinn@example.com", "password")
 
         # Both follow user1
-        with SessionLocal() as session:
+        with db_engine.SessionLocal() as session:
             FollowModel.follow(
                 session, follower_id=user2["id"], followed_id=user1["id"]
             )
@@ -112,7 +112,7 @@ class TestUserFollowOperations:
             session.commit()
 
         # Check count
-        with SessionLocal() as session:
+        with db_engine.SessionLocal() as session:
             count = FollowModel.count_followers(session, user1["id"])
 
         assert count >= 2

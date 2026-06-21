@@ -89,10 +89,10 @@ def main():
 
     if result.returncode == 0:
         print()
-        print("[Info] ✅ All tests passed successfully!")
+        print("[Info] All tests passed successfully! ✓")
     else:
         print()
-        print("[Info] ❌ Some tests failed. See output above for details.")
+        print("[Info] Some tests failed. See output above for details. ✗")
 
     return result.returncode
 

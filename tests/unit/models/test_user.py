@@ -310,3 +310,178 @@ class TestUserModelClassMethods:
         all_users = UserModel.get_all(test_db)
 
         assert len(all_users) >= 2
+
+    def test_get_by_email_returns_user(self, test_db):
+        user = UserModel(
+            username="email_user", email="find@me.com", password="pw", roleId=2
+        )
+        test_db.add(user)
+        test_db.commit()
+        result = UserModel.get_by_email(test_db, "find@me.com")
+        assert result is not None
+        assert result["email"] == "find@me.com"
+
+    def test_get_by_email_case_insensitive(self, test_db):
+        user = UserModel(
+            username="ciuser", email="ci@test.com", password="pw", roleId=2
+        )
+        test_db.add(user)
+        test_db.commit()
+        result = UserModel.get_by_email(test_db, "CI@TEST.COM")
+        assert result is not None
+
+    def test_get_by_email_returns_none_when_not_found(self, test_db):
+        result = UserModel.get_by_email(test_db, "notfound@example.com")
+        assert result is None
+
+    def test_get_by_username_returns_user(self, test_db):
+        user = UserModel(
+            username="findme", email="fm@example.com", password="pw", roleId=2
+        )
+        test_db.add(user)
+        test_db.commit()
+        result = UserModel.get_by_username(test_db, "findme")
+        assert result is not None
+        assert result["username"] == "findme"
+
+    def test_get_by_username_case_insensitive(self, test_db):
+        user = UserModel(
+            username="CasedUser", email="cu@example.com", password="pw", roleId=2
+        )
+        test_db.add(user)
+        test_db.commit()
+        result = UserModel.get_by_username(test_db, "caseduser")
+        assert result is not None
+
+    def test_get_by_username_returns_none_when_not_found(self, test_db):
+        result = UserModel.get_by_username(test_db, "doesnotexist_xyz")
+        assert result is None
+
+    def test_email_exists_true(self, test_db):
+        user = UserModel(
+            username="ex_user", email="exists@x.com", password="pw", roleId=2
+        )
+        test_db.add(user)
+        test_db.commit()
+        assert UserModel.email_exists(test_db, "exists@x.com") is True
+
+    def test_email_exists_false(self, test_db):
+        assert UserModel.email_exists(test_db, "noone@nowhere.com") is False
+
+    def test_username_exists_true(self, test_db):
+        user = UserModel(
+            username="existing", email="ex@xx.com", password="pw", roleId=2
+        )
+        test_db.add(user)
+        test_db.commit()
+        assert UserModel.username_exists(test_db, "existing") is True
+
+    def test_username_exists_false(self, test_db):
+        assert UserModel.username_exists(test_db, "ghost_user_xyz") is False
+
+    def test_get_blocked_users_returns_blocked(self, test_db):
+        user = UserModel(
+            username="blocked1",
+            email="b1@x.com",
+            password="pw",
+            roleId=2,
+            isBlocked=True,
+        )
+        test_db.add(user)
+        test_db.commit()
+        results = UserModel.get_blocked_users(test_db)
+        assert any(u["username"] == "blocked1" for u in results)
+
+    def test_get_blocked_users_excludes_active(self, test_db):
+        user = UserModel(
+            username="active1",
+            email="a1@x.com",
+            password="pw",
+            roleId=2,
+            isBlocked=False,
+        )
+        test_db.add(user)
+        test_db.commit()
+        results = UserModel.get_blocked_users(test_db)
+        assert not any(u["username"] == "active1" for u in results)
+
+    def test_get_password_hashes_returns_list(self, test_db):
+        user = UserModel(
+            username="pwu", email="pwu@x.com", password="hash123", roleId=2
+        )
+        test_db.add(user)
+        test_db.commit()
+        hashes = UserModel.get_password_hashes(test_db)
+        assert isinstance(hashes, list)
+        assert "hash123" in hashes
+
+    def test_update_password_returns_true(self, test_db):
+        user = UserModel(
+            username="pwchange", email="pwc@x.com", password="old", roleId=2
+        )
+        test_db.add(user)
+        test_db.commit()
+        result = UserModel.update_password(test_db, user.id, "new_hashed_pw")
+        assert result is True
+        assert user.password == "new_hashed_pw"
+
+    def test_update_password_returns_false_not_found(self, test_db):
+        result = UserModel.update_password(test_db, 99999, "pw")
+        assert result is False
+
+    def test_set_blocked_true(self, test_db):
+        user = UserModel(username="toblock", email="tb@x.com", password="pw", roleId=2)
+        test_db.add(user)
+        test_db.commit()
+        result = UserModel.set_blocked(test_db, user.id, True)
+        assert result is True
+        assert user.isBlocked is True
+
+    def test_set_blocked_false(self, test_db):
+        user = UserModel(
+            username="tounblock",
+            email="tu@x.com",
+            password="pw",
+            roleId=2,
+            isBlocked=True,
+        )
+        test_db.add(user)
+        test_db.commit()
+        result = UserModel.set_blocked(test_db, user.id, False)
+        assert result is True
+        assert user.isBlocked is False
+
+    def test_set_blocked_returns_false_not_found(self, test_db):
+        result = UserModel.set_blocked(test_db, 99999, True)
+        assert result is False
+
+    def test_delete_user_returns_true(self, test_db):
+        user = UserModel(username="todelete", email="td@x.com", password="pw", roleId=2)
+        test_db.add(user)
+        test_db.commit()
+        uid = user.id
+        result = UserModel.delete(test_db, uid)
+        assert result is True
+        test_db.commit()
+        assert test_db.query(UserModel).filter_by(id=uid).first() is None
+
+    def test_delete_user_returns_false_not_found(self, test_db):
+        result = UserModel.delete(test_db, 99999)
+        assert result is False
+
+    def test_update_user_fields(self, test_db):
+        user = UserModel(username="updateme", email="um@x.com", password="pw", roleId=2)
+        test_db.add(user)
+        test_db.commit()
+        UserModel.update(test_db, {"id": user.id, "username": "updated_name"})
+        test_db.commit()
+        assert user.username == "updated_name"
+
+    def test_get_by_ids_returns_mapping(self, test_db):
+        u1 = UserModel(username="ids1", email="ids1@x.com", password="pw", roleId=2)
+        u2 = UserModel(username="ids2", email="ids2@x.com", password="pw", roleId=2)
+        test_db.add_all([u1, u2])
+        test_db.commit()
+        mapping = UserModel.get_by_ids(test_db, [u1.id, u2.id])
+        assert u1.id in mapping
+        assert u2.id in mapping

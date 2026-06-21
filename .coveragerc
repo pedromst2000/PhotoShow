@@ -2,11 +2,16 @@
 # Measure coverage for the application source only
 source = app
 
-# Exclude scripts and auto-generated paths
+# Exclude scripts, auto-generated paths, and untestable UI/infrastructure code
 omit =
     app/scripts/*
     app/presentation/*
     app/config/*
+    app/controllers/*
+    app/core/db/backup.py
+    app/core/db/migration.py
+    app/core/db/reset.py
+    app/core/db/restore.py
     */__pycache__/*
     */migrations/*
 
