@@ -365,11 +365,14 @@ class UserService:
             followed_id: The ID of the user being followed.
 
         Returns:
-            bool: True if the follow was created, False if already following.
+            bool: True if the follow was created, False if already following or self-follow.
         """
-        with SessionLocal() as session:
-            result = FollowModel.follow(session, follower_id, followed_id)
-            session.commit()
+        try:
+            with SessionLocal() as session:
+                result = FollowModel.follow(session, follower_id, followed_id)
+                session.commit()
+        except Exception:
+            return False
         if result is not None:
             NotificationService.send(
                 "new_follower",
@@ -442,3 +445,51 @@ class UserService:
         """
         with SessionLocal() as session:
             return UserModel.get_by_id(session, user_id)
+
+    @staticmethod
+    def get_followers(user_id: int) -> list[dict]:
+        """
+        Get all users who follow the given user.
+
+        Args:
+            user_id: The ID of the user whose followers to retrieve.
+
+        Returns:
+            list[dict]: List of user dicts for each follower.
+        """
+        with SessionLocal() as session:
+            follow_rows = (
+                session.query(FollowModel)
+                .filter(getattr(FollowModel, "followedId") == user_id)
+                .all()
+            )
+            result = []
+            for row in follow_rows:
+                user = UserModel.get_by_id(session, row.followerId)
+                if user:
+                    result.append(user)
+            return result
+
+    @staticmethod
+    def get_following(user_id: int) -> list[dict]:
+        """
+        Get all users that the given user is following.
+
+        Args:
+            user_id: The ID of the user whose following list to retrieve.
+
+        Returns:
+            list[dict]: List of user dicts for each followed user.
+        """
+        with SessionLocal() as session:
+            follow_rows = (
+                session.query(FollowModel)
+                .filter(getattr(FollowModel, "followerId") == user_id)
+                .all()
+            )
+            result = []
+            for row in follow_rows:
+                user = UserModel.get_by_id(session, row.followedId)
+                if user:
+                    result.append(user)
+            return result
