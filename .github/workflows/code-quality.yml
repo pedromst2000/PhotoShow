@@ -65,25 +65,8 @@ jobs:
           echo "changed: configs=${{ steps.changed-files.outputs.configs_any_changed }}"
           echo "files: configs=${{ steps.changed-files.outputs.configs_all_changed_files }}"
 
-      - name: Set up Python 3.14
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.14"
-
-      # Note: 'Cache not found' and 'Failed to save cache' warnings are
-      # expected and not errors. See GitHub Actions docs for details.
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/dev-requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r dev-requirements.txt
+      - name: Setup Python environment
+        uses: ./.github/actions/setup-python-env
 
       # ═══════════════════════════════════════════════════════════════════════
       # ⚡ RUNTIME VALIDATION (NEW - Catches issues that fail at runtime)
@@ -146,14 +129,13 @@ jobs:
               sys.exit(1)
           print('✓ All module imports successful')
           "
-        # Note: This import validation catches issues like:
-        # - Syntax errors in __init__.py that prevent module loading and cause ImportError
-        # - Broken imports in __init__.py that cause ImportError
-        # - Missing dependencies that cause ImportError
-        # - Circular imports that cause ImportError or RuntimeError
-        # It does NOT catch all possible runtime issues, but it catches a large class of common problems that static analysis can miss.
+        # Note: This import validation catches:
+        # - Syntax errors in __init__.py (ImportError)
+        # - Broken imports in __init__.py (ImportError)
+        # - Missing dependencies (ImportError)
+        # - Circular imports (ImportError/RuntimeError)
+        # It catches many common issues that static analysis can miss.
       - name: Validate __init__.py exports and detect circular imports
-
         run: |
           echo "🔎 Validating __init__.py re-exports and circular dependencies..."
           python -c "
@@ -182,7 +164,10 @@ jobs:
                           for target in node.targets:
                               if isinstance(target, ast.Name) and target.id == '__all__':
                                   if isinstance(node.value, ast.List):
-                                      all_names = [elt.value for elt in node.value.elts if isinstance(elt, ast.Constant)]
+                                      all_names = [
+                                          elt.value for elt in node.value.elts
+                                          if isinstance(elt, ast.Constant)
+                                      ]
                       elif isinstance(node, ast.ImportFrom):
                           for alias in node.names:
                               available[alias.asname or alias.name] = True
@@ -198,7 +183,8 @@ jobs:
                   if all_names:
                       for name in all_names:
                           if name not in available:
-                              print(f'::error::{init_file}: exported name \\\"{name}\\\" not found in imports or definitions')
+                              msg = f'exported name "{name}" not found'
+                              print(f'::error::{init_file}: {msg}')
                               return False
                   return True
               except SyntaxError as e:
@@ -215,8 +201,12 @@ jobs:
 
               # Build import graph
               for init_file in init_files:
-                  module_path = str(init_file).replace('\\\\', '/').replace('__init__.py', '').rstrip('/')
-                  module_name = module_path.replace('/', '.').replace('app.', '', 1) if 'app' in module_path else module_path
+                  path = str(init_file).replace('\\\\', '/')
+                  module_path = path.replace('__init__.py', '').rstrip('/')
+                  if 'app' in module_path:
+                      module_name = module_path.replace('/', '.').replace('app.', '', 1)
+                  else:
+                      module_name = module_path
                   file_to_module[str(init_file)] = module_name
 
                   try:
@@ -313,7 +303,6 @@ jobs:
         if: steps.run_mode.outputs.run_globally == 'false' || steps.changed-files.outputs.python_any_changed == 'true'
         run: |
           if [ "${{ steps.run_mode.outputs.run_globally }}" = "true" ]; then
-            # No args → script scans the whole project by default
             if ! python app/scripts/check_imports.py; then
               echo "::error::Import order issues found. Run 'python app/scripts/format_imports.py' locally and commit."
               exit 1
@@ -322,7 +311,7 @@ jobs:
             FILES='${{ steps.changed-files.outputs.python_all_changed_files }}'
             if [ -n "$FILES" ]; then
               if ! python app/scripts/check_imports.py $FILES; then
-                echo "::error::Import order issues found. Run 'python app/scripts/format_imports.py' locally and commit."
+                echo "::error::Import order issues. Run format_imports.py locally."
                 exit 1
               fi
             fi
@@ -378,6 +367,6 @@ jobs:
       - name: Type check Python (mypy)
         run: |
           if ! python -m mypy app main.py; then
-            echo "::error::Type checking issues found. Run 'python -m mypy app main.py' locally and fix the errors before committing."
+            echo "::error::Type checking failed. Run 'python -m mypy app main.py' locally."
             exit 1
           fi
