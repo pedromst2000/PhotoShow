@@ -586,7 +586,7 @@ class PhotoService:
         }
 
     @staticmethod
-    def rate_photo(user_id: int, photo_id: int, rating_value: int):
+    def rate_photo(user_id: int, photo_id: int, rating_value: int) -> bool:
         """
         Submit a rating (1-5) for a photo.
         If the user has already rated the photo, their rating is updated.
@@ -595,12 +595,57 @@ class PhotoService:
             user_id: The ID of the user submitting the rating.
             photo_id: The ID of the photo being rated.
             rating_value: The rating value (1-5).
+
+        Returns:
+            bool: True if the rating was recorded successfully.
         """
-        with SessionLocal() as session:
-            RatingModel.create(
-                session,
-                user_id=user_id,
-                photo_id=photo_id,
-                rating_value=rating_value,
+        try:
+            with SessionLocal() as session:
+                RatingModel.create(
+                    session,
+                    user_id=user_id,
+                    photo_id=photo_id,
+                    rating_value=rating_value,
+                )
+                session.commit()
+            return True
+        except Exception as e:
+            log_exception(
+                "photo.rate_photo", e, user_id=user_id, context={"photo_id": photo_id}
             )
-            session.commit()
+            return False
+
+    @staticmethod
+    def get_by_album(album_id: int) -> list[dict]:
+        """Get all photos in an album."""
+        try:
+            with SessionLocal() as session:
+                return PhotoModel.get_by_album(session, album_id)
+        except Exception as e:
+            log_exception("photo.get_by_album", e, context={"album_id": album_id})
+            return []
+
+    @staticmethod
+    def get_by_id(photo_id: int) -> Optional[dict]:
+        """Get a photo by ID."""
+        try:
+            with SessionLocal() as session:
+                return PhotoModel.get_by_id(session, photo_id)
+        except Exception as e:
+            log_exception("photo.get_by_id", e, context={"photo_id": photo_id})
+            return None
+
+    @staticmethod
+    def get_like_count(photo_id: int) -> int:
+        """Get total like count for a photo."""
+        try:
+            with SessionLocal() as session:
+                return LikeModel.count_by_photo(session, photo_id)
+        except Exception as e:
+            log_exception("photo.get_like_count", e, context={"photo_id": photo_id})
+            return 0
+
+    @staticmethod
+    def get_photo_rating_average(photo_id: int) -> float:
+        """Get average rating for a photo."""
+        return PhotoService.get_photo_rating_stats(photo_id)["avg_rating"]

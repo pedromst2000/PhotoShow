@@ -40,6 +40,63 @@ class CategoryService:
             return []
 
     @staticmethod
+    def get_all() -> list[dict]:
+        """Alias for get_all_categories()."""
+        return CategoryService.get_all_categories()
+
+    @staticmethod
+    def get_by_id(category_id: int) -> dict | None:
+        """
+        Retrieve a single category by ID.
+
+        Args:
+            category_id: The ID of the category to retrieve.
+
+        Returns:
+            dict | None: The category dictionary, or None if not found.
+        """
+        try:
+            with SessionLocal() as session:
+                category = CategoryModel.get_by_id(session, category_id)
+                if category:
+                    log_operation(
+                        "category.get_by_id",
+                        "success",
+                        f"Retrieved category {category_id}",
+                    )
+                return category
+        except Exception as e:
+            log_exception("category.get_by_id", e, context={"category_id": category_id})
+            return None
+
+    @staticmethod
+    def get_by_name(name: str) -> dict | None:
+        """
+        Retrieve a category by name (case-insensitive).
+
+        Args:
+            name: The category name to search for.
+
+        Returns:
+            dict | None: The category dictionary, or None if not found.
+        """
+        try:
+            with SessionLocal() as session:
+                all_categories = CategoryModel.get_all(session)
+                for cat in all_categories:
+                    if cat.get("category", "").lower() == name.lower():
+                        log_operation(
+                            "category.get_by_name",
+                            "success",
+                            f"Found category '{name}'",
+                        )
+                        return cat
+                return None
+        except Exception as e:
+            log_exception("category.get_by_name", e, context={"name": name})
+            return None
+
+    @staticmethod
     def category_exists(name: str) -> bool:
         """
         Check if a category with the given name already exists (case-insensitive).

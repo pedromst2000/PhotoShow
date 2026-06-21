@@ -147,6 +147,18 @@ if __name__ == "__main__":
     # when this file is imported elsewhere (e.g., for testing or as a module).
     import sys
 
+    if "--run-tests" in sys.argv:
+        # ── Test runner: execute the full pytest suite and exit ──────────────
+        # Usage:  python main.py --run-tests
+        import os
+        import subprocess
+
+        _result = subprocess.call(
+            [sys.executable, "-m", "pytest", "tests/", "-v", "--tb=short"],
+            env={**os.environ, "RUNNING_TESTS": "1"},
+        )
+        sys.exit(_result)
+
     from app.core.db.engine import check_db, init_db
     from app.core.db.reset import reset_db
     from app.utils.log_utils import log_check, log_issue, log_success

@@ -1,0 +1,28 @@
+[run]
+# Measure coverage for the application source only
+source = app
+
+# Exclude scripts and auto-generated paths
+omit =
+    app/scripts/*
+    app/presentation/*
+    app/config/*
+    */__pycache__/*
+    */migrations/*
+
+# Include branch coverage
+branch = true
+
+[report]
+# Lines matching these patterns are excluded from the coverage report
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if TYPE_CHECKING:
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+
+show_missing = true
+skip_covered = false
+precision = 2

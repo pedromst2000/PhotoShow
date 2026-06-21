@@ -316,6 +316,22 @@ To add reference images to your `dev/` folders:
 
 Run these checks locally before committing to keep the codebase consistent and avoid CI failures.
 
+#### Check all changed files
+
+Runs all code quality checks (flake8, mypy, black, isort, yamllint, lint_csv) on files that have changed vs HEAD:
+
+```bash
+python app/scripts/check_changed_files.py
+```
+
+Auto-fix style issues (black, isort, format_csv) in changed files only:
+
+```bash
+python app/scripts/check_changed_files.py --fix
+```
+
+> :bulb: **Tip:** Use this before committing to catch style and type issues quickly on only the files you changed.
+
 #### Format Python code
 
 Auto-formats all Python files using Black:
@@ -332,12 +348,28 @@ Checks Python files for style violations and errors (PEP 8 compliance):
 python -m flake8 .
 ```
 
-#### Check Python types
+#### Format import statements
 
-Runs static type checks on `app/` and `main.py` using mypy:
+Auto-sorts imports in Python files using isort:
 
 ```bash
-python -m mypy app main.py
+python app/scripts/format_imports.py
+```
+
+#### Check import ordering
+
+Validates that all Python files have properly sorted imports:
+
+```bash
+python app/scripts/check_imports.py
+```
+
+#### Check Python types
+
+Runs static type checks on `app/`, `tests/`, and `main.py` using mypy:
+
+```bash
+python -m mypy app tests main.py
 ```
 
 #### Lint YAML files
@@ -348,6 +380,14 @@ Checks YAML configuration files for syntax and formatting issues:
 python -m yamllint .
 ```
 
+#### Format CSV data files
+
+Auto-formats CSV seed data files (removes empty rows, strips whitespace, consistent quoting):
+
+```bash
+python app/scripts/format_csv.py
+```
+
 #### Lint CSV data files
 
 Checks CSV seed data files for structural and formatting issues:
@@ -356,12 +396,89 @@ Checks CSV seed data files for structural and formatting issues:
 python app/scripts/lint_csv.py
 ```
 
-#### Run tests
+<br>
 
-Executes the test suite:
+## :test_tube: Running Tests
+
+Run tests using the dedicated test runner script for convenience, or use pytest directly for more control.
+
+#### Run all tests
+
+Executes the full test suite (smoke, unit, functional, integration, acceptance):
 
 ```bash
-python -m pytest
+python run_tests.py
+```
+
+#### Run only unit and smoke tests
+
+Runs quick unit tests plus smoke gate checks:
+
+```bash
+python run_tests.py --unit
+```
+
+#### Run only functional tests
+
+Runs business logic verification tests:
+
+```bash
+python run_tests.py --functional
+```
+
+#### Run only integration tests
+
+Runs service interaction tests with real database:
+
+```bash
+python run_tests.py --integration
+```
+
+#### Run only acceptance tests
+
+Runs complete user workflow tests:
+
+```bash
+python run_tests.py --acceptance
+```
+
+#### Run tests with coverage report
+
+Generates a coverage report showing which code lines are tested:
+
+```bash
+python run_tests.py --coverage
+```
+
+This generates:
+- Terminal coverage report (shows percentage per module)
+- `coverage.xml` file (for CI/CD tools like GitHub Actions, GitLab CI)
+
+#### Run tests directly with pytest
+
+If you prefer to use pytest directly instead of the test runner script:
+
+```bash
+# Run all tests
+python -m pytest tests/ -v
+
+# Run with coverage
+python -m pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml:coverage.xml
+
+# Run specific layer
+python -m pytest tests/unit/ -v          # Unit tests only
+python -m pytest tests/smoke/ -v         # Smoke tests only
+python -m pytest tests/functional/ -v    # Functional tests only
+python -m pytest tests/integration/ -v   # Integration tests only
+python -m pytest tests/acceptance/ -v    # Acceptance tests only
+```
+
+#### Generate coverage for CI/tools
+
+To produce machine-readable coverage data for CI/CD pipelines and tools:
+
+```bash
+python -m pytest tests/ --cov=app --cov-report=xml:coverage.xml
 ```
 
 <br>
