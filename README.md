@@ -1,9 +1,16 @@
 <a name="top"></a>
 
 <p align="center">
+  <a href="https://github.com/pedromst2000/PhotoShow/actions/workflows/tests.yml">
+      <img src="https://github.com/pedromst2000/PhotoShow/actions/workflows/tests.yml/badge.svg" alt="Tests" />    
+   </a>
     <a href="https://github.com/pedromst2000/PhotoShow/actions/workflows/code-quality.yml">
       <img src="https://github.com/pedromst2000/PhotoShow/actions/workflows/code-quality.yml/badge.svg" alt="Code Quality" />
     </a>
+      <a href="https://codecov.io/gh/pedromst2000/PhotoShow">
+      <img src="https://codecov.io/gh/pedromst2000/PhotoShow/graph/badge.svg?branch=master" alt="Coverage" />
+   </a>
+
   </p>
 
   <div align="center" id="top">
@@ -451,6 +458,7 @@ python run_tests.py --coverage
 ```
 
 This generates:
+
 - Terminal coverage report (shows percentage per module)
 - `coverage.xml` file (for CI/CD tools like GitHub Actions, GitLab CI)
 
@@ -522,6 +530,7 @@ To compile locally, follow these steps:
    > ⚠️ **Antivirus false positives — IMPORTANT:** PyInstaller bundles Python DLLs (e.g. `ucrtbase.dll`, `python313.dll`, `msvcrt.dll`) into the `_internal/` folder.
    >
    > **To resolve:**
+   >
    > - Add `dist/PhotoShow/` folder and all its contents to your antivirus **exclusion list**
    > - Or **allow/verify** the exe when your antivirus prompts you (click "Run anyway" or "Allow")
    > - If antivirus blocks DLL access: `PermissionError: [Errno 13] Permission denied: '..._internal\ucrtbase.dll'` → exclude the entire `dist/PhotoShow/_internal/` folder from real-time scanning
@@ -552,12 +561,13 @@ To compile locally, follow these steps:
 
 **The database location differs between development and distribution modes:**
 
-| Mode | Database Location | When to use |
-|------|------|----------|
-| **Development (source)** | `C:\Users\User\Desktop\PhotoShow\photoshow.db` (root folder) | Running `python main.py` from the repo |
-| **Distribution (exe)** | `C:\Users\User\Desktop\PhotoShow\dist\PhotoShow\photoshow.db` (dist folder) | Running `dist/PhotoShow/PhotoShow.exe` |
+| Mode                     | Database Location                                                           | When to use                            |
+| ------------------------ | --------------------------------------------------------------------------- | -------------------------------------- |
+| **Development (source)** | `C:\Users\User\Desktop\PhotoShow\photoshow.db` (root folder)                | Running `python main.py` from the repo |
+| **Distribution (exe)**   | `C:\Users\User\Desktop\PhotoShow\dist\PhotoShow\photoshow.db` (dist folder) | Running `dist/PhotoShow/PhotoShow.exe` |
 
 **Always verify which `photoshow.db` you're opening in SQLite Browser:**
+
 - **Dev mode** → Open from **project root**
 - **Distribution mode** → Open from **dist/PhotoShow/** folder
 
@@ -574,7 +584,7 @@ To compile locally, follow these steps:
 **In distribution mode:** You'll see data from the packaged executable. If changes aren't appearing, verify you opened the correct file in `dist/PhotoShow/` folder, not the project root.
 
 > ⚠️ **Do NOT mix them up** — opening the wrong file makes it appear data isn't syncing.
-<br>
+> <br>
 
 ## :handshake: Contributing
 
