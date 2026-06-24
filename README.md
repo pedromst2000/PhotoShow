@@ -120,15 +120,11 @@ A demo video for PhotoShow will be added soon.
 
 ### :classical_building: Architecture
 
-> :warning: The preview below may be slightly outdated and will be refreshed in a later update.
-
 [![Application Architecture](https://img.shields.io/badge/Application_Architecture-111827?style=for-the-badge&logo=visualstudiocode&logoColor=007ACC)](./docs/images/MVC_PHOTOSHOW.jpg)
 
 ![Application Architecture](./docs/images/MVC_PHOTOSHOW.jpg)
 
 ### :card_file_box: Data Model
-
-> :warning: The preview below may be slightly outdated and will be refreshed in a later update.
 
 The database model is shown as a `DER (Diagram Entity-Relationship)` preview so the main entities and relationships stay readable at a glance.
 
