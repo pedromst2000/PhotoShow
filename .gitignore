@@ -22,7 +22,7 @@ __pycache__/
 ########################################
 dist/
 build/
-PhotoShow.spec
+_internal/
 
 ########################################
 # Local/personal files (add as needed)

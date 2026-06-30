@@ -1,17 +1,29 @@
+import os
 from typing import Optional
 
 import cloudinary
 import cloudinary.uploader
 
 from app.config.cloudinary_config import (
-    CLOUDINARY_OPTIONS,
     FOLDER_AVATARS,
     FOLDER_PHOTOS,
 )
 from app.utils.log_utils import log_exception, log_operation
 
-# Configure the Cloudinary SDK once at import time (idempotent).
-cloudinary.config(**CLOUDINARY_OPTIONS)
+
+def _configure_cloudinary() -> None:
+    """Configure the Cloudinary SDK with credentials read fresh from os.environ.
+
+    Called before every upload/delete so that credentials are always current,
+    regardless of when load_dotenv() ran relative to this module being imported.
+    This is the fix for PyInstaller frozen builds where module-level os.getenv()
+    calls may execute before load_dotenv() has populated the environment.
+    """
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME", ""),
+        api_key=os.getenv("CLOUDINARY_API_KEY", ""),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET", ""),
+    )
 
 
 class CloudinaryService:
@@ -46,6 +58,7 @@ class CloudinaryService:
         Returns:
             Optional[dict]: with keys ``public_id`` and ``url`` on success, None on error.
         """
+        _configure_cloudinary()
         try:
             result = cloudinary.uploader.upload(
                 file_path,
@@ -89,6 +102,7 @@ class CloudinaryService:
         Returns:
             Optional[dict]: with keys ``public_id`` and ``url`` on success, None on error.
         """
+        _configure_cloudinary()
         try:
             result = cloudinary.uploader.upload(
                 file_path,
@@ -127,6 +141,7 @@ class CloudinaryService:
         """
         if not public_id:
             return False
+        _configure_cloudinary()
         try:
             result = cloudinary.uploader.destroy(public_id)
             ok = result.get("result") == "ok"

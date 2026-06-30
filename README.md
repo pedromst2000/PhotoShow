@@ -505,23 +505,29 @@ To compile locally, follow these steps:
 
    > ⚠️ **Before rebuilding:** If `PhotoShow.exe` is already running, **close it first**. Windows locks DLLs of running processes and PyInstaller will fail with a `PermissionError` if the exe is open.
 
-   **Using the updated spec file (recommended):**
+   **Using the build script (recommended - embeds credentials at compile time):**
 
+   The `build.py` script handles everything automatically: it takes your Cloudinary credentials, creates `.env`, embeds it into the executable, runs PyInstaller, and verifies the output.
+
+   **Choose one method:**
+
+   **🟢 Interactive (you're prompted for credentials):**
    ```bash
-   pyinstaller PhotoShow.spec --clean --noconfirm
+   python scripts/build.py --interactive
    ```
 
-   **Or, manual full compilation on Windows:**
-
-   ```cmd
-   pyinstaller main.py --onedir --noconsole --icon "app/assets/PhotoShowIcon.ico" --add-data "app/assets;app/assets" --add-data "app/files;app/files" --distpath dist --workpath build --specpath . --name PhotoShow --clean --noconfirm
-   ```
-
-   **Or, on Linux/macOS:**
-
+   **🔵 Command-Line Arguments:**
    ```bash
-   pyinstaller main.py --onedir --noconsole --icon "app/assets/PhotoShowIcon.ico" --add-data "app/assets:app/assets" --add-data "app/files:app/files" --distpath dist --workpath build --specpath . --name PhotoShow --clean --noconfirm
+   python scripts/build.py --cloud-name your_cloud_name --api-key your_api_key --api-secret your_secret
    ```
+
+   **What the build script does for you:**
+   - ✅ Takes your credentials (interactive or CLI args)
+   - ✅ Creates `.env` with embedded credentials
+   - ✅ Runs `pyinstaller PhotoShow.spec --clean --noconfirm` internally
+   - ✅ Copies `.env` next to `PhotoShow.exe` in `dist/PhotoShow/`
+   - ✅ Verifies the build succeeded
+   - ✅ Shows you next steps
 
    > ⚠️ **Antivirus false positives — IMPORTANT:** PyInstaller bundles Python DLLs (e.g. `ucrtbase.dll`, `python313.dll`, `msvcrt.dll`) into the `_internal/` folder.
    >
@@ -534,22 +540,6 @@ To compile locally, follow these steps:
    > After building, a `dist/PhotoShow` folder is created. Open it and run `PhotoShow.exe` — no Python required. Keep the entire folder together (do not remove `_internal` or other support files). The executable is platform-specific; rebuild separately on Windows, macOS, or Linux.
 
    > You can move the `dist/PhotoShow` folder to your desktop or another location and run the executable from there. Just keep the entire folder together.
-
-### Using the Executable
-
-1. **Copy your `.env` file into the executable folder:**
-
-   ```bash
-   copy .env dist/PhotoShow/.env
-   ```
-
-   > PhotoShow reads `.env` from its folder to access your Cloudinary credentials.
-
-2. **Run `PhotoShow.exe`:**
-   - Double-click `dist/PhotoShow/PhotoShow.exe` like any desktop app
-   - On first run: Creates `photoshow.db` in the same folder (`dist/PhotoShow/photoshow.db`)
-   - All photo uploads go to **your Cloudinary account** (from `.env`)
-   - All data stored locally in `photoshow.db`
 
 ### Database Location
 
@@ -599,6 +589,7 @@ Your contributions help improve PhotoShow! Whether you're fixing a bug, improvin
 | `docs`     | Documentation      | `docs/update-readme`     | `docs: update installation steps` |
 | `refactor` | Code restructuring | `refactor/album-service` | `refactor: simplify album logic`  |
 | `test`     | Testing            | `test/auth-tests`        | `test: add auth unit tests`       |
+| `build`    | Build system       | `build/pyinstaller-dist-fixes` | `build: automate PyInstaller with compile-time credentials` |
 | `ci`       | CI/CD pipelines    | `ci/add-lint-workflow`   | `ci: add lint workflow`           |
 | `chore`    | Maintenance        | `chore/update-deps`      | `chore: update dependencies`      |
 
