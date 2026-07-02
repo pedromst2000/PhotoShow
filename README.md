@@ -186,11 +186,21 @@ ORM models live in `app/core/db/models/` and are implemented with `SQLAlchemy`. 
    python -m venv .venv
    ```
 
-   Activate on **Windows PowerShell**:
+   Activate on **Windows (Command Prompt)**:
+
+   ```cmd
+   .venv\Scripts\Activate.bat
+   ```
+
+   Activate on **Windows PowerShell** (if you get an execution policy error, see note below):
 
    ```powershell
-   .venv\Scripts\Activate
+   .\.venv\Scripts\Activate.ps1
    ```
+
+   > ⚠️ **PowerShell Execution Policy Error?** If you see "running scripts is disabled on this system", either:
+   > - Use **Command Prompt** (`.bat` command above) instead, OR
+   > - Run this once to allow scripts: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
    Activate on **macOS/Linux**:
 
@@ -198,7 +208,16 @@ ORM models live in `app/core/db/models/` and are implemented with `SQLAlchemy`. 
    source .venv/bin/activate
    ```
 
-   > To deactivate: `deactivate`
+   > **To deactivate the virtual environment:**
+   > 
+   > - On any OS, simply run:
+   > ```
+   > deactivate
+   > ```
+   > 
+   > This will return you to your system's default Python environment.
+   >
+   > **Note:** Some dependencies may only work correctly inside the `.venv` virtual environment. It is highly recommended to use the virtual environment for all development and testing.
 
 4. **Install dependencies:**
 
@@ -518,7 +537,7 @@ To compile locally, follow these steps:
 
    **🔵 Command-Line Arguments:**
    ```bash
-   python scripts/build.py --cloud-name your_cloud_name --api-key your_api_key --api-secret your_secret
+   python scripts/build.py --cloud-name your_cloud_name --api-key your_api_key --api-secret your_secret --default-avatar-public-id your_avatar_public_id --default-avatar-url your_avatar_url
    ```
 
    **What the build script does for you:**

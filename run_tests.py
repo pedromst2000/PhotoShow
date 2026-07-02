@@ -12,6 +12,7 @@ Usage:
     python run_tests.py --integration # Run only integration tests
     python run_tests.py --acceptance # Run only acceptance tests
     python run_tests.py --smoke      # Run only smoke tests
+    python run_tests.py --coverage   # Run all tests with coverage report
 """
 
 import argparse
@@ -49,6 +50,11 @@ def main():
         action="store_true",
         help="Run only smoke tests",
     )
+    parser.add_argument(
+        "--coverage",
+        action="store_true",
+        help="Generate coverage report",
+    )
 
     args = parser.parse_args()
 
@@ -82,6 +88,15 @@ def main():
         "--tb=short",
     ]
 
+    if args.coverage:
+        cmd.extend(
+            [
+                "--cov=app",
+                "--cov-report=term-missing",
+                "--cov-report=xml:coverage.xml",
+            ]
+        )
+
     print(f"[Info] Command: {' '.join(cmd)}")
     print()
 
@@ -90,6 +105,10 @@ def main():
     if result.returncode == 0:
         print()
         print("[Info] All tests passed successfully! ✓")
+        if args.coverage:
+            print("[Info] Coverage report generated:")
+            print("  - Terminal report (above)")
+            print("  - coverage.xml (for CI/CD tools)")
     else:
         print()
         print("[Info] Some tests failed. See output above for details. ✗")
