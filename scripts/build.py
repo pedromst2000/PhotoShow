@@ -40,7 +40,7 @@ def get_credentials():
     parser.add_argument("--api-key", help="Cloudinary API key")
     parser.add_argument("--api-secret", help="Cloudinary API secret")
     parser.add_argument(
-        "--default-avatar-id", help="Default avatar public ID (optional)"
+        "--default-avatar-public-id", help="Default avatar public ID (optional)"
     )
     parser.add_argument("--default-avatar-url", help="Default avatar URL (optional)")
 
@@ -55,8 +55,8 @@ def get_credentials():
         credentials["CLOUDINARY_API_KEY"] = args.api_key
     if args.api_secret:
         credentials["CLOUDINARY_API_SECRET"] = args.api_secret
-    if args.default_avatar_id:
-        credentials["DEFAULT_AVATAR_PUBLIC_ID"] = args.default_avatar_id
+    if args.default_avatar_public_id:
+        credentials["DEFAULT_AVATAR_PUBLIC_ID"] = args.default_avatar_public_id
     if args.default_avatar_url:
         credentials["DEFAULT_AVATAR_URL"] = args.default_avatar_url
 
