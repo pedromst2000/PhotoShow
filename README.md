@@ -558,7 +558,7 @@ To compile locally, follow these steps:
 
    > After building, a `dist/PhotoShow` folder is created. Open it and run `PhotoShow.exe` — no Python required. Keep the entire folder together (do not remove `_internal` or other support files). The executable is platform-specific; rebuild separately on Windows, macOS, or Linux.
 
-   > You can move the `dist/PhotoShow` folder to your desktop or another location and run the executable from there. Just keep the entire folder together.
+   > **Deploy anywhere:** Move the `PhotoShow` folder from `dist/` to your **Desktop** (or anywhere you want). Then double-click `PhotoShow.exe` inside it to run — no Python required! Keep the folder and all its contents together.
 
 ### Database Location
 
