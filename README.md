@@ -31,7 +31,7 @@
 
 - [:bulb: About](#bulb-about)
 - [:clapper: Demo Video](#clapper-demo-video)
-- [:frame_with_picture: UI Screenshots](#frame_with_picture-ui-screenshots)
+- [:art: UI Screenshots](#art-ui-screenshots)
 - [:computer: Tech Stack](#computer-tech-stack)
 - [:triangular_ruler: Architecture & Data Model](#triangular_ruler-architecture--data-model)
   - [:classical_building: Architecture](#classical_building-architecture)
@@ -77,7 +77,7 @@ A demo video for PhotoShow will be added soon.
 
 <br>
 
-## :frame_with_picture: UI Screenshots
+## :art: UI Screenshots
 
 <details>
 <summary><strong>Click to expand and view application screenshots</strong></summary>
