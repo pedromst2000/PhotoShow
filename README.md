@@ -31,6 +31,7 @@
 
 - [:bulb: About](#bulb-about)
 - [:clapper: Demo Video](#clapper-demo-video)
+- [:frame_with_picture: UI Screenshots](#frame_with_picture-ui-screenshots)
 - [:computer: Tech Stack](#computer-tech-stack)
 - [:triangular_ruler: Architecture & Data Model](#triangular_ruler-architecture--data-model)
   - [:classical_building: Architecture](#classical_building-architecture)
@@ -63,16 +64,281 @@ PhotoShow is a local desktop application for browsing, organizing, and sharing p
 - ❤️ Like and rate photos
 - 💬 Comment on photos
 - ⭐ Add albums to favorites
-- 👥 Follow other users
+- 👥 Follow other users and manage your profile
 - 🔔 Receive in-app notifications
 - 🚩 Report inappropriate content
-- 👨‍💼 Admin tools for user management
-- 📋 Admin tools for category management
+- 🛠️ Admin tools for user and category management
 - ✅ Admin review system for reports
+- 📧 Contact Admin for banned users to appeal their ban
 
 ## :clapper: Demo Video
 
 A demo video for PhotoShow will be added soon.
+
+<br>
+
+## :frame_with_picture: UI Screenshots
+
+<details>
+<summary><strong>Click to expand and view application screenshots</strong></summary>
+
+### Home View & Menu Navigation
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Home_Screen_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Home_Screen_02.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+   <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Admin_Menu_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+### Authentication & User Registration
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Sign_In_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Sign_Up_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+### 📁 Create and manage albums
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Albuns_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Albuns_02.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Albuns_03.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Albuns_04.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+### 📸 Upload and view photos
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Add_Photo_01.png" alt="PhotoShow UI screenshots" width="500" height="400" />
+  </p>
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Add_Photo_02.png" alt="PhotoShow UI screenshots" width="500" height="400" />
+  </p>
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Add_Photo_03.png" alt="PhotoShow UI screenshots" width="500" height="400" />
+  </p>
+
+### 🔍❤️ Browse community content & Like and rate photo
+
+<p align="center">
+    <img src="./docs/images/UI_Screenshoots/Explore_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+<p align="center">
+    <img src="./docs/images/UI_Screenshoots/Explore_02.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+<p align="center">
+    <img src="./docs/images/UI_Screenshoots/Explore_03.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Explore_04.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+<p align="center">
+    <img src="./docs/images/UI_Screenshoots/Explore_05.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+<p align="center">
+    <img src="./docs/images/UI_Screenshoots/Photo_Details_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+<p align="center">
+    <img src="./docs/images/UI_Screenshoots/Album_Details_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+### 💬 Comment on photos
+
+<p align="center">
+    <img src="./docs/images/UI_Screenshoots/Photo_Comments_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+### ⭐ Add albums to favorites
+
+<p align="center">
+    <img src="./docs/images/UI_Screenshoots/Favorites_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+  <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Favorites_02.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+### 👥 Follow other users and manage your profile
+
+ <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Profile_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+   <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Profile_02.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+   <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Profile_03.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+   <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Change_Avatar_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+   <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Change_Avatar_02.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+   <p align="center">
+    <img src="./docs/images/UI_Screenshoots/Change_Password_01.png" alt="PhotoShow UI screenshots" width="500" />
+  </p>
+
+### 🔔 Receive in-app notifications
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Notifications_01.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+  
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Notifications_02.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+### 🚩 Report inappropriate content
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Report_Photo_01.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Report_Photo_02.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+### 🛠️ Admin tools for user and category management
+
+ <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Admin_Manage_01.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Admin_Manage_02.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Admin_Manage_03.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+  
+   <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Admin_Manage_04.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+### ✅ Admin review system for reports
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Reports_01.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Reports_02.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Reports_03.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+### MessageBoxes & Alerts
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_01.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_02.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+  
+   <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_03.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+   <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_04.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_05.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+   <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_06.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+   <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_07.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_08.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_09.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+   <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_10.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_11.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_12.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Messagebox_13.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Onboarding_01.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+### 📧 Contact Admin and Banned Notice
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Contact_Admin_01.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Contacts_01.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+  <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Contacts_02.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+  
+   <p align="center">
+      <img src="./docs/images/UI_Screenshoots/Banned_Notice_01.png" alt="PhotoShow UI screenshots" width="500" />
+    </p>
+
+</details>
 
 <br>
 
@@ -199,6 +465,7 @@ ORM models live in `app/core/db/models/` and are implemented with `SQLAlchemy`. 
    ```
 
    > ⚠️ **PowerShell Execution Policy Error?** If you see "running scripts is disabled on this system", either:
+   >
    > - Use **Command Prompt** (`.bat` command above) instead, OR
    > - Run this once to allow scripts: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
@@ -209,12 +476,13 @@ ORM models live in `app/core/db/models/` and are implemented with `SQLAlchemy`. 
    ```
 
    > **To deactivate the virtual environment:**
-   > 
+   >
    > - On any OS, simply run:
+   >
    > ```
    > deactivate
    > ```
-   > 
+   >
    > This will return you to your system's default Python environment.
    >
    > **Note:** Some dependencies may only work correctly inside the `.venv` virtual environment. It is highly recommended to use the virtual environment for all development and testing.
@@ -531,11 +799,13 @@ To compile locally, follow these steps:
    **Choose one method:**
 
    **🟢 Interactive (you're prompted for credentials):**
+
    ```bash
    python scripts/build.py --interactive
    ```
 
    **🔵 Command-Line Arguments:**
+
    ```bash
    python scripts/build.py --cloud-name your_cloud_name --api-key your_api_key --api-secret your_secret --default-avatar-public-id your_avatar_public_id --default-avatar-url your_avatar_url
    ```
@@ -601,16 +871,16 @@ Your contributions help improve PhotoShow! Whether you're fixing a bug, improvin
 
 ### :memo: Naming Conventions
 
-| Type       | Purpose            | Branch Example           | Commit Example                    |
-| ---------- | ------------------ | ------------------------ | --------------------------------- |
-| `feat`     | New feature        | `feat/photo-grid`        | `feat: add photo grid view`       |
-| `fix`      | Bug fix            | `fix/login-validation`   | `fix: resolve login error`        |
-| `docs`     | Documentation      | `docs/update-readme`     | `docs: update installation steps` |
-| `refactor` | Code restructuring | `refactor/album-service` | `refactor: simplify album logic`  |
-| `test`     | Testing            | `test/auth-tests`        | `test: add auth unit tests`       |
+| Type       | Purpose            | Branch Example                 | Commit Example                                              |
+| ---------- | ------------------ | ------------------------------ | ----------------------------------------------------------- |
+| `feat`     | New feature        | `feat/photo-grid`              | `feat: add photo grid view`                                 |
+| `fix`      | Bug fix            | `fix/login-validation`         | `fix: resolve login error`                                  |
+| `docs`     | Documentation      | `docs/update-readme`           | `docs: update installation steps`                           |
+| `refactor` | Code restructuring | `refactor/album-service`       | `refactor: simplify album logic`                            |
+| `test`     | Testing            | `test/auth-tests`              | `test: add auth unit tests`                                 |
 | `build`    | Build system       | `build/pyinstaller-dist-fixes` | `build: automate PyInstaller with compile-time credentials` |
-| `ci`       | CI/CD pipelines    | `ci/add-lint-workflow`   | `ci: add lint workflow`           |
-| `chore`    | Maintenance        | `chore/update-deps`      | `chore: update dependencies`      |
+| `ci`       | CI/CD pipelines    | `ci/add-lint-workflow`         | `ci: add lint workflow`                                     |
+| `chore`    | Maintenance        | `chore/update-deps`            | `chore: update dependencies`                                |
 
 ### :arrows_counterclockwise: Contribution Workflow
 
