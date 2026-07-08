@@ -30,7 +30,6 @@
 ## :bookmark_tabs: Table of Contents
 
 - [:bulb: About](#bulb-about)
-- [:clapper: Demo Video](#clapper-demo-video)
 - [:frame_with_picture: UI Screenshots](#frame_with_picture-ui-screenshots)
 - [:computer: Tech Stack](#computer-tech-stack)
 - [:triangular_ruler: Architecture & Data Model](#triangular_ruler-architecture--data-model)
@@ -70,10 +69,6 @@ PhotoShow is a local desktop application for browsing, organizing, and sharing p
 - 🛠️ Admin tools for user and category management
 - ✅ Admin review system for reports
 - 📧 Contact Admin for banned users to appeal their ban
-
-## :clapper: Demo Video
-
-A demo video for PhotoShow will be added soon.
 
 <br>
 
