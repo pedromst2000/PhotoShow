@@ -30,7 +30,7 @@
 ## :bookmark_tabs: Table of Contents
 
 - [:bulb: About](#bulb-about)
-- [:frame_with_picture: UI Screenshots](#frame_with_picture-ui-screenshots)
+- [:frame_with_picture: UI Screenshots](#art-ui-screenshots)
 - [:computer: Tech Stack](#computer-tech-stack)
 - [:triangular_ruler: Architecture & Data Model](#triangular_ruler-architecture--data-model)
   - [:classical_building: Architecture](#classical_building-architecture)
