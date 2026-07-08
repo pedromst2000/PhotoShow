@@ -72,7 +72,7 @@ PhotoShow is a local desktop application for browsing, organizing, and sharing p
 
 <br>
 
-## :frame_with_picture: UI Screenshots
+## :art: UI Screenshots
 
 <details>
 <summary><strong>Click to expand and view application screenshots</strong></summary>
