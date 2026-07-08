@@ -821,9 +821,16 @@ To compile locally, follow these steps:
    > - Or **allow/verify** the exe when your antivirus prompts you (click "Run anyway" or "Allow")
    > - If antivirus blocks DLL access: `PermissionError: [Errno 13] Permission denied: '..._internal\ucrtbase.dll'` → exclude the entire `dist/PhotoShow/_internal/` folder from real-time scanning
 
-   > After building, a `dist/PhotoShow` folder is created. Open it and run `PhotoShow.exe` — no Python required. Keep the entire folder together (do not remove `_internal` or other support files). The executable is platform-specific; rebuild separately on Windows, macOS, or Linux.
+   > After building, a `dist/PhotoShow` folder is created. The executable is platform-specific; rebuild separately on Windows, macOS, or Linux.
 
-   > **Deploy anywhere:** Move the `PhotoShow` folder from `dist/` to your **Desktop** (or anywhere you want). Then double-click `PhotoShow.exe` inside it to run — no Python required! Keep the folder and all its contents together.
+### Using the Executable
+
+1. **Navigate to the build folder:** Open `dist/PhotoShow/` in your file explorer
+2. **Run the application:** Double-click `PhotoShow.exe` to launch
+3. **Keep files together:** Do not move or delete the `_internal/` folder or separate `PhotoShow.exe` from other files
+4. **(Optional) Deploy elsewhere:** Move the entire `dist/PhotoShow/` folder from `dist/` to your Desktop, Program Files, or any location on your system — the portable executable runs standalone without Python
+
+Your data is stored at `dist/PhotoShow/photoshow.db` (see [Database Location](#database-location) for details).
 
 ### Database Location
 
